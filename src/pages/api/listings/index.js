@@ -99,6 +99,8 @@ export default async function handler(req, res) {
                         ],
                     });
 
+                    // ***** may be changed in future *****
+                    // instead of checking if booking dates overlap, just have an isBooked for the listigns
                     // Convert bookings to a Set for faster lookups
                     const bookingSet = new Set(
                         bookings.map((booking) => booking.listingId.toString())

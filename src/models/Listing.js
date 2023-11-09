@@ -165,6 +165,6 @@ ListingSchema.virtual("numOfBedrooms").get(function () {
 ListingSchema.set("toObject", { virtuals: true });
 ListingSchema.set("toJSON", { virtuals: true });
 
-const ListingModel = mongoose.model("Listing", ListingSchema);
+const ListingModel = mongoose.models.Listing || mongoose.model("Listing", ListingSchema);
 
 module.exports = ListingModel;

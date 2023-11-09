@@ -69,28 +69,17 @@ const ListingItem = ({ listing }) => {
         return requests.filter(
             (req) => req.status !== "rejected" && req.status !== "pendingSubTenant"
         );
-    });
+    }, [requests]);
 
     const subtenantRequests = useMemo(() => {
         return requests.filter((req) => req.status === "pendingSubTenant");
-    });
+    }, [requests]);
 
     return (
-        <Link href="#" className="max-w-lg">
+        <Link href={`/listing/${listing._id}`} className="max-w-lg">
             <div className="w-full h-[13rem] rounded-md">
-                <Carousel dots={true} images={images} index={0} from={"Explore"} />
+                <Carousel dots={true} images={images} index={0} from={"Explore"} rounded />
             </div>
-            {/* <img
-                alt="Listing Image"
-                className="w-full rounded-lg mb-1"
-                height="150"
-                width="350"
-                src="/placeholder.svg"
-                style={{
-                    aspectRatio: "350/150",
-                    objectFit: "cover",
-                }}
-            /> */}
             <div className="flex flex-col">
                 <div className="flex justify-between">
                     <h3 className="font-medium">{listing.title}</h3>
@@ -105,6 +94,7 @@ const ListingItem = ({ listing }) => {
                             : `${listing.price} List Price`}
                     </h3>
                     <p>
+                        {/* NB: The calculation for active bids here is different to the one on individual listing page  */}
                         {tenantReqests.length
                             ? `${tenantReqests.length} active bid${
                                   tenantReqests.length === 1 ? "" : "s"

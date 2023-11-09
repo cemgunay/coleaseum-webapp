@@ -167,4 +167,4 @@ ListingSchema.set("toJSON", { virtuals: true });
 
 const ListingModel = mongoose.models.Listing || mongoose.model("Listing", ListingSchema);
 
-module.exports = ListingModel;
+export default ListingModel;

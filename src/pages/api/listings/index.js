@@ -2,6 +2,72 @@ import connectMongo from "@/utils/connectMongo";
 import Listing from "@/models/Listing";
 import Booking from "@/models/Booking";
 
+// helper function to build the DB query from request query and filters
+const buildDBQuery = (reqQuery, filters) => {
+    // create dbQuery to be edited by req query and filters
+    const dbQuery = { published: true };
+
+    // populate dbQuery object based on request query and filters
+    if (reqQuery.city) dbQuery.city = reqQuery.city;
+    if (reqQuery.moveInDate) {
+        dbQuery.moveInDate = {
+            $gte: reqQuery.moveInDate[0],
+            $lte: reqQuery.moveInDate[1],
+        };
+    }
+    if (reqQuery.moveOutDate) {
+        dbQuery.moveOutDate = {
+            $gte: reqQuery.moveOutDate[0],
+            $lte: reqQuery.moveOutDate[1],
+        };
+    }
+    if (reqQuery.expiryDate) {
+        dbQuery.expiryDate = {
+            $gte: reqQuery.expiryDate[0],
+            $lte: reqQuery.expiryDate[1],
+        };
+    }
+    if (filters.price) {
+        dbQuery.price = { $gte: filters.price[0], $lte: filters.price[1] };
+    }
+    if (filters.propertyType) {
+        dbQuery["aboutyourplace.propertyType"] = filters.propertyType;
+    }
+    if (reqQuery.numOfBedrooms) {
+        dbQuery["bedrooms.length"] = {
+            $gte: reqQuery.numOfBedrooms[0],
+            $lte: reqQuery.numOfBedrooms[1],
+        };
+    }
+    if (reqQuery.utilities) {
+        const { hydro, electricity, water, wifi } = reqQuery.utilities;
+        if (hydro) {
+            dbQuery["utilities.hydro"] = hydro;
+        }
+        if (electricity) {
+            dbQuery["utilities.electricity"] = electricity;
+        }
+        if (water) {
+            dbQuery["utilities.water"] = water;
+        }
+        if (wifi) {
+            dbQuery["utilities.wifi"] = wifi;
+        }
+    }
+
+    return dbQuery;
+};
+
+// helper function to parse dates (to only consider month and year, ignoring specific days)
+const parseDates = (filters) => {
+    const startDate = new Date(filters.startDate);
+    const endDate = new Date(filters.endDate);
+    return {
+        startMonth: new Date(startDate.getFullYear(), startDate.getMonth(), 1),
+        endMonth: new Date(endDate.getFullYear(), endDate.getMonth(), 1),
+    };
+};
+
 export default async function handler(req, res) {
     try {
         // attempt DB connection
@@ -9,69 +75,17 @@ export default async function handler(req, res) {
 
         // only allowing GET requests (for now, not sure if this endpoint needs PUTs or POSTs too)
         if (req.method == "GET") {
-            // create query that will be edited by filters
-            const dbQuery = { published: true };
-
             // extract query filters from request
             const filters = req.query.filters ? JSON.parse(req.query.filters) : {};
 
-            // populate dbQuery based on received query and filters
-            if (req.query.city) {
-                dbQuery.city = req.query.city;
-            }
-            if (req.query.moveInDate) {
-                dbQuery.moveInDate = {
-                    $gte: req.query.moveInDate[0],
-                    $lte: req.query.moveInDate[1],
-                };
-            }
-            if (req.query.moveOutDate) {
-                dbQuery.moveOutDate = {
-                    $gte: req.query.moveOutDate[0],
-                    $lte: req.query.moveOutDate[1],
-                };
-            }
-            if (req.query.expiryDate) {
-                dbQuery.expiryDate = {
-                    $gte: req.query.expiryDate[0],
-                    $lte: req.query.expiryDate[1],
-                };
-            }
-            if (filters.price) {
-                dbQuery.price = { $gte: filters.price[0], $lte: filters.price[1] };
-            }
-            if (filters.propertyType) {
-                dbQuery["aboutyourplace.propertyType"] = filters.propertyType;
-            }
-            if (req.query.numOfBedrooms) {
-                dbQuery["bedrooms.length"] = {
-                    $gte: req.query.numOfBedrooms[0],
-                    $lte: req.query.numOfBedrooms[1],
-                };
-            }
-            if (req.query.utilities) {
-                const { hydro, electricity, water, wifi } = req.query.utilities;
-                if (hydro) {
-                    dbQuery["utilities.hydro"] = hydro;
-                }
-                if (electricity) {
-                    dbQuery["utilities.electricity"] = electricity;
-                }
-                if (water) {
-                    dbQuery["utilities.water"] = water;
-                }
-                if (wifi) {
-                    dbQuery["utilities.wifi"] = wifi;
-                }
-            }
+            // build db query with helper
+            const dbQuery = buildDBQuery(req.query, filters);
 
             if (filters.startDate && filters.endDate) {
-                // Parse dates to only consider the year and month, ignoring specific days
-                const startDate = new Date(filters.startDate);
-                const endDate = new Date(filters.endDate);
-                const startMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1);
-                const endMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+                // parse dates to ignore specific days, only consider month and year
+                const { startMonth, endMonth } = parseDates(filters);
 
+                // query the DB, filtering out listings already booked for desired date range
                 try {
                     const listings = await Listing.find(dbQuery).exec();
 
@@ -100,6 +114,7 @@ export default async function handler(req, res) {
                     res.status(500).json({ message: "Internal Server Error" });
                 }
             } else {
+                // query DB
                 try {
                     const listings = await Listing.find(dbQuery).exec();
                     res.status(200).json(listings);
@@ -114,6 +129,6 @@ export default async function handler(req, res) {
     } catch (error) {
         // handle connection errors
         console.error("Failed to connect to the DB", error);
-        res.status(500).join({ error: "Internal Server Error" });
+        res.status(500).json({ error: "Internal Server Error" });
     }
 }

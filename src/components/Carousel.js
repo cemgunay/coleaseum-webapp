@@ -12,6 +12,7 @@ const Carousel = ({
     onClick,
     addMargins,
     setWidth,
+    rounded,
 }) => {
     const settings = {
         infinite: true,
@@ -39,7 +40,7 @@ const Carousel = ({
                     onClick={onClick}
                     className={`${addMargins ? "carousel-image with-margin" : "carousel-image"} ${
                         setWidth ? "set-width" : ""
-                    } rounded-md`}
+                    } ${rounded ? "rounded-md" : ""}`}
                 />
             ))}
         </Slider>

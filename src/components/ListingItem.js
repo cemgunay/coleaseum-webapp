@@ -1,23 +1,79 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
 
 const ListingItem = ({ listing }) => {
     const images = listing.images.map(({ url }) => url);
+    const [requests, setRequests] = useState([]);
+    const [activeRequests, setActiveRequests] = useState([]);
+    const [highestRequestPrice, setHighestRequestPrice] = useState(null);
+    const [highestActiveRequestPrice, setHighestActiveRequestPrice] = useState(null);
 
-    // get all requests for a listing (populate tenantReqests and subtenantRequests state too)
-    // useEffect()...
+    // get all requests and all active requests
+    useEffect(() => {
+        const fetchRequests = async () => {
+            try {
+                // fetch all requests for the current listing
+                const requestsResponse = await fetch(
+                    `/api/requests/listingrequests/${listing._id}`
+                );
+                if (!requestsResponse.ok) {
+                    throw new Error("Failed to fetch requests :(");
+                }
+                const requestsData = await requestsResponse.json();
+                setRequests(requestsData);
 
-    // get all active requests for a listing
-    // useEffect()...
+                // fetch all active requests for the current listing
+                const activeRequestsResponse = await fetch(
+                    `/api/requests/listingactiverequests/${listing._id}`
+                );
+                if (!activeRequestsResponse.ok) {
+                    throw new Error("Failed to fetch active requests :(");
+                }
+                const activeRequestsData = await activeRequestsResponse.json();
+                setActiveRequests(activeRequestsData);
+
+                // process data to find highest prices
+                // create arrays of prices from each request, defaulting to zero if no price found
+                // NB: defaulting to 0 instead of -Infinity bc we shouldn't have any negative prices
+                const requestPrices = requestsData.map((req) => req.price || 0);
+                const activeRequestPrices = activeRequestsData.map((req) => req.price || 0);
+
+                // update state (no need to set to null if length is 0 since they start out as null)
+                if (requestPrices.length) {
+                    setHighestRequestPrice(Math.max(...requestPrices));
+                }
+
+                if (activeRequestPrices.length) {
+                    setHighestActiveRequestPrice(Math.max(...activeRequestPrices));
+                }
+            } catch (error) {
+                console.error("Failed overall: \n", error);
+                throw new Error("Failed overall :(");
+            }
+        };
+
+        // if we have a listing, fetch the relevant requests
+        if (listing && listing._id) {
+            fetchRequests();
+        }
+    }, [listing._id]);
 
     // format address string from location info
-    const formattedAddress =
-        listing.location.address1 +
-        ", " +
-        listing.location.city +
-        ", " +
-        listing.location.stateprovince;
+    const { address1, city, stateprovince } = listing.location;
+    const formattedAddress = `${address1}, ${city}, ${stateprovince}`;
+
+    // filter tenant and subtenant requests from requests array
+    // using memoization here to ensure this filtering only happens if requests array changes
+    const tenantReqests = useMemo(() => {
+        return requests.filter(
+            (req) => req.status !== "rejected" && req.status !== "pendingSubTenant"
+        );
+    });
+
+    const subtenantRequests = useMemo(() => {
+        return requests.filter((req) => req.status === "pendingSubTenant");
+    });
 
     return (
         <Link href="#" className="max-w-lg">
@@ -38,11 +94,23 @@ const ListingItem = ({ listing }) => {
             <div className="flex flex-col">
                 <div className="flex justify-between">
                     <h3 className="font-medium">{listing.title}</h3>
+                    {/* <p>{listing.days_left}</p> */}
                 </div>
                 <address>{formattedAddress}</address>
+                <p>{listing.dates}</p>
                 <div className="flex justify-between">
-                    <h3 className="font-medium">{listing.price} Highest Offer</h3>
-                    <p>No active bids</p>
+                    <h3 className="font-medium">
+                        {highestActiveRequestPrice
+                            ? `${highestActiveRequestPrice} Highest Offer`
+                            : `${listing.price} List Price`}
+                    </h3>
+                    <p>
+                        {tenantReqests.length
+                            ? `${tenantReqests.length} active bid${
+                                  tenantReqests.length === 1 ? "" : "s"
+                              }`
+                            : `No active bids`}
+                    </p>
                 </div>
             </div>
         </Link>

@@ -1,8 +1,7 @@
-import Image from "next/image";
-import { Inter } from "next/font/google";
 import ListingList from "@/components/ListingList";
+import { useEffect, useState } from "react";
 
-const inter = Inter({ subsets: ["latin"] });
+// const inter = Inter({ subsets: ["latin"] });
 
 export default function Explore() {
     // const currentUser = null;
@@ -10,41 +9,77 @@ export default function Explore() {
         firstName: "Nathan",
     };
 
-    const listings = [
-        {
-            id: 1,
-            title: "Test 007",
-            address: "211 Donlea Dr, Toronto, ON",
-            location: {
-                address1: "211 Donlea Dr",
-                city: "Toronto",
-                stateprovince: "ON",
-            },
-            price: 100,
-        },
-        {
-            id: 2,
-            title: "Cem's House",
-            address: "211 Donlea Dr, Toronto, ON",
-            location: {
-                address1: "211 Donlea Dr",
-                city: "Toronto",
-                stateprovince: "ON",
-            },
-            price: 325,
-        },
-        {
-            id: 3,
-            title: "Icon Apartment",
-            address: "330 Phillip St, Waterloo, ON",
-            location: {
-                address1: "330 Phillip St",
-                city: "Waterloo",
-                stateprovince: "ON",
-            },
-            price: 125,
-        },
-    ];
+    // const listings = [
+    //     {
+    //         id: 1,
+    //         title: "Test 007",
+    //         address: "211 Donlea Dr, Toronto, ON",
+    //         location: {
+    //             address1: "211 Donlea Dr",
+    //             city: "Toronto",
+    //             stateprovince: "ON",
+    //         },
+    //         price: 100,
+    //     },
+    //     {
+    //         id: 2,
+    //         title: "Cem's House",
+    //         address: "211 Donlea Dr, Toronto, ON",
+    //         location: {
+    //             address1: "211 Donlea Dr",
+    //             city: "Toronto",
+    //             stateprovince: "ON",
+    //         },
+    //         price: 325,
+    //     },
+    //     {
+    //         id: 3,
+    //         title: "Icon Apartment",
+    //         address: "330 Phillip St, Waterloo, ON",
+    //         location: {
+    //             address1: "330 Phillip St",
+    //             city: "Waterloo",
+    //             stateprovince: "ON",
+    //         },
+    //         price: 125,
+    //     },
+    // ];
+
+    const [listings, setListings] = useState([]);
+
+    // fetch listings from DB
+    useEffect(() => {
+        const fetchLlistings = async () => {
+            // hardcoded filters (I think)
+            const filters = {
+                price: [10, 10000],
+                startDate: "2023-05-01",
+                endDate: "2024-10-14",
+            };
+
+            // build a query string for the GET request
+            const queryString = new URLSearchParams({
+                filters: JSON.stringify(filters),
+            }).toString();
+
+            // call API endpoint to get filtered listings
+            const response = await fetch(`/api/listings?${queryString}`);
+
+            // error handling
+            if (!response.ok) {
+                console.log(response);
+                throw new Error("API call failed :(");
+            }
+
+            // update state with listings, sorting them first
+            const receivedListings = await response.json();
+            console.log(receivedListings);
+            setListings(
+                receivedListings.sort((p1, p2) => new Date(p2.createdAt) - new Date(p1.createdAt))
+            );
+        };
+        fetchLlistings();
+    }, []);
 
     return (
         <main

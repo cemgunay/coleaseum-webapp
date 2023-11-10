@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Carousel from "@/components/Carousel";
 import { FaCircleChevronLeft } from "react-icons/fa6";
 import LocationMarker from "@/components/LocationMarker";
+import BedroomsDisplay from "@/components/BedroomsDisplay";
 
 const Listing = () => {
     // get listing ID from route params
@@ -156,6 +157,18 @@ const Listing = () => {
                                 ? listing.description?.substring(0, 250).listing + "..."
                                 : listing.description}
                         </p>
+                    </div>
+                    <div className="py-4 border-b-[0.1rem] border-gray-300">
+                        <h2 className="text-2xl font-bold">Bedrooms</h2>
+                        <BedroomsDisplay bedrooms={listing.basics.bedrooms} />
+                    </div>
+                    <div className="py-4 border-b-[0.1rem] border-gray-300">
+                        <h2 className="text-2xl font-bold">Utilities</h2>
+                        {/* Utilities component  */}
+                    </div>
+                    <div className="py-4 border-b-[0.1rem] border-gray-300">
+                        <h2 className="text-2xl font-bold">What this place offers</h2>
+                        {/* Amenities component  */}
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 h-[300px]">
                         <h2 className="text-2xl font-bold">Location</h2>

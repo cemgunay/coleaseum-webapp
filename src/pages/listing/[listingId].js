@@ -26,11 +26,13 @@ const Listing = () => {
     const [showModalCarousel, setShowModalCarousel] = useState(false);
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-    const [isBookedByUser, setIsBookedByUser] = useState(false);
-    const [booking, setBooking] = useState(null);
-    const [requests, setRequests] = useState([]);
+    // still not sure if this state is needed in new version yet
+    // might need it for the BottomBar component
+
+    // const [isBookedByUser, setIsBookedByUser] = useState(false);
+    // const [booking, setBooking] = useState(null);
+    // const [requests, setRequests] = useState([]);
     // const [activeRequests, setActiveRequests] = useState([]);
-    const [openModal, setOpenModal] = useState(false);
 
     // fetch listing data from API
     useEffect(() => {
@@ -128,14 +130,10 @@ const Listing = () => {
                         : "h-screen overflow-y-hidden"
                 }
             >
-                {/* {openModal && <Modal closeModal={setOpenModal} images={images} />} */}
-
+                {/* Main image carousel */}
                 <div className="w-full h-60">
                     <Carousel
                         images={images}
-                        // onClick={handleClick} will set modal open here. actually maybe not
-                        // a separate "view all" button might be better. otherwise it will
-                        // click (and open the modal) when trying to scroll through images
                         onClick={() => setShowGrid(true)}
                         index={0}
                         dots={true}
@@ -143,6 +141,7 @@ const Listing = () => {
                     />
                 </div>
 
+                {/* Image grid to be shown when user clicks on any image in the main carousel */}
                 {showGrid && (
                     <ImageGrid
                         images={images}
@@ -151,6 +150,7 @@ const Listing = () => {
                     />
                 )}
 
+                {/* Modal carousel to be shown when user clicks on any image in the image grid */}
                 {showModalCarousel && (
                     <ModalCarousel
                         images={images}
@@ -162,6 +162,7 @@ const Listing = () => {
                     />
                 )}
 
+                {/* Listing info */}
                 <div className="flex flex-col mx-8">
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <div className="flex justify-between">

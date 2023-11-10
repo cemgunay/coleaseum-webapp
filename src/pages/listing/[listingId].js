@@ -180,6 +180,32 @@ const Listing = () => {
                             lng={listing.location.lng}
                         />
                     </div>
+                    <div className="py-4">
+                        <h2 className="text-2xl font-bold mb-4">Legal</h2>
+                        <div className="flex flex-col gap-6">
+                            <div>
+                                <div className="font-semibold text-lg">Health & Safety</div>
+                                <p>
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
+                                </p>
+                            </div>
+                            <div>
+                                <div className="font-semibold text-lg">Sublet Policy</div>
+                                <p>
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
+                                </p>
+                            </div>
+                            <div>
+                                <div className="font-semibold text-lg">Report this listing</div>
+                                <p>
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
+                                </p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </>

@@ -5,9 +5,6 @@ const Carousel = ({
     slidesToShow,
     dots,
     index,
-    from,
-    setData,
-    data,
     images,
     onClick,
     addMargins,
@@ -24,14 +21,8 @@ const Carousel = ({
         initialSlide: index,
     };
 
-    const handleOnChange = (currentImage) => {
-        if (from === "Collage" && setData) {
-            setData({ ...data, i: currentImage });
-        }
-    };
-
     return (
-        <Slider {...settings} afterChange={handleOnChange}>
+        <Slider {...settings}>
             {images.map((element, i) => (
                 <img
                     key={i}

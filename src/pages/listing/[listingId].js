@@ -6,6 +6,8 @@ import LocationMarker from "@/components/LocationMarker";
 import BedroomsDisplay from "@/components/BedroomsDisplay";
 import AmenitiesDisplay from "@/components/AmenitiesDisplay";
 import UtilitiesDisplay from "@/components/UtilitiesDisplay";
+import ImageGrid from "@/components/ImageGrid";
+import ModalCarousel from "@/components/ModalCarousel";
 
 const Listing = () => {
     // get listing ID from route params
@@ -20,6 +22,9 @@ const Listing = () => {
     const [highestRequest, setHighestRequest] = useState(0);
     const [numberOfRequests, setNumberOfRequests] = useState(0);
     const [user, setUser] = useState(null);
+    const [showGrid, setShowGrid] = useState(false);
+    const [showModalCarousel, setShowModalCarousel] = useState(false);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
     const [isBookedByUser, setIsBookedByUser] = useState(false);
     const [booking, setBooking] = useState(null);
@@ -93,6 +98,13 @@ const Listing = () => {
         }
     }, [listing]);
 
+    // function to handle image selection from grid
+    const handleImageSelect = (index) => {
+        setSelectedImageIndex(index);
+        setShowGrid(false);
+        setShowModalCarousel(true);
+    };
+
     // show loading page until listing is successfully retrieved
     // TODO: get a proper loading screen, just text right now
     if (!listing) {
@@ -103,13 +115,15 @@ const Listing = () => {
 
     return (
         <>
-            <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
-                <FaCircleChevronLeft className="text-2xl text-gray-800" />
-            </div>
+            {!showGrid && !showModalCarousel && (
+                <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
+                    <FaCircleChevronLeft className="text-2xl text-gray-800" />
+                </div>
+            )}
 
             <div
                 className={
-                    !openModal
+                    !showGrid && !showModalCarousel
                         ? "flex flex-col no-underline text-black overflow-hidden pb-24"
                         : "h-screen overflow-y-hidden"
                 }
@@ -122,11 +136,31 @@ const Listing = () => {
                         // onClick={handleClick} will set modal open here. actually maybe not
                         // a separate "view all" button might be better. otherwise it will
                         // click (and open the modal) when trying to scroll through images
+                        onClick={() => setShowGrid(true)}
                         index={0}
                         dots={true}
                         from={"Listing"}
                     />
                 </div>
+
+                {showGrid && (
+                    <ImageGrid
+                        images={images}
+                        onImageSelect={handleImageSelect}
+                        onClose={() => setShowGrid(false)}
+                    />
+                )}
+
+                {showModalCarousel && (
+                    <ModalCarousel
+                        images={images}
+                        initialSlide={selectedImageIndex}
+                        onClose={() => {
+                            setShowModalCarousel(false);
+                            setShowGrid(true);
+                        }}
+                    />
+                )}
 
                 <div className="flex flex-col mx-8">
                     <div className="py-4 border-b-[0.1rem] border-gray-300">

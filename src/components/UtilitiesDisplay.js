@@ -2,7 +2,7 @@ import React from "react";
 
 import { FaBolt } from "react-icons/fa";
 import { FaWifi } from "react-icons/fa6";
-import { IoWaterOutline } from "react-icons/io5";
+import { IoWater } from "react-icons/io5";
 
 const UtilitiesCard = ({ utility }) => {
     const utilitiesInfo = {
@@ -15,7 +15,7 @@ const UtilitiesCard = ({ utility }) => {
             icon: <FaBolt className="text-2xl" />,
             name: "Hydro",
         },
-        water: { icon: <IoWaterOutline className="text-2xl" />, name: "Water" },
+        water: { icon: <IoWater className="text-2xl" />, name: "Water" },
         wifi: { icon: <FaWifi className="text-2xl" />, name: "WiFi" },
     };
 

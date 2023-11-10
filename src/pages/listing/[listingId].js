@@ -4,6 +4,7 @@ import Carousel from "@/components/Carousel";
 import { FaCircleChevronLeft } from "react-icons/fa6";
 import LocationMarker from "@/components/LocationMarker";
 import BedroomsDisplay from "@/components/BedroomsDisplay";
+import Amenities from "@/components/Amenities";
 
 const Listing = () => {
     // get listing ID from route params
@@ -168,7 +169,7 @@ const Listing = () => {
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <h2 className="text-2xl font-bold">What this place offers</h2>
-                        {/* Amenities component  */}
+                        <Amenities amenities={listing.amenities} />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 h-[300px]">
                         <h2 className="text-2xl font-bold">Location</h2>

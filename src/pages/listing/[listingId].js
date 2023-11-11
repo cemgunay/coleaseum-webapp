@@ -9,6 +9,7 @@ import UtilitiesDisplay from "@/components/UtilitiesDisplay";
 import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
+import Skeleton from "@/components/Skeleton";
 
 const Listing = () => {
     // get listing ID from route params
@@ -108,10 +109,25 @@ const Listing = () => {
         setShowModalCarousel(true);
     };
 
+    // loading component
+    const Loading = () => {
+        return (
+            <div className="flex flex-col items-start justify-start h-screen gap-3">
+                <Skeleton className="h-60 w-full rounded-none mb-6" />
+                <Skeleton className="h-8 w-24 mx-4 mb-2" />
+                <Skeleton className="h-6 w-52 mx-4 mb-8" />
+                <Skeleton className="h-6 w-80 mx-4" />
+                <Skeleton className="h-6 w-96 mx-4" />
+                <Skeleton className="h-6 w-72 mx-4" />
+                <Skeleton className="h-6 w-80 mx-4" />
+                <Skeleton className="h-6 w-72 mx-4" />
+            </div>
+        );
+    };
+
     // show loading page until listing is successfully retrieved
-    // TODO: get a proper loading screen, just text right now
     if (!listing) {
-        return <div>Loading...</div>;
+        return <Loading />;
     }
 
     return (

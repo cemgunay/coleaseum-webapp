@@ -8,6 +8,7 @@ import AmenitiesDisplay from "@/components/AmenitiesDisplay";
 import UtilitiesDisplay from "@/components/UtilitiesDisplay";
 import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
+import BottomBar from "@/components/BottomBar";
 
 const Listing = () => {
     // get listing ID from route params
@@ -111,18 +112,18 @@ const Listing = () => {
     // TODO: get a proper loading screen, just text right now
     if (!listing) {
         return <div>Loading...</div>;
-    } else {
-        console.log(listing);
     }
 
     return (
         <>
+            {/* Back button */}
             {!showGrid && !showModalCarousel && (
                 <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
                     <FaCircleChevronLeft className="text-2xl text-gray-800" />
                 </div>
             )}
 
+            {/* Main content */}
             <div
                 className={
                     !showGrid && !showModalCarousel
@@ -242,6 +243,7 @@ const Listing = () => {
                         </div>
                     </div>
                 </div>
+                <BottomBar />
             </div>
         </>
     );

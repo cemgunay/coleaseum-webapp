@@ -30,7 +30,6 @@ const UtilitiesCard = ({ utility }) => {
 const UtilitiesDisplay = ({ utilities }) => {
     // filter out utilities that are false
     const availableUtilities = Object.keys(utilities).filter((key) => utilities[key] === true);
-    console.log(availableUtilities);
 
     return (
         <div className="flex flex-wrap gap-2 mt-4">

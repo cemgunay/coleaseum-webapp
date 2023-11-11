@@ -9,42 +9,6 @@ export default function Explore() {
         firstName: "Nathan",
     };
 
-    // const listings = [
-    //     {
-    //         id: 1,
-    //         title: "Test 007",
-    //         address: "211 Donlea Dr, Toronto, ON",
-    //         location: {
-    //             address1: "211 Donlea Dr",
-    //             city: "Toronto",
-    //             stateprovince: "ON",
-    //         },
-    //         price: 100,
-    //     },
-    //     {
-    //         id: 2,
-    //         title: "Cem's House",
-    //         address: "211 Donlea Dr, Toronto, ON",
-    //         location: {
-    //             address1: "211 Donlea Dr",
-    //             city: "Toronto",
-    //             stateprovince: "ON",
-    //         },
-    //         price: 325,
-    //     },
-    //     {
-    //         id: 3,
-    //         title: "Icon Apartment",
-    //         address: "330 Phillip St, Waterloo, ON",
-    //         location: {
-    //             address1: "330 Phillip St",
-    //             city: "Waterloo",
-    //             stateprovince: "ON",
-    //         },
-    //         price: 125,
-    //     },
-    // ];
-
     const [listings, setListings] = useState([]);
 
     // fetch listings from DB
@@ -73,7 +37,7 @@ export default function Explore() {
 
             // update state with listings, sorting them first
             const receivedListings = await response.json();
-            console.log(receivedListings);
+            // console.log(receivedListings);
             setListings(
                 receivedListings.sort((p1, p2) => new Date(p2.createdAt) - new Date(p1.createdAt))
             );

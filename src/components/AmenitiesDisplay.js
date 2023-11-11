@@ -35,7 +35,6 @@ const AmenitiesCard = ({ amenity }) => {
 const AmenitiesDisplay = ({ amenities }) => {
     // filter out amenities that are false
     const availableAmenities = Object.keys(amenities).filter((key) => amenities[key] === true);
-    console.log(availableAmenities);
 
     return (
         <div className="flex flex-wrap gap-2 mt-4">

@@ -76,10 +76,7 @@ export default function Explore() {
 
     return (
         <>
-            <main
-                // className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-                className="m-[2rem] min-h-screen flex flex-col gap-2"
-            >
+            <main className="m-[2rem] min-h-screen flex flex-col gap-2">
                 <h1 className="font-bold text-3xl">All listings</h1>
                 {currentUser ? <div>Welcome back {currentUser.firstName}</div> : null}
                 <p>{listings.length} listings</p>

@@ -5,13 +5,11 @@ const Carousel = ({
     slidesToShow,
     dots,
     index,
-    from,
-    setData,
-    data,
     images,
     onClick,
     addMargins,
     setWidth,
+    rounded,
 }) => {
     const settings = {
         infinite: true,
@@ -23,14 +21,8 @@ const Carousel = ({
         initialSlide: index,
     };
 
-    const handleOnChange = (currentImage) => {
-        if (from === "Collage" && setData) {
-            setData({ ...data, i: currentImage });
-        }
-    };
-
     return (
-        <Slider {...settings} afterChange={handleOnChange}>
+        <Slider {...settings}>
             {images.map((element, i) => (
                 <img
                     key={i}
@@ -39,7 +31,7 @@ const Carousel = ({
                     onClick={onClick}
                     className={`${addMargins ? "carousel-image with-margin" : "carousel-image"} ${
                         setWidth ? "set-width" : ""
-                    } rounded-md`}
+                    } ${rounded ? "rounded-md" : ""}`}
                 />
             ))}
         </Slider>

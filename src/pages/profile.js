@@ -21,7 +21,7 @@ const profile = () => {
                 </div>
                 <div className="h-[1px] bg-slate-200 w-full" />
                 {[...Array(3)].map((_, i) => (
-                    <>
+                    <div className="flex flex-col gap-5 w-full" key={i}>
                         <div className="flex flex-col gap-3 w-full">
                             <Skeleton className="w-1/3 h-6 mb-1" />
                             <Skeleton className="w-1/4 h-5" />
@@ -29,7 +29,7 @@ const profile = () => {
                             <Skeleton className="w-1/3 h-5" />
                         </div>
                         <div className="h-[1px] bg-slate-200 w-full" />
-                    </>
+                    </div>
                 ))}
             </div>
         );

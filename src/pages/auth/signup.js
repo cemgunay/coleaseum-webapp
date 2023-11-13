@@ -4,6 +4,8 @@ import BottomNav from "@/components/BottomNav";
 import { set } from "mongoose";
 import { cn } from "@/utils/utils";
 import Link from "next/link";
+import AuthInput from "@/components/AuthInput";
+import Button from "@/components/Button";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -51,6 +53,7 @@ const SignupPage = () => {
 
     // handle form submission
     const handleSubmit = async (e) => {
+        console.log("submit clicked");
         e.preventDefault();
         const newErrors = {
             email: validateEmail(formData.email),
@@ -60,34 +63,35 @@ const SignupPage = () => {
 
         const isValid = Object.values(newErrors).every((error) => error === null);
         if (isValid) {
-            // proceed with form submission
-            try {
-                // call signup API route
-                const res = await fetch("/api/auth/signup", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify(formData),
-                });
-                if (!res.ok) {
-                    throw new Error("Signup failed. No 200 status code returned from API route.");
-                }
+            // // proceed with form submission
+            // try {
+            //     // call signup API route
+            //     const res = await fetch("/api/auth/signup", {
+            //         method: "POST",
+            //         headers: {
+            //             "Content-Type": "application/json",
+            //         },
+            //         body: JSON.stringify(formData),
+            //     });
+            //     if (!res.ok) {
+            //         throw new Error("Signup failed. No 200 status code returned from API route.");
+            //     }
 
-                // response.ok is true, so grab response data
-                const data = await res.json();
-                if (data.success) {
-                    // update user context
-                    setUser(data.user);
-                } else {
-                    // handle errors here, will have to do this in UI and that will entail code here
-                    // just a console log for now
-                    console.error("API route returned success: false");
-                }
-            } catch (error) {
-                console.error("Signup failed", error);
-                throw new Error(`Signup failed, error not caught by API route:\n${error}`);
-            }
+            //     // response.ok is true, so grab response data
+            //     const data = await res.json();
+            //     if (data.success) {
+            //         // update user context
+            //         setUser(data.user);
+            //     } else {
+            //         // handle errors here, will have to do this in UI and that will entail code here
+            //         // just a console log for now
+            //         console.error("API route returned success: false");
+            //     }
+            // } catch (error) {
+            //     console.error("Signup failed", error);
+            //     throw new Error(`Signup failed, error not caught by API route:\n${error}`);
+            // }
+            console.log(formData);
         }
     };
 
@@ -122,71 +126,47 @@ const SignupPage = () => {
                 <p className="text-lg text-slate-500">Lorem Ipsum.</p>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
                     {/* email input */}
-                    <input
+                    <AuthInput
                         type="email"
                         name="email"
                         placeholder="Email"
                         value={formData.email}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        className={cn(
-                            "border border-slate-300 rounded-md w-full h-11 px-4 py-2",
-                            touched.email && errors.email ? "border-red-500" : "border-slate-300"
-                        )}
+                        error={errors.email}
+                        touched={touched.email}
                     />
-                    {touched.email && errors.email && (
-                        <p className="text-sm ml-3 -mt-2 text-red-500">{errors.email}</p>
-                    )}
 
                     {/* password input */}
-                    <input
+                    <AuthInput
                         type="password"
                         name="password"
                         placeholder="Password"
                         value={formData.password}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        className={cn(
-                            "border border-slate-300 rounded-md w-full h-11 px-4 py-2",
-                            touched.password && errors.password
-                                ? "border-red-500"
-                                : "border-slate-300"
-                        )}
+                        error={errors.password}
+                        touched={touched.password}
                     />
-                    {touched.password && errors.password && (
-                        <p className="text-sm ml-3 -mt-2 text-red-500">{errors.password}</p>
-                    )}
 
                     {/* confirm password input */}
-                    <input
+                    <AuthInput
                         type="password"
                         name="confirmPassword"
                         placeholder="Confirm Password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         onBlur={handleBlur}
-                        className={cn(
-                            "border border-slate-300 rounded-md w-full h-11 px-4 py-2",
-                            touched.confirmPassword && errors.confirmPassword
-                                ? "border-red-500"
-                                : "border-slate-300"
-                        )}
+                        error={errors.confirmPassword}
+                        touched={touched.confirmPassword}
                     />
-                    {touched.confirmPassword && errors.confirmPassword && (
-                        <p className="text-sm ml-3 -mt-2 text-red-500">{errors.confirmPassword}</p>
-                    )}
 
                     {/* submit button */}
-                    <button
-                        type="submit"
-                        className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
-                    >
-                        Sign Up
-                    </button>
+                    <Button type="submit">Sign Up</Button>
                 </form>
                 <Link
                     href="/auth/signin"
-                    className="self-end mr-2 -mt-6 underline cursor-pointer text-[#61C0BF]"
+                    className="self-end mr-2 underline cursor-pointer text-[#61C0BF]"
                 >
                     Already have an account? Sign In.
                 </Link>

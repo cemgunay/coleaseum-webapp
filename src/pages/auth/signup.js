@@ -3,6 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import { set } from "mongoose";
 import { cn } from "@/utils/utils";
+import Link from "next/link";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -46,8 +47,6 @@ const SignupPage = () => {
     // handle form input changes
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        // we could also validate inputs on change instead of submit
-        // think I might swap to this
     };
 
     // handle form submission
@@ -92,7 +91,7 @@ const SignupPage = () => {
         }
     };
 
-    // function to validate when user leaves input field
+    // function to validate when user leaves an input field
     const handleBlur = (e) => {
         const { name } = e.target;
         setTouched({ ...touched, [name]: true });
@@ -185,6 +184,12 @@ const SignupPage = () => {
                         Sign Up
                     </button>
                 </form>
+                <Link
+                    href="/auth/signin"
+                    className="self-end mr-2 -mt-6 underline cursor-pointer text-[#61C0BF]"
+                >
+                    Already have an account? Sign In.
+                </Link>
             </div>
             <BottomNav />
         </>

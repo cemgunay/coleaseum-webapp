@@ -35,12 +35,20 @@ const validatePassword = (password) => {
 const SignupPage = () => {
     const { setUser } = useAuth();
     const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        dateOfBirth: new Date(),
+        location: "",
         email: "",
         password: "",
         confirmPassword: "",
     });
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({
+        firstName: false,
+        lastName: false,
+        dateOfBirth: false,
+        location: false,
         email: false,
         password: false,
         confirmPassword: false,
@@ -125,11 +133,38 @@ const SignupPage = () => {
                 <h1 className="font-bold text-3xl">Sign Up</h1>
                 <p className="text-lg text-slate-500">Lorem Ipsum.</p>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+                    {/* first name input */}
+                    <AuthInput
+                        title="First Name"
+                        type="text"
+                        name="firstName"
+                        placeholder="John"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={errors.firstName}
+                        touched={touched.firstName}
+                    />
+
+                    {/* last name input */}
+                    <AuthInput
+                        title="Last Name"
+                        type="text"
+                        name="lastName"
+                        placeholder="Doe"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={errors.lastName}
+                        touched={touched.lastName}
+                    />
+
                     {/* email input */}
                     <AuthInput
+                        title="Email"
                         type="email"
                         name="email"
-                        placeholder="Email"
+                        placeholder="john@example.com"
                         value={formData.email}
                         onChange={handleChange}
                         onBlur={handleBlur}
@@ -139,9 +174,9 @@ const SignupPage = () => {
 
                     {/* password input */}
                     <AuthInput
+                        title="Password"
                         type="password"
                         name="password"
-                        placeholder="Password"
                         value={formData.password}
                         onChange={handleChange}
                         onBlur={handleBlur}
@@ -151,9 +186,9 @@ const SignupPage = () => {
 
                     {/* confirm password input */}
                     <AuthInput
+                        title="Confirm Password"
                         type="password"
                         name="confirmPassword"
-                        placeholder="Confirm Password"
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         onBlur={handleBlur}

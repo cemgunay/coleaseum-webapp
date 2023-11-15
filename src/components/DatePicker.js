@@ -18,23 +18,6 @@ const YearPicker = ({ selectedYear, setSelectedYear }) => {
     const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
 
     return (
-        <select
-            value={selectedYear}
-            onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-        >
-            {years.map((year) => (
-                <option key={year} value={year}>
-                    {year}
-                </option>
-            ))}
-        </select>
-    );
-};
-
-const YearPicker2 = ({ selectedYear, setSelectedYear }) => {
-    const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
-
-    return (
         <Select onValueChange={(value) => setSelectedYear(parseInt(value, 10))}>
             <SelectTrigger>
                 <SelectValue placeholder={selectedYear} />
@@ -50,9 +33,42 @@ const YearPicker2 = ({ selectedYear, setSelectedYear }) => {
     );
 };
 
+const MonthPicker = ({ selectedMonth, setSelectedMonth }) => {
+    const months = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+    ];
+
+    return (
+        <Select onValueChange={(value) => setSelectedMonth(months.indexOf(value))}>
+            <SelectTrigger>
+                <SelectValue placeholder={months[selectedMonth]} />
+            </SelectTrigger>
+            <SelectContent>
+                {months.map((month) => (
+                    <SelectItem key={month} value={month}>
+                        {month}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
+    );
+};
+
 const DatePicker = () => {
     const [date, setDate] = useState(null);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+    const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [popoverDisplayDate, setPopoverDisplayDate] = useState(new Date());
 
     const handleYearChange = (year) => {
@@ -66,6 +82,17 @@ const DatePicker = () => {
         }
     };
 
+    const handleMonthChange = (month) => {
+        setSelectedMonth(month);
+        if (date) {
+            const newDate = new Date(date.getFullYear(), month, date.getDate());
+            setDate(newDate);
+            setPopoverDisplayDate(newDate);
+        } else {
+            setPopoverDisplayDate(new Date(popoverDisplayDate.getFullYear(), month));
+        }
+    };
+
     const handleDateSelect = (date) => {
         // just a temp function for now so I can console log the chosen date
         console.log(date);
@@ -73,7 +100,7 @@ const DatePicker = () => {
     };
 
     return (
-        <Popover>
+        <Popover side="bottom">
             <PopoverTrigger asChild>
                 <Button
                     variant={"outline"}
@@ -87,8 +114,12 @@ const DatePicker = () => {
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 flex flex-col items-center">
-                <div className="p-2">
-                    <YearPicker2 selectedYear={selectedYear} setSelectedYear={handleYearChange} />
+                <div className="flex gap-2 p-2">
+                    <YearPicker selectedYear={selectedYear} setSelectedYear={handleYearChange} />
+                    <MonthPicker
+                        selectedMonth={selectedMonth}
+                        setSelectedMonth={handleMonthChange}
+                    />
                 </div>
                 <Calendar
                     mode="single"

@@ -6,6 +6,7 @@ import { cn } from "@/utils/utils";
 import Link from "next/link";
 import AuthInput from "@/components/AuthInput";
 import Button from "@/components/Button";
+import DatePicker from "@/components/DatePicker";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -171,6 +172,9 @@ const SignupPage = () => {
                         error={errors.email}
                         touched={touched.email}
                     />
+
+                    {/* date of birth input */}
+                    <DatePicker />
 
                     {/* password input */}
                     <AuthInput

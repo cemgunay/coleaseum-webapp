@@ -113,7 +113,7 @@ export default async function handler(req, res) {
 
                     res.status(200).json(availableListings);
                 } catch (error) {
-                    res.status(500).json({ message: "Internal Server Error" });
+                    res.status(500).json({ error: "Internal Server Error" });
                 }
             } else {
                 // query DB
@@ -121,7 +121,7 @@ export default async function handler(req, res) {
                     const listings = await Listing.find(dbQuery).exec();
                     res.status(200).json(listings);
                 } catch (error) {
-                    res.status(500).json({ message: "Internal Server Error" });
+                    res.status(500).json({ error: "Internal Server Error" });
                 }
             }
         } else {

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import { set } from "mongoose";
@@ -46,7 +47,8 @@ const validateConfirmPassword = (confirmPassword, password) => {
 };
 
 const SignUp = () => {
-    const { setUser } = useAuth();
+    const { saveUser } = useAuth();
+    const router = useRouter();
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -99,15 +101,17 @@ const SignUp = () => {
                     body: JSON.stringify(formData),
                 });
                 if (!res.ok) {
+                    // signup failed, display error message
                     const error = JSON.parse(await res.text()).error;
                     setApiError(error);
-                    // throw new Error("Signup failed. No 200 status code returned from API route.");
                 } else {
+                    // signup successful, save user in context and redirect to profile page
                     const data = await res.json();
                     const user = jwtDecode(data.token).user;
                     console.log(user);
                     alert("Signup successful!");
-                    // setUser(user);
+                    saveUser(user);
+                    router.push("/profile");
                 }
 
                 setIsSubmitting(false);
@@ -116,7 +120,6 @@ const SignUp = () => {
                 setIsSubmitting(false);
                 throw new Error(`Signup failed, error not caught by API route:\n${error}`);
             }
-            // console.log(formData);
         }
     };
 
@@ -135,10 +138,6 @@ const SignUp = () => {
             case "password":
                 return validatePassword(value);
             case "confirmPassword":
-                // if (value !== formData.password) {
-                //     return "Passwords do not match";
-                // }
-                // return null;
                 return validateConfirmPassword(value, formData.password);
             default:
                 return null;

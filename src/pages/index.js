@@ -71,7 +71,12 @@ export default function Explore() {
 
     // show loading page until listings are successfully retrieved
     if (!listings.length) {
-        return <Loading />;
+        return (
+            <>
+                <Loading />
+                <BottomNav />
+            </>
+        );
     }
 
     return (

@@ -65,7 +65,7 @@ const MonthPicker = ({ selectedMonth, setSelectedMonth }) => {
     );
 };
 
-const DatePicker = () => {
+const DatePicker = ({ formData, setFormData }) => {
     const [date, setDate] = useState(null);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -95,8 +95,10 @@ const DatePicker = () => {
 
     const handleDateSelect = (date) => {
         // just a temp function for now so I can console log the chosen date
-        console.log(date);
+        console.log(format(date, "PPP"));
+        // console.log(format(date, "yyyy-MM-dd"));
         setDate(date);
+        setFormData({ ...formData, dateOfBirth: date });
     };
 
     return (

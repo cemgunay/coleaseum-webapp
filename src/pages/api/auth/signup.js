@@ -28,7 +28,7 @@ export default async function handler(req, res) {
                 // check if user already exists
                 let user = await User.findOne({ email });
                 if (user) {
-                    return res.status(400).json({ error: "User already exists" });
+                    return res.status(400).json({ error: "That email is already in use." });
                 }
 
                 // hash password

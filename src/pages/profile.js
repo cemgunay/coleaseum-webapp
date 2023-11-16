@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 
 const profile = () => {
     // get user object from context
-    // will ONLY contain ID. this is for security reasons
+    // will only contain ID. this is for security reasons
     // we will use this ID to fetch the rest of their info from the db
-    const { user: contextUser, loading, signOut } = useAuth();
-    console.log(contextUser);
+    const { user: contextUser, loading: contextLoading, signOut } = useAuth();
 
     // state for user object that will be fetched from db
     const [user, setUser] = useState(null);
+
+    // other state
+    const [error, setError] = useState(null);
+    const [loadingUserInfo, setLoadingUserInfo] = useState(false);
 
     // fetch user data if user is logged in (i.e. contextUser is not null)
     useEffect(() => {
@@ -22,12 +25,22 @@ const profile = () => {
 
         // fetch user
         const fetchUser = async () => {
-            const response = await fetch(`/api/users/${contextUser?.id}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch user :(");
+            setLoadingUserInfo(true);
+            try {
+                const response = await fetch(`/api/users/${contextUser?.id}`);
+                if (!response.ok) {
+                    const error = await response.json().error;
+                    setError(`Error ${response.status}: ${error}`);
+                    setLoadingUserDetails(false);
+                    return;
+                }
+                const data = await response.json();
+                setUser(data);
+            } catch (error) {
+                setError(error.message ? error.message : error);
+            } finally {
+                setLoadingUserInfo(false);
             }
-            const data = await response.json();
-            setUser(data);
         };
         fetchUser();
     }, [contextUser]);
@@ -59,14 +72,26 @@ const profile = () => {
         );
     };
 
-    if (loading) {
-        return <Loading />;
+    if (contextLoading || loadingUserInfo) {
+        return (
+            <>
+                <Loading />
+                <BottomNav />
+            </>
+        );
     }
 
     return (
         <>
             {contextUser ? (
                 <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10">
+                    {/* display error if there is one */}
+                    {error && (
+                        <div className="w-full p-4 -mb-3 -mt-5 text-center text-lg text-red-500">
+                            <p>{error}</p>
+                        </div>
+                    )}
+
                     <h1>Welcome, {user?.firstName}!</h1>
                     <p>Email: {user?.email}</p>
                     <Button

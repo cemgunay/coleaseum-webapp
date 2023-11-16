@@ -70,7 +70,7 @@ export default async function handler(req, res) {
                 // error message from this response and displaying it on the frontend
                 // or maybe we change how it works on the frontend idk but this is gonna
                 // have to be addressed eventually.
-                res.status(500).json({ error: `APIError: SignUp failed.\n${error}` });
+                res.status(500).json({ error: `APIError: Sign up failed.\n${error}` });
             }
             break;
         default:

@@ -18,17 +18,17 @@ export default async function handler(req, res) {
                     lastName,
                     email,
                     password,
-                    phoneNumber,
+                    // phoneNumber,
                     dateOfBirth,
-                    profilePicture,
-                    about,
+                    // profilePicture,
+                    // about,
                     location,
                 } = req.body;
 
                 // check if user already exists
                 let user = await User.findOne({ email });
                 if (user) {
-                    return res.status(400).json({ success: false, msg: "User already exists" });
+                    return res.status(400).json({ error: "User already exists" });
                 }
 
                 // hash password
@@ -41,15 +41,15 @@ export default async function handler(req, res) {
                     lastName,
                     email,
                     password: hashedPassword,
-                    phoneNumber,
+                    // phoneNumber,
                     dateOfBirth,
-                    profilePicture,
-                    about,
+                    // profilePicture,
+                    // about,
                     location,
                 });
 
                 // save user to DB
-                await user.save();
+                // await user.save();
 
                 // send email to user (will implement soon)
 
@@ -63,14 +63,19 @@ export default async function handler(req, res) {
                 // create jwt token
                 jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
                     if (err) throw err;
-                    res.status(200).json({ success: true, token });
+                    res.status(200).json({ token });
                 });
             } catch (error) {
-                res.status(400).json({ success: false });
+                // will have to change this error message in prod, since I'm taking the
+                // error message from this response and displaying it on the frontend
+                // or maybe we change how it works on the frontend idk but this is gonna
+                // have to be addressed eventually.
+                res.status(500).json({ error: `APIError: SignUp failed.\n${error}` });
             }
             break;
         default:
-            res.status(400).json({ success: false });
+            res.setHeader("Allow", ["POST"]);
+            res.status(405).json({ error: `Method ${req.method} Not Allowed` });
             break;
     }
 }

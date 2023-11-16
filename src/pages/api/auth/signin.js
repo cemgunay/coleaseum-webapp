@@ -15,13 +15,13 @@ export default async function handler(req, res) {
                 // check if user exists
                 let user = await User.findOne({ email });
                 if (!user) {
-                    return res.status(400).json({ error: "Email or password is incorrect" });
+                    return res.status(400).json({ error: "Incorrect email or password." });
                 }
 
                 // compare password
                 const isMatch = await bcrypt.compare(password, user.password);
                 if (!isMatch) {
-                    return res.status(400).json({ error: "Email or password is incorrect" });
+                    return res.status(400).json({ error: "Incorrect email or password." });
                 }
 
                 // jwt payload

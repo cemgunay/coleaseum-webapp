@@ -15,13 +15,13 @@ export default async function handler(req, res) {
                 // check if user exists
                 let user = await User.findOne({ email });
                 if (!user) {
-                    return res.status(400).json({ success: false, message: "Invalid Credentials" });
+                    return res.status(400).json({ error: "Email or password is incorrect" });
                 }
 
                 // compare password
                 const isMatch = await bcrypt.compare(password, user.password);
                 if (!isMatch) {
-                    return res.status(400).json({ success: false, message: "Invalid Credentials" });
+                    return res.status(400).json({ error: "Email or password is incorrect" });
                 }
 
                 // jwt payload
@@ -34,14 +34,19 @@ export default async function handler(req, res) {
                 // create, sign and return token
                 jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
                     if (err) throw err;
-                    res.status(200).json({ success: true, token });
+                    res.status(200).json({ token });
                 });
             } catch (error) {
-                res.status(400).json({ success: false });
+                // will have to change this error message in prod, since I'm taking the
+                // error message from this response and displaying it on the frontend
+                // or maybe we change how it works on the frontend idk but this is gonna
+                // have to be addressed eventually.
+                res.status(500).json({ error: `APIError: Sign in failed.\n${error}` });
             }
             break;
         default:
-            res.status(400).json({ success: false });
+            res.setHeader("Allow", ["POST"]);
+            res.status(405).json({ error: `Method ${req.method} Not Allowed` });
             break;
     }
 }

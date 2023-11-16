@@ -8,6 +8,7 @@ import Button from "@/components/Button";
 import DatePicker from "@/components/DatePicker";
 import CircularProgress from "@mui/material/CircularProgress";
 import { jwtDecode } from "jwt-decode";
+import { useToast } from "@/components/ui/use-toast";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -66,8 +67,8 @@ const SignUp = () => {
         password: false,
         confirmPassword: false,
     });
-    const [apiError, setApiError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { toast } = useToast();
 
     // handle form input changes
     const handleChange = (e) => {
@@ -101,22 +102,31 @@ const SignUp = () => {
                 if (!res.ok) {
                     // signup failed, display error message
                     const error = JSON.parse(await res.text()).error;
-                    setApiError(error);
+                    toast({
+                        variant: "destructive",
+                        title: "Uh oh, something went wrong.",
+                        description: error,
+                    });
                 } else {
                     // signup successful, save user in context and redirect to profile page
                     const data = await res.json();
                     const user = jwtDecode(data.token).user;
                     console.log(user);
-                    alert("Signup successful!");
+                    toast({
+                        variant: "success",
+                        title: "Sign up successful.",
+                        description: "Welcome!",
+                    });
                     saveUser(user);
                     router.push("/profile");
                 }
-
                 setIsSubmitting(false);
             } catch (error) {
                 console.error("Signup failed", error);
                 setIsSubmitting(false);
                 throw new Error(`Signup failed, error not caught by API route:\n${error}`);
+            } finally {
+                setIsSubmitting(false);
             }
         }
     };
@@ -147,13 +157,6 @@ const SignUp = () => {
             <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
                 <h1 className="font-bold text-3xl">Sign Up</h1>
                 <p className="text-lg text-slate-500">Lorem Ipsum.</p>
-
-                {/* display error message if we have one */}
-                {apiError && (
-                    <div className="w-full rounded-md border border-red-500 p-4 text-center text-base text-red-500">
-                        <p>{apiError}</p>
-                    </div>
-                )}
 
                 {/* form */}
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">

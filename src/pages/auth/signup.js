@@ -2,8 +2,6 @@ import React, { useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
-import { set } from "mongoose";
-import { cn } from "@/utils/utils";
 import Link from "next/link";
 import AuthInput from "@/components/AuthInput";
 import Button from "@/components/Button";

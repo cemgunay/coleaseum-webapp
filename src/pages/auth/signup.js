@@ -7,6 +7,8 @@ import Link from "next/link";
 import AuthInput from "@/components/AuthInput";
 import Button from "@/components/Button";
 import DatePicker from "@/components/DatePicker";
+import CircularProgress from "@mui/material/CircularProgress";
+import { jwtDecode } from "jwt-decode";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -33,7 +35,17 @@ const validatePassword = (password) => {
     return null;
 };
 
-const SignupPage = () => {
+// function to validate confirm password field
+const validateConfirmPassword = (confirmPassword, password) => {
+    // ensure passwords are the same
+    if (confirmPassword !== password) {
+        return "Passwords do not match";
+    }
+
+    return null;
+};
+
+const SignUp = () => {
     const { setUser } = useAuth();
     const [formData, setFormData] = useState({
         firstName: "",
@@ -54,6 +66,8 @@ const SignupPage = () => {
         password: false,
         confirmPassword: false,
     });
+    const [apiError, setApiError] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // handle form input changes
     const handleChange = (e) => {
@@ -62,45 +76,47 @@ const SignupPage = () => {
 
     // handle form submission
     const handleSubmit = async (e) => {
-        console.log("submit clicked");
         e.preventDefault();
         const newErrors = {
             email: validateEmail(formData.email),
             password: validatePassword(formData.password),
+            confirmPassword: validateConfirmPassword(formData.confirmPassword, formData.password),
         };
         setErrors(newErrors);
 
         const isValid = Object.values(newErrors).every((error) => error === null);
         if (isValid) {
-            // // proceed with form submission
-            // try {
-            //     // call signup API route
-            //     const res = await fetch("/api/auth/signup", {
-            //         method: "POST",
-            //         headers: {
-            //             "Content-Type": "application/json",
-            //         },
-            //         body: JSON.stringify(formData),
-            //     });
-            //     if (!res.ok) {
-            //         throw new Error("Signup failed. No 200 status code returned from API route.");
-            //     }
+            // proceed with form submission
+            try {
+                setIsSubmitting(true);
 
-            //     // response.ok is true, so grab response data
-            //     const data = await res.json();
-            //     if (data.success) {
-            //         // update user context
-            //         setUser(data.user);
-            //     } else {
-            //         // handle errors here, will have to do this in UI and that will entail code here
-            //         // just a console log for now
-            //         console.error("API route returned success: false");
-            //     }
-            // } catch (error) {
-            //     console.error("Signup failed", error);
-            //     throw new Error(`Signup failed, error not caught by API route:\n${error}`);
-            // }
-            console.log(formData);
+                // call signup API route
+                const res = await fetch("/api/auth/signup", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(formData),
+                });
+                if (!res.ok) {
+                    const error = JSON.parse(await res.text()).error;
+                    setApiError(error);
+                    // throw new Error("Signup failed. No 200 status code returned from API route.");
+                } else {
+                    const data = await res.json();
+                    const user = jwtDecode(data.token).user;
+                    console.log(user);
+                    alert("Signup successful!");
+                    // setUser(user);
+                }
+
+                setIsSubmitting(false);
+            } catch (error) {
+                console.error("Signup failed", error);
+                setIsSubmitting(false);
+                throw new Error(`Signup failed, error not caught by API route:\n${error}`);
+            }
+            // console.log(formData);
         }
     };
 
@@ -119,10 +135,11 @@ const SignupPage = () => {
             case "password":
                 return validatePassword(value);
             case "confirmPassword":
-                if (value !== formData.password) {
-                    return "Passwords do not match";
-                }
-                return null;
+                // if (value !== formData.password) {
+                //     return "Passwords do not match";
+                // }
+                // return null;
+                return validateConfirmPassword(value, formData.password);
             default:
                 return null;
         }
@@ -130,10 +147,27 @@ const SignupPage = () => {
 
     return (
         <>
-            <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10">
+            <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
                 <h1 className="font-bold text-3xl">Sign Up</h1>
                 <p className="text-lg text-slate-500">Lorem Ipsum.</p>
+
+                {/* display error message if we have one */}
+                {apiError && (
+                    <div className="w-full rounded-md border border-red-500 p-4 text-center text-base text-red-500">
+                        <p>{apiError}</p>
+                    </div>
+                )}
+
+                {/* form */}
                 <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+                    {/* date of birth input */}
+                    <div className="flex flex-col">
+                        <label className="text-base font-medium text-slate-900 mb-1 ml-0">
+                            Date of Birth
+                        </label>
+                        <DatePicker formData={formData} setFormData={setFormData} />
+                    </div>
+
                     {/* first name input */}
                     <AuthInput
                         title="First Name"
@@ -160,6 +194,19 @@ const SignupPage = () => {
                         touched={touched.lastName}
                     />
 
+                    {/* location input */}
+                    <AuthInput
+                        title="Location"
+                        type="text"
+                        name="location"
+                        placeholder="Toronto, ON, Canada"
+                        value={formData.location}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        error={errors.location}
+                        touched={touched.location}
+                    />
+
                     {/* email input */}
                     <AuthInput
                         title="Email"
@@ -172,9 +219,6 @@ const SignupPage = () => {
                         error={errors.email}
                         touched={touched.email}
                     />
-
-                    {/* date of birth input */}
-                    <DatePicker />
 
                     {/* password input */}
                     <AuthInput
@@ -201,7 +245,9 @@ const SignupPage = () => {
                     />
 
                     {/* submit button */}
-                    <Button type="submit">Sign Up</Button>
+                    <Button type="submit">
+                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Sign Up"}
+                    </Button>
                 </form>
                 <Link
                     href="/auth/signin"
@@ -215,4 +261,4 @@ const SignupPage = () => {
     );
 };
 
-export default SignupPage;
+export default SignUp;

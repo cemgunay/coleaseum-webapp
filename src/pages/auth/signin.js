@@ -7,6 +7,7 @@ import Input from "@/components/Input";
 import Button from "@/components/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { jwtDecode } from "jwt-decode";
+import { IoClose } from "react-icons/io5";
 
 const SignIn = () => {
     const { saveUser } = useAuth();
@@ -47,7 +48,6 @@ const SignIn = () => {
                 // signin successful, save user in context and redirect to profile page
                 const data = await res.json();
                 const user = jwtDecode(data.token).user;
-                // alert("Sign in successful!");
                 saveUser(user);
                 router.push("/profile");
             }
@@ -68,8 +68,12 @@ const SignIn = () => {
 
                 {/* display error message if we have one */}
                 {apiError && (
-                    <div className="w-full rounded-md p-4 -mb-5 text-center text-base text-red-500">
+                    <div className="relative self-center w-4/5 rounded-sm px-4 py-4 text-center text-base bg-red-200 text-red-600">
                         <p>{apiError}</p>
+                        <IoClose
+                            onClick={() => setApiError(null)}
+                            className="absolute top-0 right-0 m-1 text-lg cursor-pointer text-slate-700"
+                        />
                     </div>
                 )}
 

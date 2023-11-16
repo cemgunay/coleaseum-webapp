@@ -3,8 +3,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import Skeleton from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
-import { Button as ShadButton } from "@/components/ui/button";
-import Button from "@/components/Button";
+import { Button } from "@/components/ui/button";
 
 const profile = () => {
     // get user object from context
@@ -70,21 +69,14 @@ const profile = () => {
                 <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10">
                     <h1>Welcome, {user?.firstName}!</h1>
                     <p>Email: {user?.email}</p>
-                    <ShadButton
+                    <Button
                         variant="outline"
                         size="lg"
                         className="font-normal text-base text-slate-600"
-                        // onClick={() => alert("log out")}
                         onClick={signOut}
                     >
                         Sign Out
-                    </ShadButton>
-                    {/* <Button
-                        className="border border-slate-300 bg-white text-slate-500"
-                        onClick={() => alert("log out")}
-                    >
-                        Log out
-                    </Button> */}
+                    </Button>
                 </div>
             ) : (
                 <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10">

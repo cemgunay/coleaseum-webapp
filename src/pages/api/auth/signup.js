@@ -49,7 +49,7 @@ export default async function handler(req, res) {
                 });
 
                 // save user to DB
-                // await user.save();
+                await user.save();
 
                 // send email to user (will implement soon)
 

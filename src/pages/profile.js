@@ -6,6 +6,10 @@ import BottomNav from "@/components/BottomNav";
 import { Button } from "@/components/ui/button";
 import ProfileImagePlaceholder from "@/components/ProfileImagePlaceholder";
 import { cn } from "@/utils/utils";
+import { FaRegUser } from "react-icons/fa6";
+import { IoSettingsOutline } from "react-icons/io5";
+import { PiHouse } from "react-icons/pi";
+import { GoArrowSwitch } from "react-icons/go";
 
 const profile = () => {
     // get user object from context
@@ -116,10 +120,22 @@ const profile = () => {
                             <h2 className="text-2xl font-bold mb-1">Account</h2>
                             <div className="flex flex-col">
                                 {/* will prob replace these divs with Links later */}
-                                <div className="text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all">
+                                <div
+                                    className={cn(
+                                        "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
+                                        "flex items-center gap-2"
+                                    )}
+                                >
+                                    <FaRegUser className="text-lg" />
                                     Personal Info
                                 </div>
-                                <div className="text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all">
+                                <div
+                                    className={cn(
+                                        "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
+                                        "flex items-center gap-2"
+                                    )}
+                                >
+                                    <IoSettingsOutline className="text-lg" />
                                     Account Settings
                                 </div>
                             </div>
@@ -129,10 +145,22 @@ const profile = () => {
                             <h2 className="text-2xl font-bold mb-1">Tenant</h2>
                             <div className="flex flex-col">
                                 {/* will prob replace these divs with Links later */}
-                                <div className="text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all">
+                                <div
+                                    className={cn(
+                                        "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
+                                        "flex items-center gap-2"
+                                    )}
+                                >
+                                    <PiHouse className="text-lg" />
                                     List a sublet
                                 </div>
-                                <div className="text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all">
+                                <div
+                                    className={cn(
+                                        "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
+                                        "flex items-center gap-2"
+                                    )}
+                                >
+                                    <GoArrowSwitch className="text-lg" />
                                     Switch to hosting
                                 </div>
                             </div>

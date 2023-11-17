@@ -65,7 +65,7 @@ const MonthPicker = ({ selectedMonth, setSelectedMonth }) => {
     );
 };
 
-const DatePicker = ({ formData, setFormData }) => {
+const DatePicker = ({ formData, setFormData, className }) => {
     const [date, setDate] = useState(null);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
@@ -94,8 +94,7 @@ const DatePicker = ({ formData, setFormData }) => {
     };
 
     const handleDateSelect = (date) => {
-        // just a temp function for now so I can console log the chosen date
-        console.log(format(date, "PPP"));
+        // console.log(format(date, "PPP"));
         // console.log(format(date, "yyyy-MM-dd"));
         setDate(date);
         setFormData({ ...formData, dateOfBirth: date });
@@ -108,7 +107,8 @@ const DatePicker = ({ formData, setFormData }) => {
                     variant={"outline"}
                     className={cn(
                         "w-full h-11 justify-start text-left font-normal border-slate-300",
-                        !date && "text-muted-foreground"
+                        !date && "text-muted-foreground",
+                        className
                     )}
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
@@ -126,7 +126,6 @@ const DatePicker = ({ formData, setFormData }) => {
                 <Calendar
                     mode="single"
                     selected={date}
-                    // onSelect={setDate}
                     onSelect={handleDateSelect}
                     displayDate={popoverDisplayDate}
                     setDisplayDate={setPopoverDisplayDate}

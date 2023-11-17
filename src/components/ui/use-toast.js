@@ -2,7 +2,7 @@
 import * as React from "react";
 
 const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000;
+const TOAST_REMOVE_DELAY = 2000;
 
 const actionTypes = {
     ADD_TOAST: "ADD_TOAST",
@@ -123,6 +123,11 @@ function toast({ ...props }) {
             },
         },
     });
+
+    // Automatically schedule a dismiss after TOAST_REMOVE_DELAY
+    setTimeout(() => {
+        dismiss();
+    }, TOAST_REMOVE_DELAY);
 
     return {
         id: id,

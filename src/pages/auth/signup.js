@@ -10,9 +10,13 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/ui/use-toast";
 import Autocomplete from "react-google-autocomplete";
+import { cn } from "@/utils/utils";
 
 // function to validate email
 const validateEmail = (email) => {
+    if (!email) {
+        return "Email is required";
+    }
     // simple regex for email validation
     const re = /\S+@\S+\.\S+/;
     return re.test(email) ? null : "Invalid email address";
@@ -20,6 +24,11 @@ const validateEmail = (email) => {
 
 // function to validate password
 const validatePassword = (password) => {
+    // check if password is empty
+    if (!password) {
+        return "Password is required";
+    }
+
     // check length
     if (password.length < 8) {
         return "Password must be at least 8 characters";
@@ -46,13 +55,20 @@ const validateConfirmPassword = (confirmPassword, password) => {
     return null;
 };
 
+const validateRequired = (value, name) => {
+    if (!value) {
+        return `${name} is required`;
+    }
+    return null;
+};
+
 const SignUp = () => {
     const { saveUser } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
-        dateOfBirth: new Date(),
+        dateOfBirth: null,
         location: "",
         email: "",
         password: "",
@@ -80,12 +96,26 @@ const SignUp = () => {
     // handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // validate form
         const newErrors = {
             email: validateEmail(formData.email),
             password: validatePassword(formData.password),
             confirmPassword: validateConfirmPassword(formData.confirmPassword, formData.password),
+            firstName: validateRequired(formData.firstName, "First name"),
+            lastName: validateRequired(formData.lastName, "Last name"),
+            location: validateRequired(formData.location, "Location"),
+            dateOfBirth: validateRequired(formData.dateOfBirth, "Date of birth"),
+            // can add more if we need
         };
         setErrors(newErrors);
+
+        // set all touched values to true so all errors are displayed on submit
+        let allTouched = {};
+        for (let key in touched) {
+            allTouched[key] = true;
+        }
+        setTouched(allTouched);
 
         const isValid = Object.values(newErrors).every((error) => error === null);
         if (isValid) {
@@ -113,7 +143,6 @@ const SignUp = () => {
                     // signup successful, save user in context and redirect to profile page
                     const data = await res.json();
                     const user = jwtDecode(data.token).user;
-                    console.log(user);
                     toast({
                         variant: "success",
                         title: "Sign up successful.",
@@ -130,6 +159,13 @@ const SignUp = () => {
             } finally {
                 setIsSubmitting(false);
             }
+
+            // toast({
+            //     variant: "success",
+            //     title: "Sign up successful.",
+            //     description: "Welcome!",
+            // });
+            // setIsSubmitting(false);
         }
     };
 
@@ -149,6 +185,14 @@ const SignUp = () => {
                 return validatePassword(value);
             case "confirmPassword":
                 return validateConfirmPassword(value, formData.password);
+            case "firstName":
+                return validateRequired(value, "First name");
+            case "lastName":
+                return validateRequired(value, "Last name");
+            case "location":
+                return validateRequired(value, "Location");
+            case "dateOfBirth":
+                return validateRequired(value, "Date of birth");
             default:
                 return null;
         }
@@ -160,7 +204,6 @@ const SignUp = () => {
     const onPlaceSelectedRef = useRef(null);
     useEffect(() => {
         onPlaceSelectedRef.current = (place) => {
-            // console.log("Place selected:", place);
             if (place && place.formatted_address) {
                 setFormData({ ...formData, location: place.formatted_address });
             } else {
@@ -221,9 +264,15 @@ const SignUp = () => {
                             onPlaceSelected={(place) => {
                                 if (onPlaceSelectedRef.current) {
                                     onPlaceSelectedRef.current(place);
+                                    setErrors({ ...errors, location: validate("location", place) });
                                 }
                             }}
-                            className="border border-slate-300 rounded-md w-full h-11 px-4 py-2"
+                            className={cn(
+                                "border rounded-md w-full h-11 px-4 py-2",
+                                errors.location && touched.location
+                                    ? "border-red-500"
+                                    : "border-slate-300"
+                            )}
                             options={{
                                 types: ["(cities)"], // restrict search to cities only
                             }}

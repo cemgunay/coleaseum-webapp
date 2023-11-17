@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
@@ -9,6 +9,7 @@ import DatePicker from "@/components/DatePicker";
 import CircularProgress from "@mui/material/CircularProgress";
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/ui/use-toast";
+import Autocomplete from "react-google-autocomplete";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -57,6 +58,7 @@ const SignUp = () => {
         password: "",
         confirmPassword: "",
     });
+    const formDataRef = useRef(formData);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({
         firstName: false,
@@ -152,6 +154,26 @@ const SignUp = () => {
         }
     };
 
+    // funky ref stuff to fix the issue where the <Autocomplete /> component was
+    // resetting the formData state for some reason.
+    // workaround idea taken from: https://github.com/ErrorPro/react-google-autocomplete/issues/168
+    const onPlaceSelectedRef = useRef(null);
+
+    useEffect(() => {
+        onPlaceSelectedRef.current = (place) => {
+            // console.log("Place selected:", place);
+            if (place && place.formatted_address) {
+                setFormData({ ...formData, location: place.formatted_address });
+            } else {
+                // // Handle the case where place is undefined or doesn't have formatted_address
+                // console.error(
+                //     "Place selection failed or returned an undefined or unexpected result"
+                // );
+                return;
+            }
+        };
+    }, [formData]);
+
     return (
         <>
             <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
@@ -195,7 +217,7 @@ const SignUp = () => {
                     />
 
                     {/* location input */}
-                    <AuthInput
+                    {/* <AuthInput
                         title="Location"
                         type="text"
                         name="location"
@@ -205,7 +227,32 @@ const SignUp = () => {
                         onBlur={handleBlur}
                         error={errors.location}
                         touched={touched.location}
-                    />
+                    /> */}
+                    <div className="flex flex-col">
+                        <label className="text-base font-medium text-slate-900 mb-1 ml-0">
+                            Location
+                        </label>
+                        <Autocomplete
+                            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                            // onPlaceSelected={(place) => {
+                            //     console.log(formData);
+                            //     setFormData({ ...formData, location: place.formatted_address });
+                            // }}
+                            onPlaceSelected={(place) => {
+                                if (onPlaceSelectedRef.current) {
+                                    onPlaceSelectedRef.current(place);
+                                }
+                            }}
+                            // defaultValue={formData.location}
+                            className="border border-slate-300 rounded-md w-full h-11 px-4 py-2"
+                            options={{
+                                types: ["(cities)"], // restrict search to cities only
+                            }}
+                        />
+                        {errors.location && touched.location && (
+                            <p className="text-sm ml-3 mt-1 text-red-500">{errors.location}</p>
+                        )}
+                    </div>
 
                     {/* email input */}
                     <AuthInput

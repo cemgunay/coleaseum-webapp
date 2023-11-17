@@ -55,15 +55,15 @@ export default function Explore() {
                 <Skeleton className="w-1/2 h-5" />
                 <Skeleton className="w-1/6 h-5 mb-6" />
                 {[...Array(3)].map((_, i) => (
-                    <>
-                        <Skeleton key={i} className="w-full h-52" />
-                        <Skeleton key={i} className="w-1/6 h-5" />
-                        <Skeleton key={i} className="w-1/2 h-5" />
+                    <div className="flex flex-col gap-3 w-full" key={i}>
+                        <Skeleton className="w-full h-52" />
+                        <Skeleton className="w-1/6 h-5" />
+                        <Skeleton className="w-1/2 h-5" />
                         <div className="flex justify-between w-full h-5 mb-7">
-                            <Skeleton key={i} className="w-1/3" />
-                            <Skeleton key={i} className="w-1/4" />
+                            <Skeleton className="w-1/3" />
+                            <Skeleton className="w-1/4" />
                         </div>
-                    </>
+                    </div>
                 ))}
             </div>
         );
@@ -71,15 +71,17 @@ export default function Explore() {
 
     // show loading page until listings are successfully retrieved
     if (!listings.length) {
-        return <Loading />;
+        return (
+            <>
+                <Loading />
+                <BottomNav />
+            </>
+        );
     }
 
     return (
         <>
-            <main
-                // className={`flex min-h-screen flex-col items-center justify-between p-24 ${inter.className}`}
-                className="m-[2rem] min-h-screen flex flex-col gap-2"
-            >
+            <main className="m-[2rem] min-h-screen flex flex-col gap-2">
                 <h1 className="font-bold text-3xl">All listings</h1>
                 {currentUser ? <div>Welcome back {currentUser.firstName}</div> : null}
                 <p>{listings.length} listings</p>

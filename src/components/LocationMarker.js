@@ -2,6 +2,11 @@ import React from "react";
 
 const LocationMarker = ({ lat, lng, zoom = 15, size = "600x300", ...props }) => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+
+    if (!apiKey) {
+        console.error("API URL is not defined in environment variables");
+      }
+
     const googleMapsImageURL = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=${zoom}&size=${size}&maptype=roadmap&markers=color:red%7C${lat},${lng}&key=${apiKey}`;
 
     return (

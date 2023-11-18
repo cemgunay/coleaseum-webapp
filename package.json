@@ -12,12 +12,16 @@
         "clsx": "^2.0.0",
         "mongoose": "^8.0.0",
         "next": "14.0.1",
+        "pusher": "^5.2.0",
+        "pusher-js": "^8.3.0",
         "react": "^18",
+        "react-devtools": "^4.28.5",
         "react-dom": "^18",
         "react-icons": "^4.11.0",
         "react-slick": "^0.29.0",
         "slick-carousel": "^1.8.1",
-        "tailwind-merge": "^2.0.0"
+        "tailwind-merge": "^2.0.0",
+        "ws": "^8.14.2"
     },
     "devDependencies": {
         "autoprefixer": "^10.0.1",

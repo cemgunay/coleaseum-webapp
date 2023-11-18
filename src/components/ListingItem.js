@@ -80,7 +80,7 @@ const ListingItem = ({ listing }) => {
             <div className="w-full h-[13rem] rounded-md">
                 <Carousel dots={true} images={images} index={0} from={"Explore"} rounded />
             </div>
-            <div className="flex flex-col">
+            <div className="flex flex-col text-black">
                 <div className="flex justify-between">
                     <h3 className="font-medium">{listing.title}</h3>
                     {/* <p>{listing.days_left}</p> */}

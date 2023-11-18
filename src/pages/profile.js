@@ -91,7 +91,7 @@ const profile = () => {
     return (
         <>
             {contextUser ? (
-                <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10">
+                <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
                     {/* display error if there is one */}
                     {error && (
                         <div className="w-full p-4 -mb-3 -mt-5 text-center text-lg text-red-500">

@@ -19,7 +19,7 @@ export default async function handler(req, res) {
 
     try {
       // Trigger a Pusher event
-      console.log('triggered')
+      console.log('triggered create')
       pusher.trigger("bids-channel", "bid-created", {
         listingId: listingId,
       });

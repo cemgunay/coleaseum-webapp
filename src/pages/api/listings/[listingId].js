@@ -12,6 +12,9 @@ export default async function handler(req, res) {
     }
 
     try {
+        // Intentionally throw an error to simulate a server failure
+        // throw new Error("Simulated server error");
+
         // connect to DB
         await connectMongo();
 

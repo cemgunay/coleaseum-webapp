@@ -1,17 +1,22 @@
 import mongoose from "mongoose";
 
-// function to connect to the MongoDB client
-async function connectMongo() {
-    try {
-        // connect the client to the server
-        const { connection } = await mongoose.connect(process.env.MONGO_URI);
+let isConnected;
 
-        // check ready state and return promise
-        if (connection.readyState === 1) {
-            return Promise.resolve(true);
+async function connectMongo() {
+    // Check if we have a connection to the database or if it's currently connecting or disconnecting (readyState 1, 2 and 3)
+    if (mongoose.connection.readyState >= 1) {
+        return;
+    }
+
+    // If not connected, connect to the database
+    if (!isConnected) {
+        try {
+            const db = await mongoose.connect(process.env.MONGO_URI);
+            isConnected = db.connections[0].readyState;
+        } catch (error) {
+            console.error("Failed to connect to MongoDB:", error);
+            throw error; // Rethrow the error for further handling if necessary
         }
-    } catch (error) {
-        return Promise.reject(error);
     }
 }
 

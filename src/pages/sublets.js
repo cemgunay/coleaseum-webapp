@@ -5,6 +5,7 @@ import Skeleton from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import GuestPage from "@/components/GuestPage";
 
 const ACTIVE_STATUSES = [
     "pendingSubTenant",
@@ -20,10 +21,12 @@ const Sublets = () => {
     // get user object from context
     const { user, loading } = useAuth();
 
+    // state
     const [activeTab, setActiveTab] = useState("active");
     const [listings, setListings] = useState([]);
     const [displayListings, setDisplayListings] = useState([]);
     const [requests, setRequests] = useState([]);
+    const [fetching, setFetching] = useState(true);
 
     // fetch listings from DB
     useEffect(() => {
@@ -90,15 +93,12 @@ const Sublets = () => {
     // memoized filtered listings
     // here we filter the listings array to get the listings with the IDs we got above, for each type of request
     const activeListings = useMemo(() => {
-        // this filter stuff is gonna have to change, placeholder for now
         return listings.filter((listing) => activeRequestListingIds.includes(listing.id));
     }, [listings]);
     const pastListings = useMemo(() => {
-        // this filter stuff is gonna have to change, placeholder for now
         return listings.filter((listing) => pastRequestListingIds.includes(listing.id));
     }, [listings]);
     const confirmedListings = useMemo(() => {
-        // this filter stuff is gonna have to change, placeholder for now
         return listings.filter((listing) => confirmedRequestListingIds.includes(listing.id));
     }, [listings]);
 
@@ -119,6 +119,13 @@ const Sublets = () => {
         }
     });
 
+    // set fetching to false once listings and requests are fetched
+    useEffect(() => {
+        if (listings.length && requests.length) {
+            setFetching(false);
+        }
+    }, [activeListings, pastListings, confirmedListings]);
+
     // loading component
     const Loading = () => {
         return (
@@ -138,41 +145,22 @@ const Sublets = () => {
         );
     };
 
-    if (loading) {
+    // this is to ensure we don't get any flashing of the Guest page or the "# of listings" text
+    // only care about the "fetching" prop if user is signed in, otherwise won't be fetching anything
+    if (loading || (user && fetching)) {
         return (
             <>
-                <Loading />
+                <div className="flex flex-col items-center justify-start min-h-screen mx-8 pt-10 pb-32">
+                    <SubletsTabs setActiveTab={setActiveTab} />
+                    <Loading />
+                </div>
                 <BottomNav />
             </>
         );
     }
 
     if (!user) {
-        return (
-            <>
-                <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10">
-                    <h1 className="font-bold text-3xl">Guest</h1>
-                    <p className="text-lg text-slate-500">
-                        You are not logged in. Please sign in or sign up to view your sublets.
-                    </p>
-                    <div className="flex items-center gap-5">
-                        <Link
-                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border border-slate-500 text-slate-500 cursor-pointer"
-                            href="/auth/signin"
-                        >
-                            Sign In
-                        </Link>
-                        <Link
-                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
-                            href="/auth/signup"
-                        >
-                            Sign Up
-                        </Link>
-                    </div>
-                </div>
-                <BottomNav />
-            </>
-        );
+        return <GuestPage contentToView="sublets" />;
     }
 
     return (

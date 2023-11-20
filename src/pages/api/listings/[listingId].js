@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
     // check if the listingId is a valid Mongo ObjectId
     if (!mongoose.Types.ObjectId.isValid(listingId)) {
-        return res.status(404).json({ message: "Listing ID not valid" });
+        return res.status(404).json({ error: "Listing ID not valid" });
     }
 
     try {
@@ -23,7 +23,7 @@ export default async function handler(req, res) {
 
         // if no listing found, return a 404
         if (!listing) {
-            return res.status(404).json({ message: "Listing not found" });
+            return res.status(404).json({ error: "Listing not found" });
         }
 
         // otherwise, return the found listing with 200 status code

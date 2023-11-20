@@ -8,7 +8,7 @@ export default async function handler(req, res) {
 
     // check if the userId is a valid Mongo ObjectId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(404).json({ message: "User ID not valid" });
+        return res.status(404).json({ error: "User ID not valid" });
     }
 
     try {
@@ -20,7 +20,7 @@ export default async function handler(req, res) {
 
         // if no user found, return a 404
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ error: "User not found" });
         }
 
         // otherwise, return the found user with 200 status code

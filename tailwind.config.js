@@ -16,7 +16,15 @@ module.exports = {
             },
         },
         extend: {
+            // stuff from cem-ssr branch, not sure if from create-next-app boilerplate or not
+            // so leaving it in for now. can remove/change later if needed.
+            backgroundImage: {
+                "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+                "gradient-conic":
+                    "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+            },
             colors: {
+                // shadcn-ui colours
                 border: "hsl(var(--border))",
                 input: "hsl(var(--input))",
                 ring: "hsl(var(--ring))",
@@ -50,6 +58,14 @@ module.exports = {
                     DEFAULT: "hsl(var(--card))",
                     foreground: "hsl(var(--card-foreground))",
                 },
+
+                // Cem colours
+                "color-primary": "var(--color-primary)",
+                "color-secondary-light": "var(--color-secondary-light)",
+                "color-secondary-dark": "var(--color-secondary-dark)",
+                "color-error": "var(--color-error)",
+                "color-warning": "var(--color-warning)",
+                "color-pass": "var(--color-pass)",
             },
             borderRadius: {
                 lg: "var(--radius)",

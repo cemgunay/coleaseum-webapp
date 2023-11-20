@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useRouter } from "next/router";
 import Carousel from "@/components/Carousel";
 import { FaCircleChevronLeft } from "react-icons/fa6";
@@ -10,7 +10,8 @@ import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
-import { usePusher } from "@/context/PusherContext";
+import { usePusher } from "@/hooks/usePusher";
+import { PusherContext } from "@/context/PusherContext";
 
 // This function can be used to set a timeout on fetch requests
 async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
@@ -151,33 +152,45 @@ const Listing = ({ listing }) => {
         fetchUser();
     }, [listing]);
 
-    //useEffect for pusher realtime connection to update highestRequest
+    //useEffect for pusher realtime connection to update highestRequest and active bid number
     useEffect(() => {
+        // check if pusher is initialized
         if (pusher) {
-            // Subscribe to the channel
-            const channel = pusher.subscribe("bids-channel");
+            //check if already subscribed
+            if (!pusher.channel("bids-channel")) {
+                // Subscribe to the channel
+                const channel = pusher.subscribe("bids-channel");
 
-            // Bind to bid update events
-            channel.bind("bid-updated", (data) => {
-                if (data.listingId === listing._id) {
-                    setHighestRequest(data.newHighestBid);
-                }
-            });
+                channel.bind("pusher:subscription_succeeded", () => {
+                    console.log("subscribed!");
 
-            // Bind to bid create events
-            channel.bind("bid-created", (data) => {
-                if (data.listingId === listing._id) {
-                    setNumberOfRequests(
-                        (prevNumberOfRequests) => prevNumberOfRequests + 1
-                    );
-                }
-            });
+                    // Bind to bid update events
+                    channel.bind("bid-updated", (data) => {
+                        if (data.listingId === listing._id) {
+                            setHighestRequest(data.newHighestBid);
+                        }
+                    });
 
+                    // Bind to bid create events
+                    channel.bind("bid-created", (data) => {
+                        if (data.listingId === listing._id) {
+                            setNumberOfRequests(
+                                (prevNumberOfRequests) =>
+                                    prevNumberOfRequests + 1
+                            );
+                        }
+                    });
+                });
+            }
+
+            // Unbind all events and unsubscribe when component unmounts if subscribed
             return () => {
-                // Unbind all events and unsubscribe when component unmounts if subscribed
-                if (channel?.subscribed) {
-                    channel.unbind_all();
-                    channel.unsubscribe();
+                const channel = pusher.channel("bids-channel");
+                const subscribed = channel?.subscribed;
+                if (subscribed) {
+                    channel.unbind();
+                    pusher.unsubscribe("bids-channel");
+                    console.log("unsubscribed!");
                 }
             };
         }

@@ -18,7 +18,7 @@ const BottomNav = () => {
     // NB: Think we'll likely have to change the navstyleshelper function to work with dynamic routes
     // not sure how exaclty yet but will cross that bridge when we get there
     return (
-        <footer className="fixed bottom-0 w-full">
+        <footer className="fixed bottom-0 z-50 w-full">
             <div className="flex items-center justify-around py-4 rounded-t-lg bg-white shadow-[0px_0px_5px_1px] space-x-4">
                 <Link href="/" className={_navStylesHelper("/")}>
                     <FaMagnifyingGlass className="text-xl" />

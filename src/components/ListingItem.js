@@ -1,36 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
-import { MdDeleteForever } from "react-icons/md";
-import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 
-const ListingItem = ({ listing, onDelete }) => {
+const ListingItem = ({ listing }) => {
     const images = listing.images.map(({ url }) => url);
     const [requests, setRequests] = useState([]);
     const [activeRequests, setActiveRequests] = useState([]);
     const [highestRequestPrice, setHighestRequestPrice] = useState(null);
     const [highestActiveRequestPrice, setHighestActiveRequestPrice] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-
-    // handler functions for modal + deletion events
-    // could have set the state right in the JSX but I think this is more readable
-    // also if we ever wanna add like click event tracking or smth it'll be easier to add
-    const handleOpenModal = () => {
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-    };
-
-    const handleConfirmDelete = () => {
-        onDelete(listing._id);
-        handleCloseModal();
-    };
-
-    const handleCancelDelete = () => {
-        handleCloseModal();
-    };
 
     // get all requests and all active requests
     useEffect(() => {
@@ -100,22 +77,6 @@ const ListingItem = ({ listing, onDelete }) => {
 
     return (
         <div className="relative">
-            {showModal && (
-                <ConfirmDeleteDialog
-                    open={showModal}
-                    onClose={handleCloseModal}
-                    onConfirm={handleConfirmDelete}
-                    onCancel={handleCancelDelete}
-                />
-            )}
-            {onDelete && (
-                <button
-                    className="absolute z-50 top-0 right-0 m-2 cursor-pointer"
-                    onClick={handleOpenModal}
-                >
-                    <MdDeleteForever className="text-3xl hover:text-color-error" />
-                </button>
-            )}
             <Link href={`/listing/${listing._id}`} className="max-w-lg">
                 <div className="w-full h-[13rem] rounded-md">
                     <Carousel dots={true} images={images} index={0} from={"Explore"} rounded />
@@ -149,6 +110,3 @@ const ListingItem = ({ listing, onDelete }) => {
 };
 
 export default ListingItem;
-// TODO:
-// - highest active request price calculation
-// - tenant requests stuff (i.e. check for active bids, hardcoded to "no active bids" for now)

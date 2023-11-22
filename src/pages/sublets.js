@@ -6,6 +6,8 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import GuestPage from "@/components/GuestPage";
+import { useToast } from "@/components/ui/use-toast";
+import ListingItemWithRequests from "@/components/ListingItemWithRequests";
 
 const ACTIVE_STATUSES = [
     "pendingSubTenant",
@@ -20,6 +22,9 @@ const CONFIRMED_STATUSES = ["accepted", "confirmed"];
 const Sublets = () => {
     // get user object from context
     const { user, loading } = useAuth();
+
+    // for toast notifications
+    const { toast } = useToast();
 
     // state
     const [activeTab, setActiveTab] = useState("active");
@@ -66,7 +71,6 @@ const Sublets = () => {
             }
             const data = await response.json();
             setRequests(data);
-            // console.log(data);
         };
         fetchRequests();
     }, [user]);
@@ -93,13 +97,13 @@ const Sublets = () => {
     // memoized filtered listings
     // here we filter the listings array to get the listings with the IDs we got above, for each type of request
     const activeListings = useMemo(() => {
-        return listings.filter((listing) => activeRequestListingIds.includes(listing.id));
+        return listings.filter((listing) => activeRequestListingIds.includes(listing._id));
     }, [listings]);
     const pastListings = useMemo(() => {
-        return listings.filter((listing) => pastRequestListingIds.includes(listing.id));
+        return listings.filter((listing) => pastRequestListingIds.includes(listing._id));
     }, [listings]);
     const confirmedListings = useMemo(() => {
-        return listings.filter((listing) => confirmedRequestListingIds.includes(listing.id));
+        return listings.filter((listing) => confirmedRequestListingIds.includes(listing._id));
     }, [listings]);
 
     // useEffect to update displayListings when activeTab changes
@@ -145,6 +149,20 @@ const Sublets = () => {
         );
     };
 
+    // handle delete listing
+    const handleDeleteListing = async (listingId) => {
+        // bit of confusion here for me
+
+        // update listings state
+        const updatedListings = listings.filter((listing) => listing.id !== listingId);
+        setListings(updatedListings);
+        toast({
+            variant: "default",
+            title: "Deleted!",
+            description: "RIP to that listing ☠️",
+        });
+    };
+
     // this is to ensure we don't get any flashing of the Guest page or the "# of listings" text
     // only care about the "fetching" prop if user is signed in, otherwise won't be fetching anything
     if (loading || (user && fetching)) {
@@ -173,10 +191,24 @@ const Sublets = () => {
                             {displayListings.length} {activeTab} listing
                             {displayListings.length !== 1 && "s"}
                         </p>
-                        <div className="grid grid-cols-1 gap-8 mt-2">
-                            {displayListings.map((listing) => (
-                                <ListingItem key={listing.id} listing={listing} />
-                            ))}
+                        <div className="grid grid-cols-1 gap-10 mt-2">
+                            {displayListings.map((listing) => {
+                                // get all requests for this listing
+                                const listingRequests = requests.filter(
+                                    (request) => request.listingId === listing._id
+                                );
+
+                                return activeTab === "past" ? (
+                                    <ListingItemWithRequests
+                                        key={listing.id}
+                                        listing={listing}
+                                        onDelete={handleDeleteListing}
+                                        requests={listingRequests}
+                                    />
+                                ) : (
+                                    <ListingItem key={listing.id} listing={listing} />
+                                );
+                            })}
                         </div>
                     </>
                 ) : (

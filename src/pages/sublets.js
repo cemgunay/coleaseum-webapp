@@ -149,18 +149,12 @@ const Sublets = () => {
         );
     };
 
-    // handle delete listing
+    // function to remove a listing from the list if all of its requests are deleted
+    // unused for now but will implement soon
     const handleDeleteListing = async (listingId) => {
-        // bit of confusion here for me
-
         // update listings state
         const updatedListings = listings.filter((listing) => listing.id !== listingId);
         setListings(updatedListings);
-        toast({
-            variant: "default",
-            title: "Deleted!",
-            description: "RIP to that listing ☠️",
-        });
     };
 
     // this is to ensure we don't get any flashing of the Guest page or the "# of listings" text
@@ -202,8 +196,8 @@ const Sublets = () => {
                                     <ListingItemWithRequests
                                         key={listing.id}
                                         listing={listing}
-                                        onDelete={handleDeleteListing}
                                         requests={listingRequests}
+                                        deleteListing={handleDeleteListing}
                                     />
                                 ) : (
                                     <ListingItem key={listing.id} listing={listing} />

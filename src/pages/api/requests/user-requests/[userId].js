@@ -13,7 +13,7 @@ export default async function handler(req, res) {
                 const { userId } = req.query;
 
                 // get all requests
-                const requests = await Request.find({ subTenantId: userId })
+                const requests = await Request.find({ subTenantId: userId, showSubTenant: true })
                     .populate("tenantDocuments")
                     .populate("subtenantDocuments");
 

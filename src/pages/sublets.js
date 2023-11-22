@@ -64,7 +64,7 @@ const Sublets = () => {
 
         // fetch requests
         const fetchRequests = async () => {
-            const response = await fetch(`/api/requests/${user.id}`);
+            const response = await fetch(`/api/requests/user-requests/${user.id}`);
             if (!response.ok) {
                 console.log(response);
                 throw new Error("Failed to fetch requests");

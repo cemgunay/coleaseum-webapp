@@ -11,7 +11,6 @@ import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
 import { usePusher } from "@/hooks/usePusher";
-import { PusherContext } from "@/context/PusherContext";
 
 // This function can be used to set a timeout on fetch requests
 async function fetchWithTimeout(resource, options = {}, timeout = 8000) {

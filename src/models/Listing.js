@@ -61,9 +61,9 @@ const ListingSchema = new Schema(
             type: Number,
             default: 0,
         },
-        aboutyourplace: {
-            propertyType: { type: String },
-            privacyType: { type: String },
+        aboutYourPlace: {
+            propertyType: { type: String, default: "" },
+            privacyType: { type: String, default: "" },
         },
         basics: {
             bedrooms: [bedroomSchema],
@@ -147,11 +147,18 @@ const ListingSchema = new Schema(
             default: false,
         },
     },
-    { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+    }
 );
 
 // virtual properties
 ListingSchema.virtual("daysLeft").get(function () {
+    if (!this.expiryDate) {
+        return null; // or some default value
+    }
     const now = new Date();
     const diffTime = this.expiryDate.getTime() - now.getTime();
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -165,6 +172,7 @@ ListingSchema.virtual("numOfBedrooms").get(function () {
 ListingSchema.set("toObject", { virtuals: true });
 ListingSchema.set("toJSON", { virtuals: true });
 
-const ListingModel = mongoose.models.Listing || mongoose.model("Listing", ListingSchema);
+const ListingModel =
+    mongoose.models.Listing || mongoose.model("Listing", ListingSchema);
 
 export default ListingModel;

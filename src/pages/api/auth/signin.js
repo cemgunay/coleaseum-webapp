@@ -33,7 +33,10 @@ export default async function handler(req, res) {
 
                 // create, sign and return token
                 jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" }, (err, token) => {
-                    if (err) throw err;
+                    if (err) {
+                        console.log("token signing error", err);
+                        return res.status(500).json({ error: `Error signing the token.\n${err}` });
+                    }
                     res.status(200).json({ token });
                 });
             } catch (error) {

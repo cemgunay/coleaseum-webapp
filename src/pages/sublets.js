@@ -182,8 +182,8 @@ const Sublets = () => {
                 {listings.length ? (
                     <>
                         <p className="self-start mb-1 text-gray-700 text-sm">
-                            {displayListings.length} {activeTab} listing
-                            {displayListings.length !== 1 && "s"}
+                            {displayListings.length} listing{displayListings.length !== 1 && "s"}{" "}
+                            with {activeTab} requests
                         </p>
                         <div className="grid grid-cols-1 gap-10 mt-2">
                             {displayListings.map((listing) => {

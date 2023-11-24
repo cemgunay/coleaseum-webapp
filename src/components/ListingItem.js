@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
+import Skeleton from "./Skeleton";
 
 const ListingItem = ({ listing }) => {
     const images = listing.images.map(({ url }) => url);
@@ -8,10 +9,12 @@ const ListingItem = ({ listing }) => {
     const [activeRequests, setActiveRequests] = useState([]);
     const [highestRequestPrice, setHighestRequestPrice] = useState(null);
     const [highestActiveRequestPrice, setHighestActiveRequestPrice] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     // get all requests and all active requests
     useEffect(() => {
         const fetchRequests = async () => {
+            setLoading(true);
             try {
                 // fetch all requests for the current listing
                 const requestsResponse = await fetch(
@@ -50,6 +53,8 @@ const ListingItem = ({ listing }) => {
             } catch (error) {
                 console.error("Failed overall: \n", error);
                 throw new Error("Failed overall :(");
+            } finally {
+                setLoading(false);
             }
         };
 
@@ -63,17 +68,17 @@ const ListingItem = ({ listing }) => {
     const { address1, city, stateprovince } = listing.location;
     const formattedAddress = `${address1}, ${city}, ${stateprovince}`;
 
-    // filter tenant and subtenant requests from requests array
-    // using memoization here to ensure this filtering only happens if requests array changes
-    const tenantReqests = useMemo(() => {
-        return requests.filter(
-            (req) => req.status !== "rejected" && req.status !== "pendingSubTenant"
-        );
-    }, [requests]);
+    // // filter tenant and subtenant requests from requests array
+    // // using memoization here to ensure this filtering only happens if requests array changes
+    // const tenantReqests = useMemo(() => {
+    //     return requests.filter(
+    //         (req) => req.status !== "rejected" && req.status !== "pendingSubTenant"
+    //     );
+    // }, [requests]);
 
-    const subtenantRequests = useMemo(() => {
-        return requests.filter((req) => req.status === "pendingSubTenant");
-    }, [requests]);
+    // const subtenantRequests = useMemo(() => {
+    //     return requests.filter((req) => req.status === "pendingSubTenant");
+    // }, [requests]);
 
     return (
         <div className="relative">
@@ -90,17 +95,24 @@ const ListingItem = ({ listing }) => {
                     <p>{listing.dates}</p>
                     <div className="flex justify-between">
                         <h3 className="font-medium">
-                            {highestActiveRequestPrice
-                                ? `${highestActiveRequestPrice} Highest Offer`
-                                : `${listing.price} List Price`}
+                            {loading ? (
+                                <Skeleton className="h-5 w-32 mt-1" />
+                            ) : highestActiveRequestPrice ? (
+                                `${highestActiveRequestPrice} Highest Offer`
+                            ) : (
+                                `${listing.price} List Price`
+                            )}
                         </h3>
                         <p>
-                            {/* NB: The calculation for active bids here is different to the one on individual listing page  */}
-                            {tenantReqests.length
-                                ? `${tenantReqests.length} active bid${
-                                      tenantReqests.length === 1 ? "" : "s"
-                                  }`
-                                : `No active bids`}
+                            {loading ? (
+                                <Skeleton className="h-5 w-24 mt-1" />
+                            ) : activeRequests.length ? (
+                                `${activeRequests.length} active bid${
+                                    activeRequests.length === 1 ? "" : "s"
+                                }`
+                            ) : (
+                                `No active bids`
+                            )}
                         </p>
                     </div>
                 </div>

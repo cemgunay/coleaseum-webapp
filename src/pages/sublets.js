@@ -128,7 +128,7 @@ const Sublets = () => {
         if (listings.length && requests.length) {
             setFetching(false);
         }
-    }, [activeListings, pastListings, confirmedListings]);
+    }, [activeListings, pastListings, confirmedListings, listings, requests]);
 
     // loading component
     const Loading = () => {

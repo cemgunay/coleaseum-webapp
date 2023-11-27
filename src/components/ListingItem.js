@@ -94,26 +94,26 @@ const ListingItem = ({ listing }) => {
                     <address>{formattedAddress}</address>
                     <p>{listing.dates}</p>
                     <div className="flex justify-between">
-                        <h3 className="font-medium">
-                            {loading ? (
-                                <Skeleton className="h-5 w-32 mt-1" />
-                            ) : highestActiveRequestPrice ? (
-                                `${highestActiveRequestPrice} Highest Offer`
-                            ) : (
-                                `${listing.price} List Price`
-                            )}
-                        </h3>
-                        <p>
-                            {loading ? (
-                                <Skeleton className="h-5 w-24 mt-1" />
-                            ) : activeRequests.length ? (
-                                `${activeRequests.length} active bid${
-                                    activeRequests.length === 1 ? "" : "s"
-                                }`
-                            ) : (
-                                `No active bids`
-                            )}
-                        </p>
+                        {loading ? (
+                            <Skeleton className="h-5 w-32 mt-1" />
+                        ) : (
+                            <h3 className="font-medium">
+                                {highestActiveRequestPrice
+                                    ? `${highestActiveRequestPrice} Highest Offer`
+                                    : `${listing.price} List Price`}
+                            </h3>
+                        )}
+                        {loading ? (
+                            <Skeleton className="h-5 w-24 mt-1" />
+                        ) : (
+                            <p>
+                                {activeRequests.length
+                                    ? `${activeRequests.length} active bid${
+                                          activeRequests.length === 1 ? "" : "s"
+                                      }`
+                                    : `No active bids`}
+                            </p>
+                        )}
                     </div>
                 </div>
             </Link>

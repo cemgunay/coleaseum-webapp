@@ -6,44 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import Input from "./Input";
 import { useState } from "react";
 
-//helper function to format the address receieved from usePlacesAutocomplete
-const formatLocationData = (address) => {
-    const addressComponents = address.address_components;
-
-    let address1 = "";
-    let city = "";
-    let countryregion = "";
-    let postalcode = "";
-    let stateprovince = "";
-    let lat = "";
-    let lng = "";
-
-    // Extracting components from address_components
-    addressComponents.forEach((component) => {
-        if (component.types.includes("street_number")) {
-            address1 += component.long_name + " ";
-        }
-        if (component.types.includes("route")) {
-            address1 += component.long_name;
-        }
-        if (component.types.includes("locality")) {
-            city = component.long_name;
-        }
-        if (component.types.includes("country")) {
-            countryregion = component.long_name;
-        }
-        if (component.types.includes("postal_code")) {
-            postalcode = component.long_name;
-        }
-        if (component.types.includes("administrative_area_level_1")) {
-            stateprovince = component.long_name;
-        }
-    });
-
-    return { address1, city, countryregion, postalcode, stateprovince };
-};
-
-const AutocompleteField = ({dispatch}) => {
+const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
     //state to control Popover visibility
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -64,7 +27,6 @@ const AutocompleteField = ({dispatch}) => {
 
     // handle what happens when user selects a suggestion
     const handleSelect = async (address) => {
-        console.log(address);
         setValue(address, false);
         clearSuggestions();
         // Delay closing the popover to allow the input field to lose focus
@@ -78,19 +40,9 @@ const AutocompleteField = ({dispatch}) => {
 
         // use function to format address into components
         const addressComponents = formatLocationData(results[0]);
+        const locationData = { ...addressComponents, lat, lng };
 
-        // Combine lat, lng with addressComponents
-        const locationData = {
-            ...addressComponents,
-            lat,
-            lng,
-        };
-
-        // Dispatch an action to update the location in your state
-        dispatch({
-            type: "UPDATE_LOCATION",
-            payload: locationData,
-        });
+        onAddressSelect(locationData); // Callback to parent component
     };
 
     return (

@@ -1,3 +1,4 @@
+// Import necessary React hooks and components.
 import { useAuth } from "@/hooks/useAuth";
 import React, { createContext, useState, useEffect, useReducer } from "react";
 import {
@@ -6,16 +7,20 @@ import {
     utilitiesReducer,
     imagesReducer,
 } from "@/reducers";
+import { useRouter } from "next/router";
 
+// Create a context for the listing form.
 export const ListingFormContext = createContext();
 
-//initial data states
+// Define initial states for different parts of the listing form.
 const initialListingDetailsState = {
+    // User ID and details about the place.
     userId: "",
     aboutYourPlace: {
         propertyType: "",
         privacyType: "",
     },
+    // Location details.
     location: {
         address1: "",
         city: "",
@@ -23,9 +28,10 @@ const initialListingDetailsState = {
         postalcode: "",
         stateprovince: "",
         unitnumber: "",
-        lat: "",
-        lng: "",
+        lat: null,
+        lng: null,
     },
+    // Basic details like bedrooms and bathrooms.
     basics: {
         bedrooms: [
             {
@@ -33,12 +39,13 @@ const initialListingDetailsState = {
                 ensuite: false,
             },
         ],
-        bathrooms: 0,
+        bathrooms: null,
     },
+    // Additional details like title, description, pricing, and dates.
     title: "",
     description: "",
     published: false,
-    price: 0,
+    price: null,
     moveInDate: null,
     moveOutDate: null,
     expiryDate: null,
@@ -48,12 +55,23 @@ const initialAmenitiesState = {};
 const initialUtilitiesState = {};
 const initialImagesState = [];
 
+const PATHNAME = "/host/create-listing/";
+
+// Provider component for the ListingFormContext.
 export const ListingFormProvider = ({ children }) => {
-    // user ID making the listing used to initialize userId of listing
+    // Retrieve the current user and initialize router for navigation.
     const { user: contextUser } = useAuth();
-    // helpful to update the UI accordingly
-    const [loading, setLoading] = useState(true);
-    // Separate Reducers for each part of the form
+    const router = useRouter();
+
+    // Extract the listing ID from the URL, and check if the current route is part of the listing creation process.
+    const { listingId }= router.query
+    const isCreateListingRoute = router.pathname.startsWith(PATHNAME);
+
+    // States to manage the loading and pushing (data submission) status.
+    const [isLoading, setIsLoading] = useState(true);
+    const [pushing, setPushing] = useState(false);
+
+    // Reducers for managing different aspects of the listing form.
     const [listingDetailsState, listingDetailsDispatch] = useReducer(
         listingDetailsReducer,
         initialListingDetailsState
@@ -71,16 +89,15 @@ export const ListingFormProvider = ({ children }) => {
         initialImagesState
     );
 
-    // Combine states for easy access
+    // Combine states for a consolidated view of the form state.
     const combinedListingFormState = {
-        listingDetails: listingDetailsState,
+        ...listingDetailsState,
         amenities: amenitiesState,
         utilities: utilitiesState,
         images: imagesState,
     };
 
-    // Dispatch action to all reducers
-    // Combined for ease since all reducers have seperate action names they will correctly be ignored
+    // Combined dispatch function to update states from all reducers.
     const combinedListingFormDispatch = (action) => {
         listingDetailsDispatch(action);
         amenitiesDispatch(action);
@@ -88,9 +105,8 @@ export const ListingFormProvider = ({ children }) => {
         imagesDispatch(action);
     };
 
-    //update userId in listingDetails
+    // Update the user ID in the listing details when the context user changes.
     useEffect(() => {
-        console.log('running here')
         if (contextUser) {
             listingDetailsDispatch({
                 type: "UPDATE_USER_ID",
@@ -99,32 +115,100 @@ export const ListingFormProvider = ({ children }) => {
         }
     }, [contextUser]);
 
-    
-    //pull from local storage when navigating between pages
-    useEffect(() => {
-        const storedState = localStorage.getItem("listingFormData");
-        if (storedState) {
+    // Function to load data from the database based on the listing ID.
+    const loadData = async () => {
+        setIsLoading(true);
+        try {
+            const response = await fetch(`/api/listings/${listingId}`);
+
+            // Handle different response statuses and navigate to appropriate pages.
+            if (!response.ok) {
+                if (response.status === 404) {
+                    router.push("/404"); // Navigate to 404 page on not found error.
+                    return;
+                } else if (response.status === 500) {
+                    router.push("/500"); // Navigate to 500 page on server error.
+                    return;
+                }
+                throw new Error(
+                    `API call failed with status ${response.status}`
+                );
+            }
+
+            const data = await response.json();
+
+            // Prepare the payload to update states with fetched data.
+            const { utilities, images, amenities, ...listingDetails } = data;
+            const payload = {
+                listingDetails,
+                utilities,
+                images,
+                amenities,
+            };
+
+            // Dispatch action to update all parts of the form state.
             combinedListingFormDispatch({
                 type: "LOAD_STATE",
-                payload: JSON.parse(storedState),
+                payload: payload,
             });
+        } catch (error) {
+            console.error("Error loading form data:", error);
+            // TODO: Implement error handling with user notifications.
         }
-        setLoading(false)
-    }, []);
+        setIsLoading(false);
+    };
 
-    // Push to local storage on state change
+    // Effect to load data when the listing ID changes or when navigating between pages.
     useEffect(() => {
-        localStorage.setItem(
-            "listingFormData",
-            JSON.stringify(combinedListingFormState)
-        );
-    }, [combinedListingFormState]);
-    
-    console.log(combinedListingFormState)
+        if (isCreateListingRoute && listingId) {
+            loadData();
+        }
+    }, [isCreateListingRoute, listingId]);
+
+    // Function to push data to the database and navigate to the next form page.
+    const pushToDatabase = async (listingId, updateData, nextPage) => {
+        setPushing(true);
+        try {
+            const response = await fetch(`/api/listings`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ listingId, updateData }),
+            });
+
+            if (!response.ok) {
+                setPushing(false);
+                throw new Error("API call failed");
+            }
+
+            const updatedListing = await response.json();
+            console.log("Listing updated:", updatedListing);
+
+            // Navigate to the next page after successful submission.
+            router
+                .push(`/host/create-listing/${listingId}/${nextPage}`)
+                .then(() => {
+                    setPushing(false);
+                });
+        } catch (error) {
+            console.error("Error updating listing:", error);
+            setPushing(false);
+            // TODO: Implement error handling with user notifications.
+        }
+    };
 
     return (
         <ListingFormContext.Provider
-            value={{ combinedListingFormState, combinedListingFormDispatch, loading }}
+            value={{
+                listingId,
+                combinedListingFormState,
+                combinedListingFormDispatch,
+                isLoading,
+                setPushing,
+                pushToDatabase,
+                pushing,
+            }}
         >
             {children}
         </ListingFormContext.Provider>

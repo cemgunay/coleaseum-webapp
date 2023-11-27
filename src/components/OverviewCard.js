@@ -4,9 +4,11 @@ const OverviewCard = ({ number, title, description, image }) => {
     //cloudinary transformations
     const cloudName = "dcytupemt";
     const transformations = "w_200,h_200,c_pad,b_white";
-    const transformedImage = `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${image}`;
+    const transformedImage = `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/coleaseum/${image}`;
     const blurTransform = "w_30,h_30,c_fill,e_blur:1000,q_auto:low";
-    const blurDataURL = `https://res.cloudinary.com/${cloudName}/image/upload/${blurTransform}/${image}`;
+    const blurDataURL = `https://res.cloudinary.com/${cloudName}/image/upload/${blurTransform}/coleaseum/${image}`;
+
+    // https://res.cloudinary.com/dcytupemt/image/upload/w_30,h_30,c_fill,e_blur:1000,q_auto:low/coleaseum/cmlfwyx1lsgrunkdmxgg.png
 
     return (
         <div className="w-full flex justify-between items-center gap-4">

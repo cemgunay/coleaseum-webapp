@@ -1,6 +1,7 @@
 import CreateListingLayout from "@/components/CreateListingLayout";
 import PrivacyTypeOption from "@/components/PrivacyType";
 import PropertyTypeOption from "@/components/PropertyType";
+import Skeleton from "@/components/Skeleton";
 import { useListingForm } from "@/hooks/useListingForm";
 import Image from "next/image";
 import { useRouter } from "next/router";
@@ -20,17 +21,18 @@ const AboutYourPlace = () => {
     const blurDataURL = `https://res.cloudinary.com/${cloudName}/image/upload/${blurTransform}/${image}`;
 
     //get context
-    const { combinedListingFormState, combinedListingFormDispatch, loading } =
-        useListingForm();
+    const {
+        listingId,
+        combinedListingFormState,
+        combinedListingFormDispatch,
+        pushToDatabase,
+    } = useListingForm();
 
     //name our data variable that we will use
-    const data = combinedListingFormState?.listingDetails?.aboutYourPlace;
+    const data = combinedListingFormState?.aboutYourPlace;
 
     //to check if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(false);
-
-    //to check if we are submitting
-    const [submitting, setSubmitting] = useState(false)
 
     //to handle property type and privacy type changes
     const handleChange = (e) => {
@@ -53,69 +55,67 @@ const AboutYourPlace = () => {
     //update canGoNext to see if we can submit
     useEffect(() => {
         // Check if both propertyType and privacyType are selected
-        const aboutYourPlace =
-            combinedListingFormState.listingDetails.aboutYourPlace;
+        const aboutYourPlace = combinedListingFormState.aboutYourPlace;
         if (aboutYourPlace.propertyType && aboutYourPlace.privacyType) {
             setCanGoNext(true);
         } else {
             setCanGoNext(false);
         }
-    }, [combinedListingFormState.listingDetails.aboutYourPlace]);
+    }, [combinedListingFormState.aboutYourPlace]);
 
     //when user clicks next button dispatch the push to database
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        setSubmitting(true)
 
         //format data for update
-        const listingId = combinedListingFormState.listingDetails._id;
         const updateData = {
-            aboutYourPlace:
-                combinedListingFormState.listingDetails.aboutYourPlace,
+            aboutYourPlace: combinedListingFormState.aboutYourPlace,
         };
 
-        try {
-            //make fetch
-            const response = await fetch(`/api/listings`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ listingId, updateData }),
-            });
-
-            if (!response.ok) {
-                setSubmitting(false)
-                throw new Error("API call failed");
-            }
-
-            // Handle the response
-            const updatedListing = await response.json();
-            console.log("Listing updated:", updatedListing);
-
-            // After successful submission, navigate to the next page
-            router.push(`/host/create-listing/${listingId}/location`);
-        } catch (error) {
-            console.error("Error updating listing:", error);
-            setSubmitting(false)
-
-            // ***** put a toast in here
-
-        }
+        //call the function to push to database from context
+        await pushToDatabase(listingId, updateData, "location");
     };
 
-    const handleBack = () => {};
+    // go back to manage-my-listings (where you see all listings)
+    const handleBack = () => {
+        router.push("/host/create-listing/overview");
+    };
+
+    const Loading = () => {
+        return (
+            <div className="mx-8 flex flex-col justify-between items-center gap-8">
+                <div className="flex items-center w-full">
+                    <div className="flex flex-col justify-between items-start text-sm w-full">
+                        <Skeleton className="h-4 w-1/4 mb-2" /> {/* Step number */}
+                        <Skeleton className="h-24 w-full mb-2" /> {/* Title, increased height */}
+                    </div>
+                    <Skeleton className="w-24 h-14 ml-4" /> {/* Image, standard size */}
+                </div>
+                <div className="flex flex-col gap-3 w-full">
+                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 w-full">
+                        {[...Array(4)].map((_, index) => (
+                            <Skeleton key={index} className="h-14 w-full" />
+                        ))}
+                    </div>
+                    <div className="grid grid-cols-1 gap-4">
+                        {[...Array(3)].map((_, index) => (
+                            <Skeleton key={index} className="h-14 w-full" />
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    };
+    
 
     return (
         <CreateListingLayout
-            loading={loading}
+            Loading={Loading}
             currentStep={1}
             totalSteps={5}
             onNext={handleSubmit}
             onBack={handleBack}
             canGoNext={canGoNext}
-            submitting={submitting}
         >
             <div className="mx-8 flex flex-col justify-between items-center gap-8">
                 <div className="flex items-center">

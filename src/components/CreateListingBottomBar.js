@@ -19,7 +19,7 @@ const CreateListingBottomBar = ({
     onBack,
     onNext,
     canGoNext,
-    submitting,
+    pushing,
 }) => (
     <div className="bottom-bar">
         <ProgressBar currentStep={currentStep} totalSteps={totalSteps} />
@@ -28,6 +28,7 @@ const CreateListingBottomBar = ({
             size="lg"
             className="font-normal text-base text-slate-600"
             onClick={onBack}
+            disabled={pushing}
         >
             Back
         </Button>
@@ -36,9 +37,9 @@ const CreateListingBottomBar = ({
             size="lg"
             className="font-normal text-base text-slate-600"
             onClick={onNext}
-            disabled={!canGoNext || submitting}
+            disabled={!canGoNext || pushing}
         >
-            {submitting ? (
+            {pushing ? (
                 <CircularProgress size={24} color="inherit" />
             ) : (
                 "Next"

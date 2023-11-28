@@ -11,6 +11,7 @@ import { TiDelete } from "react-icons/ti";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import Link from "next/link";
 
 const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
     // sort requests by date
@@ -36,6 +37,12 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
     };
 
     const startDeleteProcess = (requestId) => {
+        setSelectedRequestId(requestId);
+        handleOpenModal();
+    };
+
+    const startDeleteProcess2 = (e, requestId) => {
+        e.stopPropagation();
         setSelectedRequestId(requestId);
         handleOpenModal();
     };
@@ -93,6 +100,63 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
         }
     };
 
+    // RequestItem component, just abstracting out some JSX for readability
+    const RequestItem = ({ request }) => {
+        return (
+            <div className="flex justify-between items-center group border-t border-slate-300 py-2 mx-1">
+                <p>Rejected: ${request.price}</p>
+                <div className="flex items-center gap-1">
+                    <p className="text-slate-300 transition-all duration-500 transform translate-x-6 group-hover:-translate-x-1">
+                        {format(new Date(request.createdAt), "yyyy-MM-dd")}
+                    </p>
+                    <button onClick={() => startDeleteProcess(request._id)}>
+                        <TiDelete className="text-2xl text-color-error opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const RequestItem2 = ({ request }) => {
+        return (
+            <div className="flex justify-between items-center group border-t border-slate-300 py-2 mx-1">
+                <div className="flex items-center gap-3 border-0 border-black">
+                    <p>Rejected: ${request.price}</p>
+                    <button className="flex items-center px-2 rounded-sm bg-slate-300">VIEW</button>
+                </div>
+                <div className="flex items-center gap-1">
+                    <p className="text-slate-300 transition-all duration-500 transform translate-x-6 group-hover:-translate-x-1">
+                        {format(new Date(request.createdAt), "yyyy-MM-dd")}
+                    </p>
+                    <button onClick={() => startDeleteProcess(request._id)}>
+                        <TiDelete className="text-2xl text-color-error opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    const RequestItem3 = ({ request }) => {
+        return (
+            <div className="flex justify-between items-center group border-t border-slate-300 pl-2 hover:bg-slate-200">
+                <Link
+                    href={`/request/${request._id}`}
+                    className="flex-grow border-0 border-black py-2"
+                >
+                    <p>Rejected: ${request.price}</p>
+                </Link>
+                <div className="flex items-center gap-1">
+                    <p className="text-slate-300 transition-all duration-500 transform translate-x-6 group-hover:-translate-x-1">
+                        {format(new Date(request.createdAt), "yyyy-MM-dd")}
+                    </p>
+                    <button onClick={(e) => startDeleteProcess2(e, request._id)}>
+                        <TiDelete className="text-2xl text-color-error opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div>
             {showModal && (
@@ -114,38 +178,12 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
                         {displayRequests.length > 7 ? (
                             <ScrollArea type="scroll" className="w-full h-72">
                                 {displayRequests.map((request, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex justify-between items-center group border-t border-slate-300 py-2 mx-1"
-                                    >
-                                        <p>Rejected: ${request.price}</p>
-                                        <div className="flex items-center gap-1">
-                                            <p className="text-slate-300 transition-all duration-500 transform translate-x-6 group-hover:-translate-x-1">
-                                                {format(new Date(request.createdAt), "yyyy-MM-dd")}
-                                            </p>
-                                            <button onClick={() => startDeleteProcess(request._id)}>
-                                                <TiDelete className="text-2xl text-color-error opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                            </button>
-                                        </div>
-                                    </div>
+                                    <RequestItem3 key={index} request={request} />
                                 ))}
                             </ScrollArea>
                         ) : (
                             displayRequests.map((request, index) => (
-                                <div
-                                    key={index}
-                                    className="flex justify-between items-center group border-t border-slate-300 py-2 mx-1"
-                                >
-                                    <p>Rejected: ${request.price}</p>
-                                    <div className="flex items-center gap-1">
-                                        <p className="text-slate-300 transition-all duration-500 transform translate-x-6 group-hover:-translate-x-1">
-                                            {format(new Date(request.createdAt), "yyyy-MM-dd")}
-                                        </p>
-                                        <button onClick={() => startDeleteProcess(request._id)}>
-                                            <TiDelete className="text-2xl text-color-error opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                                        </button>
-                                    </div>
-                                </div>
+                                <RequestItem3 key={index} request={request} />
                             ))
                         )}
                     </AccordionContent>

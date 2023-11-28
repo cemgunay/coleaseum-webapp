@@ -11,23 +11,9 @@ import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
 import { usePusher } from "@/context/PusherContext";
+import { fetchWithTimeout } from "@/utils/utils";
 
-// This function can be used to set a timeout on fetch requests
-async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
-    const controller = new AbortController();
-    const id = setTimeout(() => controller.abort(), timeout);
-
-    const response = await fetch(resource, {
-        ...options,
-        signal: controller.signal,
-    }).catch((error) => {
-        clearTimeout(id);
-        return { error: true, message: error.message };
-    });
-
-    clearTimeout(id);
-    return response;
-}
+// moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
 
 //Getting listing details on server side
 export async function getServerSideProps(context) {
@@ -40,11 +26,7 @@ export async function getServerSideProps(context) {
     }
 
     const { listingId } = context.params;
-    const response = await fetchWithTimeout(
-        `${apiUrl}/api/listings/${listingId}`,
-        {},
-        5000
-    );
+    const response = await fetchWithTimeout(`${apiUrl}/api/listings/${listingId}`, {}, 5000);
 
     // Handle fetch failure
     if (response.error) {
@@ -91,16 +73,14 @@ const Listing = ({ listing }) => {
         }
 
         const formattedAddress = `${listing.location.address1}, ${listing.location.city}, ${listing.location.stateprovince}`;
-        const numBeds = listing.basics.bedrooms.map(
-            (bedroom) => bedroom.bedType
-        ).length;
+        const numBeds = listing.basics.bedrooms.map((bedroom) => bedroom.bedType).length;
         const numBedrooms = listing.basics.bedrooms.length;
         const numBathrooms = listing.basics.bathrooms;
         const formattedRoomInfo = `${numBeds} bed${
             numBeds === 1 ? "" : "s"
-        } • ${numBedrooms} bedroom${
-            numBedrooms === 1 ? "" : "s"
-        } • ${numBathrooms} bathroom${numBathrooms === 1 ? "" : "s"}`;
+        } • ${numBedrooms} bedroom${numBedrooms === 1 ? "" : "s"} • ${numBathrooms} bathroom${
+            numBathrooms === 1 ? "" : "s"
+        }`;
         const images = listing.images.map(({ url }) => url);
 
         return {
@@ -122,16 +102,12 @@ const Listing = ({ listing }) => {
     useEffect(() => {
         // fetch active requests for listing
         const fetchActiveRequests = async () => {
-            const response = await fetch(
-                `/api/requests/listingactiverequests/${listing._id}`
-            );
+            const response = await fetch(`/api/requests/listingactiverequests/${listing._id}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch active requests :(");
             }
             const activeRequests = await response.json();
-            const activeRequestPrices = activeRequests.map(
-                (req) => req.price || 0
-            );
+            const activeRequestPrices = activeRequests.map((req) => req.price || 0);
             setHighestRequest(Math.max(...activeRequestPrices));
             setNumberOfRequests(activeRequests.length);
         };
@@ -167,9 +143,7 @@ const Listing = ({ listing }) => {
             // Bind to bid create events
             channel.bind("bid-created", (data) => {
                 if (data.listingId === listing._id) {
-                    setNumberOfRequests(
-                        (prevNumberOfRequests) => prevNumberOfRequests + 1
-                    );
+                    setNumberOfRequests((prevNumberOfRequests) => prevNumberOfRequests + 1);
                 }
             });
 
@@ -212,10 +186,7 @@ const Listing = ({ listing }) => {
         <>
             {/* Back button */}
             {!showGrid && !showModalCarousel && (
-                <div
-                    className="absolute top-0 left-0 w-fit z-[100] p-4"
-                    onClick={router.back}
-                >
+                <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
                     <FaCircleChevronLeft className="text-2xl text-gray-800" />
                 </div>
             )}
@@ -264,14 +235,10 @@ const Listing = ({ listing }) => {
                 <div className="flex flex-col mx-8">
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <div className="flex justify-between">
-                            <h3 className="text-2xl font-bold">
-                                {listing.title}
-                            </h3>
+                            <h3 className="text-2xl font-bold">{listing.title}</h3>
                             <p>{listing.days_left}</p>
                         </div>
-                        <address className="text-lg">
-                            {formattedAddress}
-                        </address>
+                        <address className="text-lg">{formattedAddress}</address>
                         {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
                             {!highestRequest ? (
@@ -294,9 +261,7 @@ const Listing = ({ listing }) => {
                     {/* Dynamically load username */}
                     <div className="py-4 border-b-[0.1rem] border-gray-300 text-xl">
                         <div className="flex flex-wrap items-center gap-1">
-                            <div className="min-w-0">
-                                Entire suite subletted by
-                            </div>
+                            <div className="min-w-0">Entire suite subletted by</div>
                             <span className="font-bold flex-grow flex-shrink">
                                 {!user ? <LoadingUser /> : user?.firstName}
                             </span>
@@ -308,8 +273,7 @@ const Listing = ({ listing }) => {
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <p className="text-lg">
                             {listing.description?.length > 250
-                                ? listing.description?.substring(0, 250)
-                                      .listing + "..."
+                                ? listing.description?.substring(0, 250).listing + "..."
                                 : listing.description}
                         </p>
                     </div>
@@ -322,9 +286,7 @@ const Listing = ({ listing }) => {
                         <UtilitiesDisplay utilities={listing.utilities} />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <h2 className="text-2xl font-bold">
-                            What this place offers
-                        </h2>
+                        <h2 className="text-2xl font-bold">What this place offers</h2>
                         <AmenitiesDisplay amenities={listing.amenities} />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 h-[300px]">
@@ -339,33 +301,24 @@ const Listing = ({ listing }) => {
                         <h2 className="text-2xl font-bold mb-4">Legal</h2>
                         <div className="flex flex-col gap-6">
                             <div>
-                                <div className="font-semibold text-lg">
-                                    Health & Safety
-                                </div>
+                                <div className="font-semibold text-lg">Health & Safety</div>
                                 <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A
-                                    COMPONENTTTTTTTTTTTT I DONT WANNA REWRITE
-                                    THIS SHIT EVERYTIME
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
                                 </p>
                             </div>
                             <div>
-                                <div className="font-semibold text-lg">
-                                    Sublet Policy
-                                </div>
+                                <div className="font-semibold text-lg">Sublet Policy</div>
                                 <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A
-                                    COMPONENTTTTTTTTTTTT I DONT WANNA REWRITE
-                                    THIS SHIT EVERYTIME
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
                                 </p>
                             </div>
                             <div>
-                                <div className="font-semibold text-lg">
-                                    Report this listing
-                                </div>
+                                <div className="font-semibold text-lg">Report this listing</div>
                                 <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A
-                                    COMPONENTTTTTTTTTTTT I DONT WANNA REWRITE
-                                    THIS SHIT EVERYTIME
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
                                 </p>
                             </div>
                         </div>

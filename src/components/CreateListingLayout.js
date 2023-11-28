@@ -13,12 +13,13 @@ const CreateListingLayout = ({
     canGoNext,
     onSaveExit,
 }) => {
-    const { isLoading, pushing } = useListingForm();
+    const { listingId, isLoading, pushing } = useListingForm();
 
     return (
         <>
             <CreateListingTopBar onSaveExit={onSaveExit} />
-            {isLoading ? <Loading /> : <main>{children}</main>}
+            {/* dont render the child component until data has been loaded from DB and listing ID set from query */}
+            {isLoading && !listingId ? <Loading /> : <main>{children}</main>}
 
             <CreateListingBottomBar
                 currentStep={currentStep}

@@ -81,7 +81,7 @@ const Location = () => {
 
     //to conditionally render the location form components 1-3
     const [currentLocationFormStep, setCurrentLocationFormStep] = useState(1);
-    const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
     //to check if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(true);
@@ -109,7 +109,8 @@ const Location = () => {
     // Check if locationData is not null (or has the required properties) to render the correct step within the location form
     useEffect(() => {
         if (
-            !initialLoadComplete && 
+            !initialLoadComplete &&
+            currentLocationFormStep !== 2 &&
             locationData &&
             locationData.address1 &&
             locationData.city &&
@@ -118,7 +119,7 @@ const Location = () => {
             locationData.countryregion
         ) {
             setCurrentLocationFormStep(3);
-            setInitialLoadComplete(true)
+            setInitialLoadComplete(true);
         }
     }, [locationData]);
 
@@ -197,11 +198,11 @@ const Location = () => {
 
     // to check if there is a partial match (ill comment this more in detail later)
     const handleGeoCheck = async () => {
-        console.log(formattedAddress)
+        console.log(formattedAddress);
         try {
             const results = await getGeocode({ address: formattedAddress });
 
-            console.log(results)
+            console.log(results);
 
             if ("partial_match" in results[0]) {
                 setIncorrectAddress(true);
@@ -229,7 +230,7 @@ const Location = () => {
                 const addressComponents = formatLocationData(results[0]);
                 const { lat, lng } = getLatLng(results[0]);
                 const updateData = { ...addressComponents, lat, lng };
-                console.log(updateData)
+                console.log(updateData);
                 combinedListingFormDispatch({
                     type: "UPDATE_LOCATION",
                     payload: updateData,

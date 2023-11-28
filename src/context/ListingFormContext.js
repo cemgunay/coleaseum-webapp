@@ -168,6 +168,7 @@ export const ListingFormProvider = ({ children }) => {
     // Function to push data to the database and navigate to the next form page.
     const pushToDatabase = async (listingId, updateData, nextPage) => {
         setPushing(true);
+        console.log(updateData)
         try {
             const response = await fetch(`/api/listings`, {
                 method: "PUT",

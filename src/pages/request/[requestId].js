@@ -3,8 +3,11 @@ import { useRouter } from "next/router";
 import { fetchWithTimeout } from "@/utils/utils";
 import { FaCircleChevronLeft } from "react-icons/fa6";
 import Carousel from "@/components/Carousel";
-import { PiPlusCircleThin, PiMinusCircleThin } from "react-icons/pi";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
+import { format, differenceInMonths } from "date-fns";
+
+// multiplier for the ATIC value
+const ATIC_MULTIPLIER = 2 * 0.04;
 
 // get request details on server side
 export async function getServerSideProps(context) {
@@ -70,7 +73,7 @@ const Request = ({ request, listing }) => {
     // state
     const [priceOffer, setPriceOffer] = useState(request.price);
 
-    // derived state
+    // derived state for listing info
     const { formattedAddress, formattedRoomInfo, listingImages } = useMemo(() => {
         if (!listing) {
             return {
@@ -100,6 +103,29 @@ const Request = ({ request, listing }) => {
             listingImages,
         };
     }, [listing]);
+
+    // derived state for request info
+    const numMonths = useMemo(() => {
+        const startDate = new Date(request.startDate);
+        const endDate = new Date(request.endDate);
+        return differenceInMonths(endDate, startDate);
+    }, [request.startDate, request.endDate]);
+
+    const atic = useMemo(() => {
+        return (priceOffer * ATIC_MULTIPLIER).toFixed(2);
+    }, [priceOffer]);
+
+    const subtotal = useMemo(() => {
+        return (priceOffer * numMonths).toFixed(2);
+    }, [priceOffer, numMonths]);
+
+    const total = useMemo(() => {
+        return (priceOffer * numMonths + Number(atic)).toFixed(2);
+    }, [priceOffer, numMonths, atic]);
+
+    const dueAtSigning = useMemo(() => {
+        return (priceOffer * numMonths * 0.5 + Number(atic)).toFixed(2);
+    }, [priceOffer, numMonths, atic]);
 
     return (
         <>
@@ -141,6 +167,42 @@ const Request = ({ request, listing }) => {
                             priceOffer={priceOffer}
                             setPriceOffer={setPriceOffer}
                         />
+                    </div>
+                    <div className="py-4 border-b-[0.1rem] border-gray-300 flex flex-col gap-4 text-lg">
+                        <h3 className="text-2xl font-bold">Your Request</h3>
+                        <div className="flex items-center gap-8">
+                            <div className="flex flex-col">
+                                <h4 className="font-semibold">Move In:</h4>
+                                {`${format(new Date(request.startDate), "MMM")}`}{" "}
+                                {`${format(new Date(request.startDate), "do, yyyy")}`}
+                            </div>
+                            <div className="flex flex-col">
+                                <h4 className="font-semibold">Move Out:</h4>
+                                {`${format(new Date(request.endDate), "MMM")}`}{" "}
+                                {`${format(new Date(request.endDate), "do, yyyy")}`}
+                            </div>
+                        </div>
+                        <div className="flex flex-col">
+                            <h4 className="font-semibold">Price Details:</h4>
+                            <div className="flex items-center justify-between">
+                                <p>
+                                    ${priceOffer.toLocaleString()} x {numMonths} months
+                                </p>
+                                <p>${subtotal.toLocaleString()} CAD</p>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <p>ATIC</p>
+                                <p>${atic.toLocaleString()} CAD</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <p className="font-semibold">Total</p>
+                            <p>${total.toLocaleString()} CAD</p>
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <p className="font-semibold">Due at Signing</p>
+                            <p>${dueAtSigning.toLocaleString()} CAD</p>
+                        </div>
                     </div>
                 </div>
             </div>

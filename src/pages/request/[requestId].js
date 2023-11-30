@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { fetchWithTimeout, formatPrice } from "@/utils/utils";
+import { fetchWithTimeout, formatPrice, cn } from "@/utils/utils";
 import { FaCircleChevronLeft } from "react-icons/fa6";
 import Carousel from "@/components/Carousel";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
@@ -9,6 +9,17 @@ import { Button } from "@/components/ui/button";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
+
+// statuses for requests
+const ACTIVE_STATUSES = [
+    "pendingSubTenant",
+    "pendingTenant",
+    "pendingTenantUpload",
+    "pendingSubTenantUpload",
+    "pendingFinalAccept",
+];
+const PAST_STATUSES = ["rejected"];
+const CONFIRMED_STATUSES = ["accepted", "confirmed"];
 
 // get request details on server side
 export async function getServerSideProps(context) {
@@ -128,6 +139,16 @@ const Request = ({ request, listing }) => {
         return priceOffer * numMonths * 0.5 + Number(atic);
     }, [priceOffer, numMonths, atic]);
 
+    // function to generate tailwind classes for title depending on request status
+    const titleClass = (status) => {
+        return cn(
+            "w-full h-8 text-slate-100 font-medium flex justify-center items-center",
+            PAST_STATUSES.includes(status) && "bg-color-error",
+            ACTIVE_STATUSES.includes(status) && "bg-color-warning",
+            CONFIRMED_STATUSES.includes(status) && "bg-color-pass"
+        );
+    };
+
     return (
         <>
             {/* Back button */}
@@ -138,9 +159,7 @@ const Request = ({ request, listing }) => {
             {/* Main content */}
             <div className="flex flex-col text-black overflow-hidden pb-24">
                 {/* title */}
-                <div className="w-full h-8 bg-slate-200 font-medium flex justify-center items-center">
-                    REQUEST TO SUBLET
-                </div>
+                <div className={titleClass(request.status)}>REQUEST TO SUBLET</div>
 
                 {/* Main image carousel */}
                 <div className="w-full h-60">
@@ -206,7 +225,16 @@ const Request = ({ request, listing }) => {
                             <p>{formatPrice(dueAtSigning)} CAD</p>
                         </div>
                     </div>
-                    <Button className="mt-6 bg-color-primary">Submit Request</Button>
+                    <Button
+                        className="mt-6 bg-color-primary"
+                        // button disabled if request is not active
+                        disabled={
+                            PAST_STATUSES.includes(request.status) ||
+                            CONFIRMED_STATUSES.includes(request.status)
+                        }
+                    >
+                        Submit Request
+                    </Button>
                 </div>
             </div>
         </>

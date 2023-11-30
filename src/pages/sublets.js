@@ -7,6 +7,7 @@ import GuestPage from "@/components/GuestPage";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
 import ListingItemForSublets from "@/components/ListingItemForSublets";
 
+// statuses for requests
 const ACTIVE_STATUSES = [
     "pendingSubTenant",
     "pendingTenant",

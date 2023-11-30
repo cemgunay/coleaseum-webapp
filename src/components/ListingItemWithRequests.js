@@ -12,6 +12,7 @@ import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import Link from "next/link";
+import ListingItemForSublets from "./ListingItemForSublets";
 
 const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
     // sort requests by date
@@ -167,7 +168,13 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
                     onCancel={handleCancelDelete}
                 />
             )}
-            <ListingItem listing={listing} />
+            {/* <ListingItem listing={listing} showActiveBids={true} /> */}
+            <ListingItemForSublets
+                listing={listing}
+                request={requests[0] || null}
+                activeTab="past"
+                showActiveBids={true}
+            />
 
             <Accordion type="single" collapsible className="w-full mt-4">
                 <AccordionItem value="requests">

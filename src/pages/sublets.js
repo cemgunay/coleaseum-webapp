@@ -8,6 +8,7 @@ import Link from "next/link";
 import GuestPage from "@/components/GuestPage";
 import { useToast } from "@/components/ui/use-toast";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
+import ListingItemForSublets from "@/components/ListingItemForSublets";
 
 const ACTIVE_STATUSES = [
     "pendingSubTenant",
@@ -85,7 +86,7 @@ const Sublets = () => {
     }, [requests]);
     const pastRequestListingIds = useMemo(() => {
         return requests
-            .filter((request) => PAST_STATUSES.includes(request.status) || request.showSubTenant)
+            .filter((request) => PAST_STATUSES.includes(request.status))
             .map((request) => request.listingId);
     }, [requests]);
     const confirmedRequestListingIds = useMemo(() => {
@@ -179,7 +180,7 @@ const Sublets = () => {
         <>
             <div className="flex flex-col items-center justify-start min-h-screen mx-8 pt-10 pb-32">
                 <SubletsTabs setActiveTab={setActiveTab} />
-                {listings.length ? (
+                {listings.length && requests.length ? (
                     <>
                         <p className="self-start mb-1 text-gray-700 text-sm">
                             {displayListings.length} listing{displayListings.length !== 1 && "s"}{" "}
@@ -192,16 +193,67 @@ const Sublets = () => {
                                     (request) => request.listingId === listing._id
                                 );
 
-                                return activeTab === "past" ? (
-                                    <ListingItemWithRequests
-                                        key={listing.id}
-                                        listing={listing}
-                                        requests={listingRequests}
-                                        deleteListing={handleDeleteListing}
-                                    />
-                                ) : (
-                                    <ListingItem key={listing.id} listing={listing} />
-                                );
+                                switch (activeTab) {
+                                    case "past":
+                                        const pastRequests = requests.filter(
+                                            (request) =>
+                                                PAST_STATUSES.includes(request.status) &&
+                                                request.listingId === listing._id
+                                        );
+                                        return (
+                                            <ListingItemWithRequests
+                                                key={listing._id}
+                                                listing={listing}
+                                                requests={pastRequests}
+                                                deleteListing={handleDeleteListing}
+                                            />
+                                        );
+                                    case "active":
+                                        const activeRequests = requests.filter(
+                                            (request) =>
+                                                ACTIVE_STATUSES.includes(request.status) &&
+                                                request.listingId === listing._id
+                                        ); // should only be one request here
+                                        return (
+                                            <ListingItemForSublets
+                                                key={listing._id}
+                                                listing={listing}
+                                                request={activeRequests[0]}
+                                                activeTab={activeTab}
+                                            />
+                                        );
+                                    case "confirmed":
+                                        const confirmedRequests = requests.filter(
+                                            (request) =>
+                                                CONFIRMED_STATUSES.includes(request.status) &&
+                                                request.listingId === listing._id
+                                        ); // should only be one request here
+                                        return (
+                                            <ListingItemForSublets
+                                                key={listing._id}
+                                                listing={listing}
+                                                request={confirmedRequests[0]}
+                                                activeTab={activeTab}
+                                                showActiveBids={false}
+                                            />
+                                        );
+                                }
+
+                                // return activeTab === "past" ? (
+                                //     <ListingItemWithRequests
+                                //         key={listing._id}
+                                //         listing={listing}
+                                //         requests={listingRequests}
+                                //         deleteListing={handleDeleteListing}
+                                //     />
+                                // ) : (
+                                //     // <ListingItem key={listing.id} listing={listing} />
+                                //     <ListingItemForSublets
+                                //         key={listing._id}
+                                //         listing={listing}
+                                //         listingRequests={listingRequests}
+                                //     />
+                                // );
                             })}
                         </div>
                     </>

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useRouter } from "next/router";
-import { fetchWithTimeout } from "@/utils/utils";
+import { fetchWithTimeout, formatPrice } from "@/utils/utils";
 import { FaCircleChevronLeft } from "react-icons/fa6";
 import Carousel from "@/components/Carousel";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
@@ -9,14 +9,6 @@ import { Button } from "@/components/ui/button";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
-
-// helper function to format price (so it has dollar sign, commas, and 2 decimal places)
-const formatPrice = (price) => {
-    return `$${price.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })}`;
-};
 
 // get request details on server side
 export async function getServerSideProps(context) {

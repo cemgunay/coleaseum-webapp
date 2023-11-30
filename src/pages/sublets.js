@@ -1,12 +1,9 @@
 import React, { useState, useMemo, useEffect } from "react";
 import SubletsTabs from "@/components/SubletsTabs";
-import ListingItem from "@/components/ListingItem";
 import Skeleton from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
-import Link from "next/link";
 import GuestPage from "@/components/GuestPage";
-import { useToast } from "@/components/ui/use-toast";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
 import ListingItemForSublets from "@/components/ListingItemForSublets";
 
@@ -24,9 +21,6 @@ const Sublets = () => {
     // get user object from context
     const { user, loading } = useAuth();
 
-    // for toast notifications
-    const { toast } = useToast();
-
     // state
     const [activeTab, setActiveTab] = useState("active");
     const [listings, setListings] = useState([]);
@@ -34,46 +28,37 @@ const Sublets = () => {
     const [requests, setRequests] = useState([]);
     const [fetching, setFetching] = useState(true);
 
-    // fetch listings from DB
+    // fetch listings and requests from DB
     useEffect(() => {
-        // fetch listings
-        const fetchLlistings = async () => {
-            // had hardcoded filters for this API call taken from Explore page
-            // but I removed them for now bc we weren't getting all the listings
-            // if we need to add those filters back we always can. code is in Explore page
-            const response = await fetch(`/api/listings`);
+        const fetchListingsAndRequests = async () => {
+            // if no user we can't fetch their requests
+            if (!user) return;
+
+            // fetch listings and requests
+            const responseListings = await fetch(`/api/listings`);
+            const responseRequests = await fetch(`/api/requests/user-requests/${user.id}`);
 
             // error handling
-            if (!response.ok) {
-                console.log(response);
+            if (!responseListings.ok) {
+                console.log("Error fetching listings: ", responseListings);
                 throw new Error("Failed to fetch listings");
             }
+            if (!responseRequests.ok) {
+                console.log("Error fetching requests: ", responseRequests);
+                throw new Error("Failed to fetch requests");
+            }
 
-            // update state with listings, sorting them first
-            const receivedListings = await response.json();
+            const receivedListings = await responseListings.json();
+            const receivedRequests = await responseRequests.json();
+
             setListings(
                 receivedListings.sort((p1, p2) => new Date(p2.createdAt) - new Date(p1.createdAt))
             );
+            setRequests(receivedRequests);
+            setFetching(false);
         };
-        fetchLlistings();
-    }, [user]);
 
-    // fetch requests from DB
-    useEffect(() => {
-        // if no user we can't fetch their requests
-        if (!user) return;
-
-        // fetch requests
-        const fetchRequests = async () => {
-            const response = await fetch(`/api/requests/user-requests/${user.id}`);
-            if (!response.ok) {
-                console.log(response);
-                throw new Error("Failed to fetch requests");
-            }
-            const data = await response.json();
-            setRequests(data);
-        };
-        fetchRequests();
+        fetchListingsAndRequests();
     }, [user]);
 
     // memoized filtered request IDs
@@ -123,13 +108,6 @@ const Sublets = () => {
                 setDisplayListings([]);
         }
     });
-
-    // set fetching to false once listings and requests are fetched
-    useEffect(() => {
-        if (listings.length && requests.length) {
-            setFetching(false);
-        }
-    }, [activeListings, pastListings, confirmedListings, listings, requests]);
 
     // loading component
     const Loading = () => {
@@ -188,11 +166,6 @@ const Sublets = () => {
                         </p>
                         <div className="grid grid-cols-1 gap-10 mt-2">
                             {displayListings.map((listing) => {
-                                // get all requests for this listing
-                                const listingRequests = requests.filter(
-                                    (request) => request.listingId === listing._id
-                                );
-
                                 switch (activeTab) {
                                     case "past":
                                         const pastRequests = requests.filter(
@@ -238,22 +211,6 @@ const Sublets = () => {
                                             />
                                         );
                                 }
-
-                                // return activeTab === "past" ? (
-                                //     <ListingItemWithRequests
-                                //         key={listing._id}
-                                //         listing={listing}
-                                //         requests={listingRequests}
-                                //         deleteListing={handleDeleteListing}
-                                //     />
-                                // ) : (
-                                //     // <ListingItem key={listing.id} listing={listing} />
-                                //     <ListingItemForSublets
-                                //         key={listing._id}
-                                //         listing={listing}
-                                //         listingRequests={listingRequests}
-                                //     />
-                                // );
                             })}
                         </div>
                     </>

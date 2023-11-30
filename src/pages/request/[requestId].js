@@ -5,9 +5,18 @@ import { FaCircleChevronLeft } from "react-icons/fa6";
 import Carousel from "@/components/Carousel";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
 import { format, differenceInMonths } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
+
+// helper function to format price (so it has dollar sign, commas, and 2 decimal places)
+const formatPrice = (price) => {
+    return `$${price.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    })}`;
+};
 
 // get request details on server side
 export async function getServerSideProps(context) {
@@ -112,19 +121,19 @@ const Request = ({ request, listing }) => {
     }, [request.startDate, request.endDate]);
 
     const atic = useMemo(() => {
-        return (priceOffer * ATIC_MULTIPLIER).toFixed(2);
+        return priceOffer * ATIC_MULTIPLIER;
     }, [priceOffer]);
 
     const subtotal = useMemo(() => {
-        return (priceOffer * numMonths).toFixed(2);
+        return priceOffer * numMonths;
     }, [priceOffer, numMonths]);
 
     const total = useMemo(() => {
-        return (priceOffer * numMonths + Number(atic)).toFixed(2);
+        return priceOffer * numMonths + Number(atic);
     }, [priceOffer, numMonths, atic]);
 
     const dueAtSigning = useMemo(() => {
-        return (priceOffer * numMonths * 0.5 + Number(atic)).toFixed(2);
+        return priceOffer * numMonths * 0.5 + Number(atic);
     }, [priceOffer, numMonths, atic]);
 
     return (
@@ -186,24 +195,26 @@ const Request = ({ request, listing }) => {
                             <h4 className="font-semibold">Price Details:</h4>
                             <div className="flex items-center justify-between">
                                 <p>
-                                    ${priceOffer.toLocaleString()} x {numMonths} months
+                                    ${priceOffer.toLocaleString()} x {numMonths} month
+                                    {numMonths === 1 ? "" : "s"}
                                 </p>
-                                <p>${subtotal.toLocaleString()} CAD</p>
+                                <p>{formatPrice(subtotal)} CAD</p>
                             </div>
                             <div className="flex items-center justify-between">
                                 <p>ATIC</p>
-                                <p>${atic.toLocaleString()} CAD</p>
+                                <p>{formatPrice(atic)} CAD</p>
                             </div>
                         </div>
                         <div className="flex items-center justify-between">
                             <p className="font-semibold">Total</p>
-                            <p>${total.toLocaleString()} CAD</p>
+                            <p>{formatPrice(total)} CAD</p>
                         </div>
                         <div className="flex items-center justify-between">
                             <p className="font-semibold">Due at Signing</p>
-                            <p>${dueAtSigning.toLocaleString()} CAD</p>
+                            <p>{formatPrice(dueAtSigning)} CAD</p>
                         </div>
                     </div>
+                    <Button className="mt-6 bg-color-primary">Submit Request</Button>
                 </div>
             </div>
         </>

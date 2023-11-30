@@ -6,20 +6,10 @@ import Carousel from "@/components/Carousel";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
 import { format, differenceInMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
+import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
-
-// statuses for requests
-const ACTIVE_STATUSES = [
-    "pendingSubTenant",
-    "pendingTenant",
-    "pendingTenantUpload",
-    "pendingSubTenantUpload",
-    "pendingFinalAccept",
-];
-const PAST_STATUSES = ["rejected"];
-const CONFIRMED_STATUSES = ["accepted", "confirmed"];
 
 // get request details on server side
 export async function getServerSideProps(context) {

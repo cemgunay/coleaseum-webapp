@@ -6,17 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import GuestPage from "@/components/GuestPage";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
 import ListingItemForSublets from "@/components/ListingItemForSublets";
-
-// statuses for requests
-const ACTIVE_STATUSES = [
-    "pendingSubTenant",
-    "pendingTenant",
-    "pendingTenantUpload",
-    "pendingSubTenantUpload",
-    "pendingFinalAccept",
-];
-const PAST_STATUSES = ["rejected"];
-const CONFIRMED_STATUSES = ["accepted", "confirmed"];
+import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
 
 const Sublets = () => {
     // get user object from context

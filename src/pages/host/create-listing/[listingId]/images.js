@@ -283,12 +283,12 @@ const Images = () => {
         };
 
         // Push to database
-        await pushToDatabase(listingId, updateData, "images");
+        await pushToDatabase(listingId, updateData, "title");
     };
 
     //handleback
     const handleBack = () => {
-        router.push(`/host/create-listing/${listingId}/location`);
+        router.push(`/host/create-listing/${listingId}/amenities`);
     };
 
     //loading component
@@ -372,8 +372,8 @@ const Images = () => {
     return (
         <CreateListingLayout
             Loading={Loading}
-            currentStep={3}
-            totalSteps={5}
+            currentStep={5}
+            totalSteps={10}
             onNext={handleSubmit}
             onBack={handleBack}
             canGoNext={canGoNext}

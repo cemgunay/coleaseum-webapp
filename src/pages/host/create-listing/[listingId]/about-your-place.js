@@ -119,7 +119,7 @@ const AboutYourPlace = () => {
         <CreateListingLayout
             Loading={Loading}
             currentStep={1}
-            totalSteps={5}
+            totalSteps={10}
             onNext={handleSubmit}
             onBack={handleBack}
             canGoNext={canGoNext}

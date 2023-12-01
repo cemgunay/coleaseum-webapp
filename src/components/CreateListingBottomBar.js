@@ -4,9 +4,9 @@ import { Button } from "./ui/button";
 const ProgressBar = ({ currentStep, totalSteps }) => {
     const progress = (currentStep / totalSteps) * 100;
     return (
-        <div className="w-full bg-gray-200  h-2.5 dark:bg-gray-700">
+        <div className="w-full bg-gray-200  h-2 dark:bg-gray-700">
             <div
-                className="bg-black h-2.5"
+                className="bg-black h-2"
                 style={{ width: `${progress}%` }}
             ></div>
         </div>
@@ -29,14 +29,14 @@ const CreateListingBottomBar = ({
         <div className="flex justify-between mx-8">
             <Button
                 variant="outline"
-                className="text-sm text-slate-600 underline border-0 px-0"
+                className="text-sm text-slate-600 underline border-0 px-0 hover:bg-white"
                 onClick={onBack}
                 disabled={pushing}
             >
                 Back
             </Button>
             <Button
-                className="bg-color-primary text-white mx-0 w-1/2"
+                className="bg-color-primary text-white mx-0 w-1/2 hover:bg-color-primary/90"
                 onClick={onNext}
                 disabled={!canGoNext || pushing}
             >

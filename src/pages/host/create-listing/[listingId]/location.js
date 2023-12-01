@@ -302,7 +302,7 @@ const Location = () => {
         } else {
             //if on last step we push to database
             const updateData = { location: locationData };
-            await pushToDatabase(listingId, updateData, "images");
+            await pushToDatabase(listingId, updateData, "basics");
         }
     };
 
@@ -383,10 +383,10 @@ const Location = () => {
             Loading={Loading}
             componentSpecificIsLoading={
                 !isLoaded ||
-                (!initialLoadComplete && currentLocationFormStep !== 1)
+                (!initialLoadComplete && currentLocationFormStep === 3)
             }
             currentStep={2}
-            totalSteps={5}
+            totalSteps={10}
             onNext={handleSubmit}
             onBack={handleBack}
             canGoNext={canGoNext}

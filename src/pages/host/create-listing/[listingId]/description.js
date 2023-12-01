@@ -83,11 +83,11 @@ const Description = () => {
         };
 
         //call the function to push to database from context
-        await pushToDatabase(listingId, updateData, "description");
+        await pushToDatabase(listingId, updateData, "price");
     };
 
     const handleBack = () => {
-        router.push(`/host/create-listing/${listingId}/description`);
+        router.push(`/host/create-listing/${listingId}/title`);
     };
 
     const Loading = () => {
@@ -102,8 +102,8 @@ const Description = () => {
     return (
         <CreateListingLayout
             Loading={Loading}
-            currentStep={5}
-            totalSteps={5}
+            currentStep={7}
+            totalSteps={10}
             onNext={handleSubmit}
             onBack={handleBack}
             canGoNext={canGoNext}

@@ -46,11 +46,11 @@ const Amenities = () => {
         };
 
         //call the function to push to database from context
-        await pushToDatabase(listingId, updateData, "amenities");
+        await pushToDatabase(listingId, updateData, "images");
     };
 
     const handleBack = () => {
-        router.push(`/host/create-listing/${listingId}/amenities`);
+        router.push(`/host/create-listing/${listingId}/basics`);
     };
 
     const Loading = () => {
@@ -86,7 +86,7 @@ const Amenities = () => {
         <CreateListingLayout
             Loading={Loading}
             currentStep={4}
-            totalSteps={5}
+            totalSteps={10}
             onNext={handleSubmit}
             onBack={handleBack}
             canGoNext={canGoNext}

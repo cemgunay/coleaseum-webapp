@@ -1,11 +1,11 @@
 import { Button } from "./ui/button";
 
 const CreateListingTopBar = ({ onSaveExit }) => (
-    <div className="top-bar">
+    <div className="px-8 py-8 fixed inset-x-0 top-0 bg-white z-10">
         <Button
             variant="outline"
-            size="lg"
-            className="font-normal text-base text-slate-600"
+            size="sm"
+            className="text-sm text-slate-600"
             onClick={onSaveExit}
         >
             Save and Exit

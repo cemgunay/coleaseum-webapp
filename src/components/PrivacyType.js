@@ -1,12 +1,22 @@
 import React from "react";
+import { FaLock, FaUsers, FaHouse } from "react-icons/fa6";
 
-export default function PrivacyTypeOption({
-    data,
-    type,
-    title,
-    description,
-    onChange,
-}) {
+const iconStyle = "text-2xl"; // Adjust the size and margin as needed
+
+const PrivacyIcon = ({ type }) => {
+    switch (type) {
+        case "Entire":
+            return <FaHouse className={iconStyle} />;
+        case "Private":
+            return <FaLock className={iconStyle} />;
+        case "Shared":
+            return <FaUsers className={iconStyle} />;
+        default:
+            return null;
+    }
+};
+
+const PrivacyTypeOption = ({ data, type, title, description, onChange }) => {
     const checkedPrivacyType = data.privacyType;
 
     return (
@@ -20,16 +30,17 @@ export default function PrivacyTypeOption({
                 onChange={onChange}
                 className="peer sr-only"
             />
-            <div
-                htmlFor="entire"
-                className="flex justify-between items-center w-full h-full border border-gray-300 rounded p-2 hover:shadow ring-2 ring-transparent peer-checked:text-white peer-checked:bg-color-primary peer-checked:border-color-primary"
-            >
-                <div className="flex flex-col items-start text-sm">
-                    <div>{title}</div>
+            <div className="flex justify-between gap-4 items-center border border-gray-300 rounded py-2 px-3 hover:shadow ring-2 ring-transparent peer-checked:text-white peer-checked:bg-color-primary peer-checked:border-color-primary h-20">
+                <div className="flex flex-col gap-1 text-sm h-full">
+                    <div className="font-bold">{title}</div>
                     <div>{description}</div>
                 </div>
-                <div>Img</div>
+                <div className="flex items-center justify-center">
+                    <PrivacyIcon type={type} />
+                </div>
             </div>
         </label>
     );
-}
+};
+
+export default PrivacyTypeOption;

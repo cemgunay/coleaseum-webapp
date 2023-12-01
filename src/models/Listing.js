@@ -59,7 +59,7 @@ const ListingSchema = new Schema(
         },
         price: {
             type: Number,
-            default: 0,
+            default: 100,
         },
         aboutYourPlace: {
             propertyType: { type: String, default: "" },
@@ -102,6 +102,55 @@ const ListingSchema = new Schema(
                 type: Boolean,
                 default: false,
             },
+            Test1: {
+                type: Boolean,
+                default: false,
+            },
+            Test2: {
+                type: Boolean,
+                default: false,
+            },
+            Test3: {
+                type: Boolean,
+                default: false,
+            },
+            Test4: {
+                type: Boolean,
+                default: false,
+            },
+            Test5: {
+                type: Boolean,
+                default: false,
+            },
+            Test6: {
+                type: Boolean,
+                default: false,
+            },
+            Test7: {
+                type: Boolean,
+                default: false,
+            },
+            Test8: {
+                type: Boolean,
+                default: false,
+            },
+            Test9: {
+                type: Boolean,
+                default: false,
+            },
+            Test10: {
+                type: Boolean,
+                default: false,
+            },
+            Test11: {
+                type: Boolean,
+                default: false,
+            },
+            Test12: {
+                type: Boolean,
+                default: false,
+            },
+
         },
         utilities: {
             hydro: {

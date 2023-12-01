@@ -46,7 +46,7 @@ const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
     };
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col w-full text-sm h-6">
             <Popover
                 open={isPopoverOpen}
                 onOpenChange={setIsPopoverOpen}
@@ -64,7 +64,7 @@ const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
                 </PopoverTrigger>
                 {status === "OK" && (
                     <PopoverContent
-                        className="flex flex-col items-center"
+                        className="flex flex-col items-center text-sm"
                         onOpenAutoFocus={(e) => e.preventDefault()}
                     >
                         {data.map((suggestion) => (

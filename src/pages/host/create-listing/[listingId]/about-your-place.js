@@ -83,30 +83,37 @@ const AboutYourPlace = () => {
 
     const Loading = () => {
         return (
-            <div className="mx-8 flex flex-col justify-between items-center gap-8">
+            <div className="mx-8 my-2 flex flex-col justify-between items-center gap-4">
+                {/* Top Section Skeletons */}
                 <div className="flex items-center w-full">
-                    <div className="flex flex-col justify-between items-start text-sm w-full">
-                        <Skeleton className="h-4 w-1/4 mb-2" /> {/* Step number */}
-                        <Skeleton className="h-24 w-full mb-2" /> {/* Title, increased height */}
+                    <div className="flex flex-col justify-between items-start text-sm w-3/4">
+                        <Skeleton className="h-4 w-1/4 mb-2" />{" "}
+                        {/* Step number */}
+                        <Skeleton className="h-6 w-3/4 mb-2" /> {/* Title */}
+                        <Skeleton className="h-28 w-full mb-2" />{" "}
+                        {/* Description */}
                     </div>
-                    <Skeleton className="w-24 h-14 ml-4" /> {/* Image, standard size */}
+                    <Skeleton className="w-24 h-20 ml-4" /> {/* Image */}
                 </div>
+
+                {/* Property Types Skeletons */}
                 <div className="flex flex-col gap-3 w-full">
-                    <div className="grid grid-cols-2 gap-x-8 gap-y-4 w-full">
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-4 w-full">
                         {[...Array(4)].map((_, index) => (
-                            <Skeleton key={index} className="h-14 w-full" />
+                            <Skeleton key={index} className="h-16 w-full" /> // Adjust height as per PropertyTypeOption
                         ))}
                     </div>
+
+                    {/* Privacy Types Skeletons */}
                     <div className="grid grid-cols-1 gap-4">
                         {[...Array(3)].map((_, index) => (
-                            <Skeleton key={index} className="h-14 w-full" />
+                            <Skeleton key={index} className="h-20 w-full" /> // Adjust height as per PrivacyTypeOption
                         ))}
                     </div>
                 </div>
             </div>
         );
     };
-    
 
     return (
         <CreateListingLayout
@@ -117,24 +124,24 @@ const AboutYourPlace = () => {
             onBack={handleBack}
             canGoNext={canGoNext}
         >
-            <div className="mx-8 flex flex-col justify-between items-center gap-8">
-                <div className="flex items-center">
-                    <div className="flex flex-col justify-between items-start text-sm">
-                        <div>Step 1</div>
-                        <div>Tell us about your place</div>
-                        <div>
+            <div className="mx-8 flex flex-col justify-between items-center gap-4">
+                <div className="flex items-center gap-2">
+                    <div className="flex flex-col justify-between gap-2 w-3/4">
+                        <div className="font-bold text-lg">Step 1</div>
+                        <div className="text-lg">Tell us about your place</div>
+                        <div className="font-light text-sm">
                             In this step, we’ll ask you which type of property
                             you have and if guests will book the entire place or
                             just a room. Then let us know the location and
-                            number of bedrooms and beds
+                            number of bedrooms and beds.
                         </div>
                     </div>
-                    <div className="w-18">
+                    <div className="w-1/4">
                         <Image
                             src={transformedImage}
                             alt={transformedImage}
-                            width={200}
-                            height={200}
+                            width={100}
+                            height={100}
                             placeholder="blur"
                             blurDataURL={blurDataURL}
                         />
@@ -142,7 +149,7 @@ const AboutYourPlace = () => {
                 </div>
                 <form
                     onSubmit={handleSubmit}
-                    className="flex flex-col gap-3 w-full"
+                    className="flex flex-col gap-4 w-full"
                 >
                     <div className="grid grid-cols-2 gap-x-8 gap-y-4 w-full">
                         <PropertyTypeOption

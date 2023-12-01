@@ -5,6 +5,7 @@ import { useListingForm } from "@/hooks/useListingForm";
 
 const CreateListingLayout = ({
     Loading,
+    componentSpecificIsLoading,
     children,
     currentStep,
     totalSteps,
@@ -15,11 +16,25 @@ const CreateListingLayout = ({
 }) => {
     const { listingId, isLoading, pushing } = useListingForm();
 
+    //Conditional Check Tests
+    //isLoading && !listingId
+    //(componentSpecificIsLoading !== false) && (isLoading && !listingId)
+    
+    //this is the correct one
+    //componentSpecificIsLoading || isLoading || !listingId
+
     return (
-        <>
+        <div className="flex flex-col justify-between h-screen">
             <CreateListingTopBar onSaveExit={onSaveExit} />
             {/* dont render the child component until data has been loaded from DB and listing ID set from query */}
-            {isLoading && !listingId ? <Loading /> : <main>{children}</main>}
+
+            <main className="flex-grow py-24">
+                {componentSpecificIsLoading || isLoading || !listingId ? (
+                    <Loading />
+                ) : (
+                    children
+                )}
+            </main>
 
             <CreateListingBottomBar
                 currentStep={currentStep}
@@ -29,7 +44,7 @@ const CreateListingLayout = ({
                 canGoNext={canGoNext}
                 pushing={pushing}
             />
-        </>
+        </div>
     );
 };
 

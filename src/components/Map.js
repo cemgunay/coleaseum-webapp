@@ -29,7 +29,7 @@ const Map = ({
     };
 
     if (!isLoaded) {
-        return <Skeleton className="w-full h-screen" />;
+        return <Skeleton className="w-full h-full" />;
     }
     if (loadError) return <div>Error loading maps</div>;
 
@@ -37,7 +37,7 @@ const Map = ({
         <GoogleMap
             zoom={15}
             center={position}
-            mapContainerClassName="w-full h-screen"
+            mapContainerClassName="w-full h-full"
             options={{
                 ...options,
                 zoomControl: false,

@@ -12,42 +12,26 @@ const EnterAddress = ({
     formatLocationData,
 }) => {
 
-    const LoadingField = () => {
-        return <Skeleton className="h-14 w-1/2 mb-2" />;
-    };
-    
-    const LoadingMap = () => {
-        return <Skeleton className="h-screen w-full mb-2" />;
-    };
-    
     return (
-        <>
-            <div className="flex items-center">
-                <div className="flex flex-col justify-between items-start text-sm">
-                    <div>Where's your place located?</div>
-                    {!isLoaded ? (
-                        <LoadingField />
-                    ) : (
-                        <>
-                            <AutocompleteField
-                                onAddressSelect={onAddressSelect}
-                                formatLocationData={formatLocationData}
-                            />
-                            <div onClick={handleSubmit}>Enter manually</div>
-                        </>
-                    )}
+        <div className="mx-8 flex flex-col justify-between gap-4 flex-grow h-full">
+            <div className="flex flex-col justify-between items-start text-lg gap-4">
+                <div>Where's your place located?</div>
+                <AutocompleteField
+                    onAddressSelect={onAddressSelect}
+                    formatLocationData={formatLocationData}
+                />
+                <div onClick={handleSubmit} className="text-sm underline">
+                    Enter manually
                 </div>
             </div>
-            {!isLoaded ? (
-                <LoadingMap />
-            ) : (
+            <div className="flex-grow mb-4">
                 <GoogleMap
                     position={position}
                     isLoaded={isLoaded}
                     loadError={loadError}
                 />
-            )}
-        </>
+            </div>
+        </div>
     );
 };
 

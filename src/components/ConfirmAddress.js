@@ -54,7 +54,8 @@ const ConfirmAddress = ({
     };
 
     return (
-        <>
+        <div className="mx-8 flex flex-col gap-4">
+            <div className="text-lg">Confirm your address</div>
             {incorrectAddress && partialAddress && (
                 <div
                     className="bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4"
@@ -136,7 +137,7 @@ const ConfirmAddress = ({
                 error={errors.countryregion}
                 touched={touched.countryregion}
             />
-        </>
+        </div>
     );
 };
 

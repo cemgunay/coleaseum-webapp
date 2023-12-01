@@ -1,5 +1,6 @@
 import OverviewCard from "@/components/OverviewCard";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { useListingForm } from "@/hooks/useListingForm";
 import { CircularProgress } from "@mui/material";
 import Link from "next/link";
@@ -8,8 +9,10 @@ import { useState } from "react";
 
 const Overview = () => {
     //get context
-    const { loading, combinedListingFormState, combinedListingFormDispatch } =
+    const { combinedListingFormState, combinedListingFormDispatch } =
         useListingForm();
+
+    const { toast } = useToast();
 
     //to handle navigation in function
     const router = useRouter();
@@ -60,41 +63,49 @@ const Overview = () => {
             // Reset the creating state and potentially notify the user.
             setIsCreating(false);
 
-            // TODO: Add user notification for the error here (e.g., toast or modal).
+            toast({
+                variant: "destructive",
+                title: "Uh oh, something went wrong.",
+                description: error.message,
+            });
         }
     };
 
     return (
-        <>
-            <Link href="/host/create-listing/info">
-                <Button
-                    variant="outline"
-                    size="lg"
-                    className="font-normal text-base text-slate-600"
-                >
-                    Back
-                </Button>
-            </Link>
-            <div className="m-8 flex flex-col items-start gap-8">
-                <div>Its easy to get started with subLet</div>
-                <div className="flex flex-col justify-between items-center gap-8">
+        <div className="flex flex-col justify-between h-screen">
+            <div className="mx-8 mt-8">
+                <Link href="/host/create-listing/info">
+                    <Button
+                        variant="outline"
+                        className="text-sm text-color-secondary-dark"
+                    >
+                        Back
+                    </Button>
+                </Link>
+            </div>
+
+            <div className="flex-grow overflow-auto mx-8 mt-10">
+                <div className="text-2xl mb-10">
+                    It's easy to get started with subLet
+                </div>
+                <div className="flex flex-col gap-8">
                     <OverviewCard
                         number={1}
                         title="Tell us about your place"
-                        description="Share some basic info, like where it is and how many bedroom, beds there are"
+                        description="Share some basic info, like where it is and how many bedrooms, beds there are"
                         image="cmlfwyx1lsgrunkdmxgg.png"
                     />
                     <OverviewCard
                         number={2}
                         title="Make it stand out"
                         description="Add 3 or more photos plus a title and description"
-                        image="j00seqof0jhgfq8qlzdk.png"
+                        image="n44ewnnfanei8tugkrg9.png"
                     />
                     <OverviewCard
                         number={3}
                         title="Get your documents ready"
                         description="Upload all required documents for the sublet. Don’t worry, you can always add later"
-                        image="n44ewnnfanei8tugkrg9.png"
+                        image="j00seqof0jhgfq8qlzdk.png"
                     />
                     <OverviewCard
                         number={4}
@@ -104,20 +115,21 @@ const Overview = () => {
                     />
                 </div>
             </div>
-            <Button
-                variant="outline"
-                size="lg"
-                className="font-normal text-base text-slate-600"
-                onClick={createListing}
-                disabled={isCreating}
-            >
-                {isCreating ? (
-                    <CircularProgress size={24} color="inherit" />
-                ) : (
-                    "Get Started"
-                )}
-            </Button>
-        </>
+
+            <div className="mx-8 my-8">
+                <Button
+                    className="font-normal text-base bg-color-primary text-white w-full"
+                    onClick={createListing}
+                    disabled={isCreating}
+                >
+                    {isCreating ? (
+                        <CircularProgress size={24} color="inherit" />
+                    ) : (
+                        "Get Started"
+                    )}
+                </Button>
+            </div>
+        </div>
     );
 };
 

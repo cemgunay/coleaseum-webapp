@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import { useListingForm } from "@/hooks/useListingForm";
+import Image from "next/image";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
@@ -292,7 +293,16 @@ const Images = () => {
 
     //loading component
     const Loading = () => {
-        return <Skeleton className="h-4 w-1/4 mb-2" />;
+        return (
+            <div className="mx-8 my-4 h-full flex flex-col gap-4">
+                <Skeleton className="h-14 w-3/4 mb-2" />
+                <div className="grid grid-cols-1 gap-4">
+                    {[...Array(4)].map((_, index) => (
+                        <Skeleton key={index} className="h-56 w-full" /> // Adjust height as per PropertyTypeOption
+                    ))}
+                </div>
+            </div>
+        );
     };
 
     // image block UI
@@ -301,9 +311,13 @@ const Images = () => {
             key={file.uniqueId}
             className="relative inline-flex rounded border border-gray-200 mb-2 mr-2 h-56 box-border w-full overflow-hidden"
         >
-            <img
+            <Image
                 src={file.cloudinaryUrl ? file.cloudinaryUrl : file.preview}
-                className="absolute inset-0 w-full h-full object-cover"
+                width={500}
+                height={500}
+                alt="Picture of listing"
+                className="object-cover"
+                priority
             />
 
             {/* Gray overlay that appears based on upload progress */}
@@ -315,7 +329,7 @@ const Images = () => {
 
             <div className="absolute top-0 w-full bg-gray-200 h-1 dark:bg-gray-700">
                 <div
-                    className="bg-blue-600 h-1 dark:bg-blue-500"
+                    className="bg-color-primary h-1 dark:bg-color-primary"
                     style={{
                         width: `${
                             uploadProgress[file.uniqueId]?.progress || 0
@@ -327,11 +341,11 @@ const Images = () => {
             <Popover>
                 <PopoverTrigger asChild>
                     <button className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-lg m-2">
-                        <FaEllipsisH className="text-black" />{" "}
+                        <FaEllipsisH className="text-black text-sm" />{" "}
                         {/* Black ellipsis icon */}
                     </button>
                 </PopoverTrigger>
-                <PopoverContent>
+                <PopoverContent className="w-auto text-sm mr-8">
                     <ul className="flex flex-col">
                         <li onClick={() => makeCoverPhoto(index)}>
                             Make Cover Photo
@@ -364,20 +378,33 @@ const Images = () => {
             onBack={handleBack}
             canGoNext={canGoNext}
         >
-            {/* Image List */}
-            <div className="flex flex-col mt-4">
-                {files.map((file, index) => imageBlock(file, index))}
-            </div>
+            <div className="mx-8">
+                <div className="flex flex-col gap-2">
+                    <div>Add some photos of your apartment</div>
+                    <div className="text-sm font-light">
+                        You'll need 3 photos to get started. You can add more or
+                        make changes later.
+                    </div>
+                </div>
 
-            {/* Dropzone */}
-            <div
-                {...getRootProps({
-                    className:
-                        "p-5 border-2 border-dashed border-blue-500 rounded bg-gray-100 text-gray-400 outline-none transition-border duration-200 ease-in-out cursor-pointer mt-4",
-                })}
-            >
-                <input {...getInputProps()} />
-                <p>Drag 'n' drop some files here, or click to select files</p>
+                {/* Image List */}
+                <div className="flex flex-col mt-4">
+                    {files.map((file, index) => imageBlock(file, index))}
+                </div>
+
+                {/* Dropzone */}
+                <div
+                    {...getRootProps({
+                        className:
+                            "p-5 border-2 border-dashed border-color-primary rounded bg-gray-100 text-gray-400 outline-none transition-border duration-200 ease-in-out cursor-pointer my-4",
+                    })}
+                >
+                    <input {...getInputProps()} />
+                    <p>
+                        Drag 'n' drop some files of type jpg/jpeg/png here, or
+                        click to select files
+                    </p>
+                </div>
             </div>
         </CreateListingLayout>
     );

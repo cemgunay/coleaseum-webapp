@@ -82,13 +82,13 @@ const Location = () => {
     //to conditionally render the location form components 1-3
     const [currentLocationFormStep, setCurrentLocationFormStep] = useState(1);
     const [initialLoadComplete, setInitialLoadComplete] = useState(false);
+    const [isLoadingCorrectStep, setIsLoadingCorrectStep] = useState(true);
 
     //to check if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(true);
 
     //get context
     const {
-        loading,
         setPushing,
         listingId,
         combinedListingFormState,
@@ -317,6 +317,18 @@ const Location = () => {
         }
     };
 
+    const Loading = () => {
+        if (loadError) {
+            return <div>Error Loading Maps</div>;
+        }
+        return (
+            <div className="mx-8 my-4 h-full flex flex-col gap-4">
+                <Skeleton className="h-14 w-3/4 mb-2" />
+                <Skeleton className="h-full w-full mb-2" />
+            </div>
+        );
+    };
+
     //to render the correct components based on what step of the location form we are at
     const renderStepContent = () => {
         switch (currentLocationFormStep) {
@@ -366,19 +378,13 @@ const Location = () => {
         }
     };
 
-    const Loading = () => {
-        return (
-            <div className="flex flex-col justify-between items-start text-sm w-full">
-                <Skeleton className="h-14 w-1/2 mb-2" /> {/* Step number */}
-                <Skeleton className="h-screen w-full mb-2" />
-                {/* Title, increased height */}
-            </div>
-        );
-    };
-
     return (
         <CreateListingLayout
             Loading={Loading}
+            componentSpecificIsLoading={
+                !isLoaded ||
+                (!initialLoadComplete && currentLocationFormStep !== 1)
+            }
             currentStep={2}
             totalSteps={5}
             onNext={handleSubmit}

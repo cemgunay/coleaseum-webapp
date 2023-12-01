@@ -5,9 +5,8 @@ export const amenitiesReducer = (state, action) => {
         case 'TOGGLE_AMENITY':
             return {
                 ...state,
-                [action.payload]: !state[action.payload],
+                [action.payload.name]: !state[action.payload.name],
             };
-        // ... other amenity-specific actions
         default:
             return state;
     }

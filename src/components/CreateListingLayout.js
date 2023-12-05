@@ -14,14 +14,18 @@ const CreateListingLayout = ({
     onNext,
     canGoNext,
 }) => {
+
+    //get context from listing form
     const {
         listingId,
         isLoading,
         pushing,
     } = useListingForm();
 
+    //initialize router
     const router = useRouter();
 
+    //save and exit button function
     const onSaveExit = async (e) => {
         e.preventDefault();
 

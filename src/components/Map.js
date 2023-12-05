@@ -23,11 +23,11 @@ const Map = ({
 
     //some map ref stuff from documentation idk
     const mapRef = useRef();
-
     const onLoad = (map) => {
         mapRef.current = map;
     };
 
+    //to show loading skeleton for map or error
     if (!isLoaded) {
         return <Skeleton className="w-full h-full" />;
     }

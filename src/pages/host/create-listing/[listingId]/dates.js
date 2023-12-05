@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 
 import { parseISO } from "date-fns";
 
+//function to validate that the date provided is a date object and if not parse it
 function getValidDate(dateInput) {
     if (typeof dateInput === "string") {
         // Parse the string to a Date object
@@ -22,8 +23,10 @@ function getValidDate(dateInput) {
 }
 
 const Dates = () => {
+    //initialize router
     const router = useRouter();
 
+    //get context from listing form
     const {
         combinedListingFormState,
         combinedListingFormDispatch,
@@ -31,9 +34,12 @@ const Dates = () => {
         pushToDatabase,
     } = useListingForm();
 
+    //to determine if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(false);
 
+    //set can go next based on checks
     useEffect(() => {
+        //moveInDate and moveOutDate exist, and IF there is a viewingDate it is not null
         const hasValidMoveInDate = combinedListingFormState.moveInDate !== null;
         const hasValidMoveOutDate =
             combinedListingFormState.moveOutDate !== null;
@@ -50,6 +56,7 @@ const Dates = () => {
         );
     }, [combinedListingFormState]);
 
+    //change date in state using dispatch depending on the called action
     const handleDateChange = (newDate, property) => {
         if (property.includes("viewingDates")) {
             const index = parseInt(property.split("[")[1].split("]")[0], 10);
@@ -74,12 +81,12 @@ const Dates = () => {
         }
     };
 
-    // Example of handling adding a new viewing date
+    // Adding a new viewing date
     const handleAddViewingDate = () => {
         combinedListingFormDispatch({ type: "ADD_VIEWING_DATE" });
     };
 
-    // Example of handling removing a viewing date
+    // Removing a viewing date
     const handleRemoveViewingDate = (indexToRemove) => {
         combinedListingFormDispatch({
             type: "REMOVE_VIEWING_DATE",
@@ -87,6 +94,7 @@ const Dates = () => {
         });
     };
 
+    //push updated moveInDate, moveOutDate and viewingDate to database
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -101,10 +109,12 @@ const Dates = () => {
         await pushToDatabase(listingId, updateData, "publish");
     };
 
+    //go back
     const handleBack = () => {
-        router.push(`/host/create-listing/${listingId}/description`);
+        router.push(`/host/create-listing/${listingId}/price`);
     };
 
+    //loading component
     const Loading = () => {
         return (
             <div className="mx-8 mb-4 h-full flex flex-col gap-8">
@@ -125,8 +135,6 @@ const Dates = () => {
             </div>
         );
     };
-
-    console.log(combinedListingFormState);
 
     return (
         <CreateListingLayout

@@ -27,7 +27,7 @@ const Images = () => {
     //initialize router
     const router = useRouter();
 
-    //get listing context
+    //get context from listing form
     const {
         listingId,
         combinedListingFormState,

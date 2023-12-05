@@ -1,8 +1,10 @@
 import React from "react";
 import { FaLock, FaUsers, FaHouse } from "react-icons/fa6";
 
-const iconStyle = "text-2xl"; // Adjust the size and margin as needed
+// Adjust the size and margin as needed
+const iconStyle = "text-2xl";
 
+// set the privacy icons
 const PrivacyIcon = ({ type }) => {
     switch (type) {
         case "Entire":
@@ -17,6 +19,8 @@ const PrivacyIcon = ({ type }) => {
 };
 
 const PrivacyTypeOption = ({ data, type, title, description, onChange }) => {
+
+    //check if privacy type exists in data
     const checkedPrivacyType = data.privacyType;
 
     return (

@@ -1,5 +1,6 @@
 import { FaWifi, FaParking, FaSwimmingPool } from "react-icons/fa";
 
+//list of icons to go with each amenity
 const getAmenityIcon = (amenityName) => {
     const iconMap = {
         wifi: <FaWifi />,
@@ -11,7 +12,6 @@ const getAmenityIcon = (amenityName) => {
 };
 
 const AmenityItem = ({ amenityName, amenityValue, handleChange }) => {
-
     return (
         <label className="cursor-pointer">
             <input

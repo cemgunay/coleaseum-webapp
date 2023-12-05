@@ -9,6 +9,7 @@ import { getGeocode, getLatLng } from "use-places-autocomplete";
 import { useRouter } from "next/router";
 import Skeleton from "@/components/Skeleton";
 
+//need places library to be able to use autocomplete functions
 const libraries = ["places"];
 
 // Validate the postal code or zip code using the regex pattern for Confirm Address
@@ -87,7 +88,7 @@ const Location = () => {
     //to check if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(true);
 
-    //get context
+    //get context from listing form
     const {
         setPushing,
         listingId,
@@ -317,6 +318,7 @@ const Location = () => {
         }
     };
 
+    //generic loading component
     const Loading = () => {
         if (loadError) {
             return <div>Error Loading Maps</div>;

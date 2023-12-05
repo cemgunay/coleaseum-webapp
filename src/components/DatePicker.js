@@ -133,6 +133,7 @@ const DatePicker = ({
         }
     };
 
+    //handleDateSelect now checks propertyToUpdate and handles it different if its an array such as viewingDates
     const handleDateSelect = (date) => {
         setDate(date);
         if (propertyToUpdate.includes("viewingDates")) {

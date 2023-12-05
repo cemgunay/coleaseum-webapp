@@ -1,11 +1,8 @@
 import React from "react";
 import { PiPlusCircleThin, PiMinusCircleThin } from "react-icons/pi";
 
-const IncrementalBedroomInput = ({
-    bedrooms,
-    numberOfBedrooms,
-    dispatch,
-}) => {
+const IncrementalBedroomInput = ({ bedrooms, numberOfBedrooms, dispatch }) => {
+    // decrement the number of bedrooms by 1
     const handleDecrement = () => {
         if (numberOfBedrooms > 0) {
             const newBedrooms = bedrooms.slice(0, -1);
@@ -17,6 +14,7 @@ const IncrementalBedroomInput = ({
         }
     };
 
+    // increment the number of bedrooms by 1
     const handleIncrement = () => {
         dispatch({
             type: "UPDATE_BASICS",

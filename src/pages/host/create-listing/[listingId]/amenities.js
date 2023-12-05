@@ -7,6 +7,7 @@ import { useRouter } from "next/router";
 import { useEffect } from "react";
 
 const Amenities = () => {
+    //initialze router
     const router = useRouter();
 
     //image
@@ -18,6 +19,7 @@ const Amenities = () => {
     const blurTransform = "w_30,h_30,c_fill,e_blur:1000,q_auto:low";
     const blurDataURL = `https://res.cloudinary.com/${cloudName}/image/upload/${blurTransform}/${image}`;
 
+    //get context from listing form
     const {
         combinedListingFormState,
         combinedListingFormDispatch,
@@ -26,8 +28,10 @@ const Amenities = () => {
     } = useListingForm();
     const amenities = combinedListingFormState.amenities;
 
+    //not required so can always go next
     const canGoNext = true;
 
+    //to toggle the amenity in the state
     const handleChange = (e) => {
         const { name, checked } = e.target;
         combinedListingFormDispatch({
@@ -36,8 +40,7 @@ const Amenities = () => {
         });
     };
 
-    console.log(amenities);
-
+    //handle submit and push updated object to database
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -50,6 +53,7 @@ const Amenities = () => {
         await pushToDatabase(listingId, updateData, "images");
     };
 
+    //go back
     const handleBack = () => {
         router.push(`/host/create-listing/${listingId}/basics`);
     };
@@ -62,6 +66,7 @@ const Amenities = () => {
         }
     }, []);
 
+    //loading component
     const Loading = () => {
         return (
             <div className="mx-8 my-2 flex flex-col justify-between items-center gap-4">

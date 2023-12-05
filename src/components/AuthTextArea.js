@@ -2,8 +2,9 @@ import React from "react";
 import { cn } from "@/utils/utils";
 import TextArea from "./TextArea";
 
-// input component to be used for auth forms etc.
+// textarea component to be used for auth forms etc.
 // provides functionality for error messages and error styling
+// can change the class of div and input accordingly
 const AuthTextArea = ({
     title,
     error,

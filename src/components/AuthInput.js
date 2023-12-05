@@ -4,6 +4,8 @@ import { cn } from "@/utils/utils";
 
 // input component to be used for auth forms etc.
 // provides functionality for error messages and error styling
+// can change the class of div and input accordingly
+// can show dollar sign if isPrice is provided
 const AuthInput = ({
     title,
     error,

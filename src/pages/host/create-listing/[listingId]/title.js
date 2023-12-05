@@ -16,8 +16,11 @@ const validateTitle = (value, name) => {
 };
 
 const Title = () => {
+
+    //initialize router
     const router = useRouter();
 
+    //get context from listing form
     const {
         combinedListingFormState,
         combinedListingFormDispatch,
@@ -25,8 +28,10 @@ const Title = () => {
         pushToDatabase,
     } = useListingForm();
 
+    //declare title for shorthand
     const title = combinedListingFormState.title;
 
+    //will track the number of characters
     const [count, setCount] = useState(title?.length || 0);
 
     // State for handling form validation errors and touch status
@@ -52,8 +57,16 @@ const Title = () => {
         }
     };
 
+    //to determine if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(false);
 
+    // Effect to update canGoNext based on validation results
+    useEffect(() => {
+        // Set canGoNext to true if there are no errors and title is present
+        setCanGoNext(!errors.title || (errors.title === null && title));
+    }, [errors, title]);
+
+    //on change set the number of characters and update listing state using dispatch
     const handleChange = (e) => {
         const { name, value } = e.target;
         const length = value.length;
@@ -68,14 +81,7 @@ const Title = () => {
         setErrors({ ...errors, [name]: validate(name, value) });
     };
 
-    console.log(errors);
-
-    // Effect to update canGoNext based on validation results
-    useEffect(() => {
-        // Set canGoNext to true if there are no errors and title is present
-        setCanGoNext(!errors.title || (errors.title === null && title));
-    }, [errors, title]);
-
+    //push updated title to database
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -88,10 +94,12 @@ const Title = () => {
         await pushToDatabase(listingId, updateData, "description");
     };
 
+    //go back
     const handleBack = () => {
         router.push(`/host/create-listing/${listingId}/images`);
     };
 
+    //loading component
     const Loading = () => {
         return (
             <div className="mx-8 mb-4 h-1/2 flex flex-col gap-4">

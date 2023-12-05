@@ -13,13 +13,15 @@ import Skeleton from "@/components/Skeleton";
 import { useListingForm } from "@/hooks/useListingForm";
 
 const Preview = () => {
+
+    //initialize router
     const router = useRouter();
 
+    //get context from listing form
     const { isLoading, listingId, combinedListingFormState } = useListingForm();
 
+    //shorthand listing from context state
     const listing = combinedListingFormState;
-
-    console.log(listing);
 
     // Derived state or computations
     const { formattedAddress, formattedRoomInfo, images } = useMemo(() => {
@@ -99,7 +101,36 @@ const Preview = () => {
 
     // loading component for entire component
     const Loading = () => {
-        return <Skeleton className="h-6 w-full" />;
+        return (
+            <div className="flex flex-col h-screen w-full">
+                <Skeleton className="h-60 w-full rounded-none mb-6" />
+                <div className="mx-8">
+                    <div className="flex flex-col gap-2 pb-4 border-b-2">
+                        <Skeleton className="h-8 w-1/3 " />
+                        <Skeleton className="h-6 w-full" />
+                        <div className="flex justify-between">
+                            <Skeleton className="h-6 w-1/2" />
+                            <Skeleton className="h-6 w-1/4" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 py-4 border-b-2">
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                    </div>
+                    <div className="py-4 border-b-2">
+                        <Skeleton className="h-6 w-full" />
+                    </div>
+                    <div className="flex flex-col gap-2 py-4 border-b-2">
+                        <Skeleton className="h-8 w-1/3" />
+                        <div className="flex gap-2">
+                            <Skeleton className="h-32 w-24" />
+                            <Skeleton className="h-32 w-24" />
+                            <Skeleton className="h-32 w-24" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     // loading component for user
@@ -107,6 +138,7 @@ const Preview = () => {
         return <Skeleton className="h-6 w-full" />;
     };
 
+    //Load the loading component when still fetfching data
     if (isLoading) {
         return <Loading />;
     }

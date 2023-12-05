@@ -1,3 +1,4 @@
+//To select bed types included in bedroom
 const BedTypeItem = ({bedTypeName, bedTypeIncluded, handleChange}) => {
 
     return (

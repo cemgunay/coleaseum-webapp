@@ -16,8 +16,11 @@ const validateDescription = (value, name) => {
 };
 
 const Description = () => {
+
+    //initialize router
     const router = useRouter();
 
+    //get context from listing form
     const {
         combinedListingFormState,
         combinedListingFormDispatch,
@@ -25,8 +28,10 @@ const Description = () => {
         pushToDatabase,
     } = useListingForm();
 
+    //declare description for shorthand
     const description = combinedListingFormState.description;
 
+    //will track the number of characters
     const [count, setCount] = useState(description?.length || 0);
 
     // State for handling form validation errors and touch status
@@ -52,8 +57,17 @@ const Description = () => {
         }
     };
 
+    //to determine if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(false);
 
+    //Effect to update canGoNext based on validation results
+    useEffect(() => {
+        setCanGoNext(
+            !errors.description || (errors.description === null && description)
+        );
+    }, [errors]);
+
+    //on change set the number of characters and update listing state using dispatch
     const handleChange = (e) => {
         const { name, value } = e.target;
         const length = value.length;
@@ -63,18 +77,12 @@ const Description = () => {
             type: "UPDATE_DESCRIPTION",
             payload: value,
         });
-        // Validate the actual value, not the length
+        // Validate the actual value, not the length and set the touched and error objects
         setTouched({ ...touched, [name]: true });
         setErrors({ ...errors, [name]: validate(name, value) });
     };
 
-    // Effect to update canGoNext based on validation results
-    useEffect(() => {
-        setCanGoNext(
-            !errors.description || (errors.description === null && description)
-        );
-    }, [errors]);
-
+    //push updated description to database
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -87,10 +95,12 @@ const Description = () => {
         await pushToDatabase(listingId, updateData, "price");
     };
 
+    //go back
     const handleBack = () => {
         router.push(`/host/create-listing/${listingId}/title`);
     };
 
+    //loading component
     const Loading = () => {
         return (
             <div className="mx-8 mb-4 h-1/2 flex flex-col gap-4">

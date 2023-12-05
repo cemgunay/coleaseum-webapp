@@ -81,6 +81,7 @@ const AboutYourPlace = () => {
         router.push("/host/create-listing/overview");
     };
 
+    //loading component
     const Loading = () => {
         return (
             <div className="mx-8 my-2 flex flex-col justify-between items-center gap-4">

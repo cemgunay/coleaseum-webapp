@@ -4,11 +4,13 @@ import ListingItemPreview from "@/components/ListingItemPreview";
 import Skeleton from "@/components/Skeleton";
 import { useListingForm } from "@/hooks/useListingForm";
 import { useRouter } from "next/router";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Publish = () => {
+    //initialize router
     const router = useRouter();
 
+    //get context from listing form
     const {
         combinedListingFormState,
         combinedListingFormDispatch,
@@ -16,45 +18,61 @@ const Publish = () => {
         pushToDatabase,
     } = useListingForm();
 
+    //shorthand state for if user agrees to conditions
+    const published = combinedListingFormState.published;
+
+    //check to see if we can proceed
+    const [canGoNext, setCanGoNext] = useState(published);
+
+    // Function to handle the change event
+    const handleOnChange = () => {
+        // Update the published status in the form
+        const newPublishedValue = !published;
+        combinedListingFormDispatch({
+            type: "UPDATE_PUBLISHED",
+            payload: newPublishedValue,
+        });
+    };
+
+    // Set the canGoNext state based on the new value of published
+    useEffect(() => {
+        setCanGoNext(published);
+    }, [published]);
+
     console.log(combinedListingFormState);
 
-    const [agree, setAgree] = useState(false);
-
-    const [canGoNext, setCanGoNext] = useState(false);
-
-    // Effect to update canGoNext based on validation results
-    useEffect(() => {
-        if (agree) {
-            setCanGoNext(true);
-        } else {
-            setCanGoNext(false)
-        }
-    }, [agree]);
-
+    //push updated publish to database
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         //format data for update
         const updateData = {
-            title,
+            published: true,
         };
 
         //call the function to push to database from context
-        await pushToDatabase(listingId, updateData, "description");
+        await pushToDatabase(listingId, updateData, "manage-listings");
     };
 
+    //go back
     const handleBack = () => {
-        router.push(`/host/create-listing/${listingId}/images`);
+        router.push(`/host/create-listing/${listingId}/dates`);
     };
 
+    //loading component
     const Loading = () => {
         return (
-            <div className="mx-8 mb-4 h-1/2 flex flex-col gap-4">
-                <Skeleton className="h-14 w-full mb-2" />
-                <Skeleton className="h-full w-full mb-2" />
+            <div className="mx-8 mb-4 mt-2 flex flex-col gap-8">
+                <div className="flex flex-col gap-4">
+                    <Skeleton className="h-6 w-1/2" />
+                    <Skeleton className="h-10 w-full" />
+                </div>
+                <Skeleton className="h-72 w-full" />
+                <Skeleton className="h-16 w-full" />
             </div>
         );
     };
+
     return (
         <CreateListingLayout
             Loading={Loading}
@@ -83,9 +101,9 @@ const Publish = () => {
                     <Input
                         id={"agree"}
                         type="checkbox"
-                        checked={agree}
-                        onChange={() => setAgree(!agree)}
-                        className="accent-color-primary w-3 h-3 rounded-sm cursor-pointer mr-2 checked:bg-white"
+                        checked={published}
+                        onChange={handleOnChange}
+                        className="accent-color-primary w-4 h-4 rounded-sm cursor-pointer mr-2 checked:bg-white"
                     />
                 </div>
             </div>

@@ -1,6 +1,8 @@
 import React from "react";
 
 export default function PropertyTypeOption({ data, type, onChange }) {
+
+    //check if property type exists in data
     const checkedPropertyType = data.propertyType;
 
     return (

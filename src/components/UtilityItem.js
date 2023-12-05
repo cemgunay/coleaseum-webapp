@@ -1,5 +1,6 @@
 import { FaWifi, FaParking, FaSwimmingPool } from "react-icons/fa";
 
+//to get coresponding icon based on utilityname provided
 const getUtilityIcon = (utilityName) => {
     const iconMap = {
         wifi: <FaWifi />,

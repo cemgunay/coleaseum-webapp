@@ -50,6 +50,7 @@ const initialAmenitiesState = {};
 const initialUtilitiesState = {};
 const initialImagesState = [];
 
+//base pathname for the context this will be given to
 const PATHNAME = "/host/create-listing/";
 
 // Provider component for the ListingFormContext.
@@ -181,11 +182,15 @@ export const ListingFormProvider = ({ children }) => {
             console.log("Listing updated:", updatedListing);
 
             // Navigate to the next page after successful submission.
-            router
-                .push(`/host/create-listing/${listingId}/${nextPage}`)
-                .then(() => {
-                    setPushing(false);
-                });
+            if (nextPage === "manage-listings") {
+                router.push("/host/manage-listings");
+            } else {
+                router
+                    .push(`/host/create-listing/${listingId}/${nextPage}`)
+                    .then(() => {
+                        setPushing(false);
+                    });
+            }
         } catch (error) {
             console.error("Error updating listing:", error);
             setPushing(false);

@@ -8,8 +8,10 @@ import { useEffect, useState } from "react";
 import BedroomItem from "@/components/BedroomItem";
 
 const basics = () => {
+    //initialize router
     const router = useRouter();
 
+    //get context from listing form
     const {
         combinedListingFormState,
         combinedListingFormDispatch,
@@ -17,13 +19,16 @@ const basics = () => {
         pushToDatabase,
     } = useListingForm();
 
+    //state variables that will be used in component for shorthand
     const basics = combinedListingFormState.basics;
     const bedrooms = basics.bedrooms;
     const numberOfBedrooms = bedrooms.length;
     const bathrooms = basics.bathrooms;
 
+    //to determine if we can proceed to next page
     const [canGoNext, setCanGoNext] = useState(false);
 
+    //set can go next based on following checks
     useEffect(() => {
         // Check if bedrooms array is not empty
         const hasBedrooms = bedrooms.length > 0;
@@ -37,6 +42,7 @@ const basics = () => {
         setCanGoNext(hasBedrooms && everyBedroomHasBedTypes);
     }, [bedrooms]); // Dependency array - this effect runs when bedrooms array changes
 
+    //push updated basics object to database
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -49,11 +55,12 @@ const basics = () => {
         await pushToDatabase(listingId, updateData, "amenities");
     };
 
-    // go back to manage-my-listings (where you see all listings)
+    // go back
     const handleBack = () => {
         router.push(`/host/create-listing/${listingId}/location`);
     };
 
+    //loading component
     const Loading = () => {
         return (
             <div className="mx-8 flex flex-col gap-4">

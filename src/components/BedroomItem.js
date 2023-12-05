@@ -1,9 +1,13 @@
 import BedTypeItem from "./BedTypeItem";
 import Input from "./Input";
 
-const BedroomItem = ({ index, bedrooms, bedroom, dispatch }) => {
-    const bedTypes = ["Single", "Double", "Queen", "King", "Sofa Bed", "Other"];
+//all the bed types available (can more if needed)
+const bedTypes = ["Single", "Double", "Queen", "King", "Sofa Bed", "Other"];
 
+//Each bedroom item for creating a listing that updates "basics"
+const BedroomItem = ({ index, bedrooms, bedroom, dispatch }) => {
+
+    //to toggle the bed types in the bedroom
     const handleBedType = (e) => {
         const { name, checked } = e.target;
 
@@ -27,6 +31,7 @@ const BedroomItem = ({ index, bedrooms, bedroom, dispatch }) => {
         });
     };
 
+    //to toggle if bedroom item has an ensuite
     const handleEnsuite = (e) => {
         // Create a new bedrooms array with the updated ensuite for the specified bedroom
         const updatedBedrooms = bedrooms.map((bed, idx) => {

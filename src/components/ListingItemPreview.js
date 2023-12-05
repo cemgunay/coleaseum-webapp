@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
 
+
+//same as the listing page however has data coming from the listing context provider
 const ListingItemPreview = ({ listing }) => {
     const images = listing.images.map(({ cloudinaryUrl }) => cloudinaryUrl);
     const [requests, setRequests] = useState([]);

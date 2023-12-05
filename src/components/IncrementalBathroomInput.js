@@ -2,9 +2,10 @@ import React from "react";
 import { PiPlusCircleThin, PiMinusCircleThin } from "react-icons/pi";
 
 const IncrementalBedroomInput = ({ bathrooms, dispatch }) => {
-
+    // set the current number of bathrooms
     const currentBathrooms = bathrooms === null ? 0 : bathrooms;
 
+    // decrement the number of bathrooms by 1
     const handleDecrement = () => {
         if (currentBathrooms > 0) {
             dispatch({
@@ -14,6 +15,7 @@ const IncrementalBedroomInput = ({ bathrooms, dispatch }) => {
         }
     };
 
+    // increment the number of bathrooms by 1
     const handleIncrement = () => {
         dispatch({
             type: "UPDATE_BASICS",

@@ -1,7 +1,7 @@
 import React, { forwardRef } from "react";
 import { cn } from "@/utils/utils";
 
-// simple input component, just a wrapper around <input>
+// simple textarea component, just a wrapper around <input>
 // propagtes all props and tailwind classes and refs, just adds some styling
 const TextArea = forwardRef(({ classNameInput, ...props }, ref) => {
     return (

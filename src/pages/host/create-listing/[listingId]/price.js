@@ -114,12 +114,12 @@ const Price = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const updateData = { price, utilities };
-    await pushToDatabase(listingId, updateData, "price");
+    await pushToDatabase(listingId, updateData, "dates");
   };
 
   // Handler for navigating back in the form
   const handleBack = () => {
-    router.push(`/host/create-listing/${listingId}/price`);
+    router.push(`/host/create-listing/${listingId}/description`);
   };
 
   // Component for rendering loading state
@@ -187,11 +187,11 @@ const Price = () => {
         </div>
         <div className="w-full flex flex-col gap-4">
           <form
-            className="flex justify-center space-x-2 w-full"
+            className="flex justify-center gap-2 w-full"
             id="price"
             onSubmit={handleSubmit}
           >
-            <div className="text-lg font-semibold pt-3">$</div>
+            
             <AuthInput
               name="price"
               type="number"
@@ -200,7 +200,9 @@ const Price = () => {
               onBlur={handleBlur}
               error={errors.price}
               touched={touched.price}
-              className="w-24"
+              className="items-center"
+              classNameInput="w-24"
+              isPrice={true}
             />
           </form>
 

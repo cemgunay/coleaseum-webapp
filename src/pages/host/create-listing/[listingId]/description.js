@@ -64,14 +64,15 @@ const Description = () => {
             payload: value,
         });
         // Validate the actual value, not the length
-        if (touched[name]) {
-            setErrors({ ...errors, [name]: validate(name, value) });
-        }
+        setTouched({ ...touched, [name]: true });
+        setErrors({ ...errors, [name]: validate(name, value) });
     };
 
     // Effect to update canGoNext based on validation results
     useEffect(() => {
-        setCanGoNext(errors.description === null);
+        setCanGoNext(
+            !errors.description || (errors.description === null && description)
+        );
     }, [errors]);
 
     const handleSubmit = async (e) => {
@@ -92,7 +93,7 @@ const Description = () => {
 
     const Loading = () => {
         return (
-            <div className="mx-8 my-4 h-1/2 flex flex-col gap-4">
+            <div className="mx-8 mb-4 h-1/2 flex flex-col gap-4">
                 <Skeleton className="h-14 w-full mb-2" />
                 <Skeleton className="h-full w-full mb-2" />
             </div>

@@ -225,7 +225,7 @@ const SignUp = () => {
                         <label className="text-base font-medium text-slate-900 mb-1 ml-0">
                             Date of Birth
                         </label>
-                        <DatePicker formData={formData} setFormData={setFormData} />
+                        <DatePicker formData={formData} setFormData={setFormData} propertyToUpdate={"dateOfBirth"} />
                     </div>
 
                     {/* first name input */}

@@ -2,6 +2,7 @@ import React from "react";
 import CreateListingBottomBar from "./CreateListingBottomBar";
 import CreateListingTopBar from "./CreateListingTopBar";
 import { useListingForm } from "@/hooks/useListingForm";
+import { useRouter } from "next/router";
 
 const CreateListingLayout = ({
     Loading,
@@ -12,14 +13,26 @@ const CreateListingLayout = ({
     onBack,
     onNext,
     canGoNext,
-    onSaveExit,
 }) => {
-    const { listingId, isLoading, pushing } = useListingForm();
+    const {
+        listingId,
+        isLoading,
+        pushing,
+    } = useListingForm();
+
+    const router = useRouter();
+
+    const onSaveExit = async (e) => {
+        e.preventDefault();
+
+        //since previous page is already saved we can just navigate away
+        router.push("/host/manage-listings");
+    };
 
     //Conditional Check Tests
     //isLoading && !listingId
     //(componentSpecificIsLoading !== false) && (isLoading && !listingId)
-    
+
     //this is the correct one
     //componentSpecificIsLoading || isLoading || !listingId
 

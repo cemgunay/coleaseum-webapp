@@ -14,7 +14,8 @@ import { useDropzone } from "react-dropzone";
 import { FaEllipsisH } from "react-icons/fa";
 
 // Constants for file limits and types
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_FILE_SIZE = 20 * 1024 * 1024; // 5 MB
+const MIN_FILE_SIZE = 50 * 1024; // 50 KB
 const ALLOWED_FILE_TYPES = [".jpeg", ".png"];
 const MAX_FILES = 10;
 const UPLOAD_TIMEOUT = 10000; // 10 seconds
@@ -27,8 +28,12 @@ const Images = () => {
     const router = useRouter();
 
     //get listing context
-    const { listingId, combinedListingFormState, pushToDatabase } =
-        useListingForm();
+    const {
+        listingId,
+        combinedListingFormState,
+        combinedListingFormDispatch,
+        pushToDatabase,
+    } = useListingForm();
 
     //initialize files array
     const [files, setFiles] = useState([]);
@@ -81,6 +86,11 @@ const Images = () => {
                                 MAX_FILE_SIZE / 1024 / 1024
                             } MB.`;
                             break;
+                        case "file-too-small":
+                            message += `File is too small. Min size is ${
+                                MIN_FILE_SIZE / 1024
+                            } KB.`;
+                            break;
                         case "file-invalid-type":
                             message += `Invalid file type. Allowed types are ${ALLOWED_FILE_TYPES.join(
                                 ", "
@@ -119,6 +129,7 @@ const Images = () => {
             "image/*": ALLOWED_FILE_TYPES,
         },
         maxSize: MAX_FILE_SIZE,
+        minSize: MIN_FILE_SIZE,
         maxFiles: MAX_FILES,
     });
 
@@ -284,6 +295,12 @@ const Images = () => {
 
         // Push to database
         await pushToDatabase(listingId, updateData, "title");
+
+        //To update the state with files
+        combinedListingFormDispatch({
+            type: "UPDATE_IMAGES",
+            payload: uploadedFiles,
+        });
     };
 
     //handleback
@@ -294,7 +311,7 @@ const Images = () => {
     //loading component
     const Loading = () => {
         return (
-            <div className="mx-8 my-4 h-full flex flex-col gap-4">
+            <div className="mx-8 mb-4 h-full flex flex-col gap-4">
                 <Skeleton className="h-14 w-3/4 mb-2" />
                 <div className="grid grid-cols-1 gap-4">
                     {[...Array(4)].map((_, index) => (

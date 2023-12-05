@@ -33,12 +33,7 @@ const initialListingDetailsState = {
     },
     // Basic details like bedrooms and bathrooms.
     basics: {
-        bedrooms: [
-            {
-                bedType: [],
-                ensuite: false,
-            },
-        ],
+        bedrooms: [],
         bathrooms: null,
     },
     // Additional details like title, description, pricing, and dates.
@@ -64,7 +59,7 @@ export const ListingFormProvider = ({ children }) => {
     const router = useRouter();
 
     // Extract the listing ID from the URL, and check if the current route is part of the listing creation process.
-    const { listingId }= router.query
+    const { listingId } = router.query;
     const isCreateListingRoute = router.pathname.startsWith(PATHNAME);
 
     // States to manage the loading and pushing (data submission) status.
@@ -168,7 +163,6 @@ export const ListingFormProvider = ({ children }) => {
     // Function to push data to the database and navigate to the next form page.
     const pushToDatabase = async (listingId, updateData, nextPage) => {
         setPushing(true);
-        console.log(updateData)
         try {
             const response = await fetch(`/api/listings`, {
                 method: "PUT",

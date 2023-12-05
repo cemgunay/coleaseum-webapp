@@ -37,9 +37,11 @@ const ListingSchema = new Schema(
         },
         moveInDate: {
             type: Date,
+            default: null,
         },
         moveOutDate: {
             type: Date,
+            default: null,
         },
         shorterStays: {
             type: Boolean,
@@ -49,7 +51,7 @@ const ListingSchema = new Schema(
             type: Boolean,
             default: true,
         },
-        viewingDates: [{ type: String }],
+        viewingDates: [{ type: Date }],
         expiryDate: {
             type: Date,
         },
@@ -67,7 +69,7 @@ const ListingSchema = new Schema(
         },
         basics: {
             bedrooms: [bedroomSchema],
-            bathrooms: { type: Number },
+            bathrooms: { type: Number, default: null },
         },
         amenities: {
             inUnitWasherAndDrier: {
@@ -150,7 +152,6 @@ const ListingSchema = new Schema(
                 type: Boolean,
                 default: false,
             },
-
         },
         utilities: {
             hydro: {

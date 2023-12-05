@@ -4,6 +4,7 @@ import Skeleton from "@/components/Skeleton";
 import { useListingForm } from "@/hooks/useListingForm";
 import Image from "next/image";
 import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 const Amenities = () => {
     const router = useRouter();
@@ -53,9 +54,17 @@ const Amenities = () => {
         router.push(`/host/create-listing/${listingId}/basics`);
     };
 
+    //Prevent Automatic Scroll Restoration
+    useEffect(() => {
+        if ("scrollRestoration" in window.history) {
+            window.history.scrollRestoration = "manual";
+            window.scrollTo(0, 0);
+        }
+    }, []);
+
     const Loading = () => {
         return (
-            <div className="mx-8 my-2 flex flex-col justify-between items-center gap-4 pt-2">
+            <div className="mx-8 my-2 flex flex-col justify-between items-center gap-4">
                 {/* Top Section Skeletons */}
                 <div className="flex items-center w-full">
                     <div className="flex flex-col justify-between items-start text-sm w-3/4">
@@ -91,7 +100,7 @@ const Amenities = () => {
             onBack={handleBack}
             canGoNext={canGoNext}
         >
-            <div className="mx-8 flex flex-col justify-between gap-8 pt-2">
+            <div className="mx-8 flex flex-col justify-between gap-8">
                 <div className="flex items-center gap-2">
                     <div className="flex flex-col justify-between gap-2 w-3/4">
                         <div className="font-bold text-lg">Step 2</div>

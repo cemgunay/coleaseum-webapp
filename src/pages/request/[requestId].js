@@ -176,6 +176,10 @@ const Request = ({ request, listing }) => {
                         <IncrementalPriceInput
                             priceOffer={priceOffer}
                             setPriceOffer={setPriceOffer}
+                            disabled={
+                                PAST_STATUSES.includes(request.status) ||
+                                CONFIRMED_STATUSES.includes(request.status)
+                            }
                         />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 flex flex-col gap-4 text-lg">
@@ -215,8 +219,9 @@ const Request = ({ request, listing }) => {
                             <p>{formatPrice(dueAtSigning)} CAD</p>
                         </div>
                     </div>
-                    <Button
-                        className="mt-6 bg-color-primary"
+                    {/* non-sticky button */}
+                    {/* <Button
+                        className="bg-color-primary fixed bottom-0 w-full"
                         // button disabled if request is not active
                         disabled={
                             PAST_STATUSES.includes(request.status) ||
@@ -224,8 +229,24 @@ const Request = ({ request, listing }) => {
                         }
                     >
                         Submit Request
-                    </Button>
+                    </Button> */}
                 </div>
+                {/* sticky button */}
+                <footer className="fixed bottom-0 z-50 w-full">
+                    {/* <div className="px-8 py-8 rounded-t-md shadow-lg border-0 border-black bg-white"> */}
+                    <div className="flex items-center justify-around py-5 px-8 rounded-t-lg bg-white shadow-[0px_0px_5px_0px]">
+                        <Button
+                            className="bg-color-primary w-full"
+                            // button disabled if request is not active
+                            disabled={
+                                PAST_STATUSES.includes(request.status) ||
+                                CONFIRMED_STATUSES.includes(request.status)
+                            }
+                        >
+                            Submit Request
+                        </Button>
+                    </div>
+                </footer>
             </div>
         </>
     );

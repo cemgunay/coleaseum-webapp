@@ -149,7 +149,7 @@ const Sublets = () => {
         <>
             <div className="flex flex-col items-center justify-start min-h-screen mx-8 pt-10 pb-32">
                 <SubletsTabs setActiveTab={setActiveTab} />
-                {listings.length && requests.length ? (
+                {listings.length && !fetching ? (
                     <>
                         <p className="self-start mb-1 text-gray-700 text-sm">
                             {displayListings.length} listing{displayListings.length !== 1 && "s"}{" "}

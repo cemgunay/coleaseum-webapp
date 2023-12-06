@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { PiPlusCircleThin, PiMinusCircleThin } from "react-icons/pi";
+import { cn } from "@/utils/utils";
 
-const IncrementalPriceInput = ({ priceOffer, setPriceOffer }) => {
+const IncrementalPriceInput = ({ priceOffer, setPriceOffer, disabled }) => {
     // buttonClicked state. used to try to mitigate situation where when user
     // clicks on the buttons quickly, it selects the text in the input
     // doesn't work 100% of the time but reduces frequency of the issue
@@ -10,12 +11,14 @@ const IncrementalPriceInput = ({ priceOffer, setPriceOffer }) => {
 
     // handler functions for incremental input
     const handleDecrementPrice = () => {
-        setPriceOffer((prevPrice) => (prevPrice > 0 ? prevPrice - 25 : 0));
+        if (disabled) return;
+        setPriceOffer((prevPrice) => (prevPrice > 25 ? prevPrice - 25 : 25));
         setButtonClicked(true);
     };
 
     const handleIncrementPrice = () => {
-        setPriceOffer((prevPrice) => prevPrice + 25);
+        if (disabled) return;
+        setPriceOffer((prevPrice) => (prevPrice < 10000 ? prevPrice + 25 : 10000));
         setButtonClicked(true);
     };
 
@@ -23,9 +26,13 @@ const IncrementalPriceInput = ({ priceOffer, setPriceOffer }) => {
         <div className="w-full flex justify-center items-center gap-5">
             <PiMinusCircleThin
                 onClick={handleDecrementPrice}
-                className="text-4xl text-color-primary hover:cursor-pointer"
+                className={cn(
+                    "text-4xl text-color-primary hover:cursor-pointer",
+                    disabled && "opacity-50 hover:cursor-not-allowed"
+                )}
             />
             <input
+                disabled={disabled}
                 type="text"
                 value={`$${priceOffer.toLocaleString()}`}
                 onChange={(e) => {
@@ -43,7 +50,10 @@ const IncrementalPriceInput = ({ priceOffer, setPriceOffer }) => {
             />
             <PiPlusCircleThin
                 onClick={handleIncrementPrice}
-                className="text-4xl text-color-primary hover:cursor-pointer"
+                className={cn(
+                    "text-4xl text-color-primary hover:cursor-pointer",
+                    disabled && "opacity-50 hover:cursor-not-allowed"
+                )}
             />
         </div>
     );

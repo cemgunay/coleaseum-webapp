@@ -339,7 +339,6 @@ const Request = ({ request, listing, activeRequests }) => {
                 </div>
                 {/* sticky button */}
                 <footer className="fixed bottom-0 z-50 w-full">
-                    {/* <div className="px-8 py-8 rounded-t-md shadow-lg border-0 border-black bg-white"> */}
                     <div className="flex items-center justify-around py-5 px-8 rounded-t-lg bg-white shadow-[0px_0px_5px_0px]">
                         <Button
                             className="bg-color-primary w-full"

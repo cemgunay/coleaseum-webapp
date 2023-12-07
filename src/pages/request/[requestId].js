@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { fetchWithTimeout, formatPrice, cn } from "@/utils/utils";
 import { FaCircleChevronLeft } from "react-icons/fa6";
@@ -45,7 +45,7 @@ export async function getServerSideProps(context) {
 
     const request = await response.json();
 
-    // if request fetch was successful, fetch the associated listing
+    // if request fetch was successful, fetch the associated listing and its active requests
     if (request && request.listingId) {
         // get listing from DB
         const listingResponse = await fetchWithTimeout(
@@ -54,25 +54,35 @@ export async function getServerSideProps(context) {
             5000
         );
 
+        // get active requests for listing from DB
+        const activeRequestsResponse = await fetchWithTimeout(
+            `${apiUrl}/api/requests/listingactiverequests/${request.listingId}`,
+            {},
+            5000
+        );
+
         // error handling
         if (listingResponse.error || !listingResponse.ok) {
             console.error(
-                "Listing fetch failed: ",
+                "Failed to fetch listing for this request: ",
                 listingResponse.error || `HTTP Error: ${listingResponse.status}`
             );
-            // NB if listing fetch fails, we still will render the request info
-            // can change this later if we want to
+        } else if (activeRequestsResponse.error || !activeRequestsResponse.ok) {
+            console.error(
+                "Failed to fetch active requests for the listing associated with this request: ",
+                activeRequestsResponse.error || `HTTP Error: ${activeRequestsResponse.status}`
+            );
         } else {
             const listing = await listingResponse.json();
-            return { props: { request, listing } };
+            const activeRequests = await activeRequestsResponse.json();
+            return { props: { request, listing, activeRequests } };
         }
     }
 
-    // return the request alone if we didn't successfully fetch the listing
-    return { props: { request } };
+    // something's up if we reach here, means we didn't successfully fetch the listing
 }
 
-const Request = ({ request, listing }) => {
+const Request = ({ request, listing, activeRequests }) => {
     const router = useRouter();
 
     // state
@@ -145,6 +155,16 @@ const Request = ({ request, listing }) => {
             });
         }
     };
+
+    // highest active request calculation
+    const { highestActiveRequest, isCurrentRequestHighest } = useMemo(() => {
+        const sortedActiveRequests = [...activeRequests].sort((a, b) => b.price - a.price);
+        const highestActiveRequest = sortedActiveRequests[0];
+        const isCurrentRequestHighest =
+            highestActiveRequest && highestActiveRequest._id === request._id;
+
+        return { highestActiveRequest, isCurrentRequestHighest };
+    }, [request, activeRequests]);
 
     // derived state for listing info
     const { formattedAddress, formattedRoomInfo, listingImages } = useMemo(() => {
@@ -253,9 +273,15 @@ const Request = ({ request, listing }) => {
                 {/* Request info */}
                 <div className="flex flex-col mx-8 pt-2">
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <div className="flex justify-between">
+                        <div className="flex justify-between items-center">
                             <h3 className="text-2xl font-bold">{listing.title}</h3>
-                            <p>{listing.days_left}</p>
+                            <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
+                                Highest offer:{" "}
+                                {highestActiveRequest
+                                    ? formatPrice(highestActiveRequest.price, false)
+                                    : "N/A"}{" "}
+                                {isCurrentRequestHighest ? "(yours)" : ""}
+                            </div>
                         </div>
                         <address className="text-lg">{formattedAddress}</address>
                         <p className="mt-2 text-xl">{formattedRoomInfo}</p>

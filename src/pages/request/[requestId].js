@@ -264,7 +264,7 @@ const Request = ({ request, listing, activeRequests }) => {
                 <div className="w-full h-60">
                     <Carousel
                         images={listingImages}
-                        // onClick={() => setShowGrid(true)}
+                        onClick={() => router.push(`/listing/${listing._id}`)}
                         index={0}
                         dots={true}
                     />
@@ -272,7 +272,10 @@ const Request = ({ request, listing, activeRequests }) => {
 
                 {/* Request info */}
                 <div className="flex flex-col mx-8 pt-2">
-                    <div className="py-4 border-b-[0.1rem] border-gray-300">
+                    <div
+                        className="py-4 border-b-[0.1rem] border-gray-300 hover:cursor-pointer"
+                        onClick={() => router.push(`/listing/${listing._id}`)}
+                    >
                         <div className="flex justify-between items-center">
                             <h3 className="text-2xl font-bold">{listing.title}</h3>
                             {ACTIVE_STATUSES.includes(request.status) && (

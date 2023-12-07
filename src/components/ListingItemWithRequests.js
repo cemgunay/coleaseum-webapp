@@ -37,12 +37,7 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
         setShowModal(false);
     };
 
-    const startDeleteProcess = (requestId) => {
-        setSelectedRequestId(requestId);
-        handleOpenModal();
-    };
-
-    const startDeleteProcess2 = (e, requestId) => {
+    const startDeleteProcess = (e, requestId) => {
         e.stopPropagation();
         setSelectedRequestId(requestId);
         handleOpenModal();
@@ -115,7 +110,7 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
                     <p className="text-slate-300">
                         {format(new Date(request.createdAt), "yyyy-MM-dd")}
                     </p>
-                    <button onClick={(e) => startDeleteProcess2(e, request._id)}>
+                    <button onClick={(e) => startDeleteProcess(e, request._id)}>
                         <TiDelete className="text-2xl text-color-error" />
                     </button>
                 </div>
@@ -138,7 +133,7 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
     //                 <p className="text-slate-300 transition-all duration-500 transform translate-x-6 group-hover:-translate-x-1">
     //                     {format(new Date(request.createdAt), "yyyy-MM-dd")}
     //                 </p>
-    //                 <button onClick={(e) => startDeleteProcess2(e, request._id)}>
+    //                 <button onClick={(e) => startDeleteProcess(e, request._id)}>
     //                     <TiDelete className="text-2xl text-color-error opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
     //                 </button>
     //             </div>
@@ -156,7 +151,6 @@ const ListingItemWithRequests = ({ listing, requests, deleteListing }) => {
                     onCancel={handleCancelDelete}
                 />
             )}
-            {/* <ListingItem listing={listing} showActiveBids={true} /> */}
             <ListingItemForSublets
                 listing={listing}
                 request={requests[0] || null}

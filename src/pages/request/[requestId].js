@@ -7,6 +7,9 @@ import IncrementalPriceInput from "@/components/IncrementalPriceInput";
 import { format, differenceInMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
+import { MdDeleteForever } from "react-icons/md";
+import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
+import { useToast } from "@/components/ui/use-toast";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
@@ -74,6 +77,74 @@ const Request = ({ request, listing }) => {
 
     // state
     const [priceOffer, setPriceOffer] = useState(request.price);
+    const [showModal, setShowModal] = useState(false);
+
+    // for toast notifications
+    const { toast } = useToast();
+
+    // handler functions for modal + deletion events
+    // could have set the state right in the JSX but I think this is more readable
+    // also if we ever wanna add like click event tracking or smth it'll be easier to add
+    const handleOpenModal = () => {
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
+
+    const startDeleteProcess = (e) => {
+        e.stopPropagation();
+        handleOpenModal();
+    };
+
+    const handleConfirmDelete = () => {
+        handleDeleteRequest();
+        handleCloseModal();
+    };
+
+    const handleCancelDelete = () => {
+        handleCloseModal();
+    };
+
+    // handle delete request
+    const handleDeleteRequest = async () => {
+        try {
+            // API call to soft delete the request
+            // hardcoding request._id here instead of taking it as an arg to this function bc
+            // deletion on this page can only ever delete this page's request
+            const response = await fetch(`/api/requests/${request._id}/delete`, {
+                method: "PATCH",
+            });
+
+            // error handling
+            if (!response.ok) {
+                console.log(response);
+                throw new Error("Failed to delete request");
+            }
+
+            // // console log the deleted request
+            // const deletedRequest = await response.json();
+            // console.log(deletedRequest);
+
+            // toast notification
+            toast({
+                variant: "default",
+                title: "Deleted!",
+                description: "RIP to that request ☠️",
+            });
+
+            // push user back to previous page
+            router.back();
+        } catch (error) {
+            console.log(`Error deleting request: ${error}`);
+            toast({
+                variant: "destructive",
+                title: "Failed to delete request :(",
+                description: error,
+            });
+        }
+    };
 
     // derived state for listing info
     const { formattedAddress, formattedRoomInfo, listingImages } = useMemo(() => {
@@ -142,9 +213,27 @@ const Request = ({ request, listing }) => {
     return (
         <>
             {/* Back button */}
-            <div className="absolute top-11 left-4 w-fit z-[100]" onClick={router.back}>
+            <button className="absolute top-11 left-4 w-fit z-[50]" onClick={router.back}>
                 <FaCircleChevronLeft className="text-2xl text-gray-800" />
-            </div>
+            </button>
+
+            {/* Delete button */}
+            <button
+                className="absolute top-11 right-4 w-fit z-[50] hover:cursor-pointer"
+                onClick={(e) => startDeleteProcess(e)}
+            >
+                <MdDeleteForever className="text-3xl text-gray-800 hover:text-color-error" />
+            </button>
+
+            {/* Delete modal */}
+            {showModal && (
+                <ConfirmDeleteDialog
+                    open={showModal}
+                    onClose={handleCloseModal}
+                    onConfirm={handleConfirmDelete}
+                    onCancel={handleCancelDelete}
+                />
+            )}
 
             {/* Main content */}
             <div className="flex flex-col text-black overflow-hidden pb-24">

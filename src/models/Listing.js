@@ -150,12 +150,26 @@ const ListingSchema = new Schema(
     { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
+// // virtual properties
+// ListingSchema.virtual("daysLeft").get(function () {
+//     const now = new Date();
+//     const diffTime = this.expiryDate.getTime() - now.getTime();
+//     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+//     return diffDays;
+// });
+
 // virtual properties
+// (rewriting with extra error handling steps bc some entries in the DB
+// don't have .expiryDate anymore and were giving errors)
 ListingSchema.virtual("daysLeft").get(function () {
-    const now = new Date();
-    const diffTime = this.expiryDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+    if (this.expiryDate && this.expiryDate instanceof Date) {
+        const now = new Date();
+        const diffTime = this.expiryDate.getTime() - now.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    } else {
+        return 0;
+    }
 });
 
 ListingSchema.virtual("numOfBedrooms").get(function () {

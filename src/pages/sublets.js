@@ -1,30 +1,16 @@
 import React, { useState, useMemo, useEffect } from "react";
 import SubletsTabs from "@/components/SubletsTabs";
-import ListingItem from "@/components/ListingItem";
 import Skeleton from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
-import Link from "next/link";
 import GuestPage from "@/components/GuestPage";
-import { useToast } from "@/components/ui/use-toast";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
-
-const ACTIVE_STATUSES = [
-    "pendingSubTenant",
-    "pendingTenant",
-    "pendingTenantUpload",
-    "pendingSubTenantUpload",
-    "pendingFinalAccept",
-];
-const PAST_STATUSES = ["rejected"];
-const CONFIRMED_STATUSES = ["accepted", "confirmed"];
+import ListingItemForSublets from "@/components/ListingItemForSublets";
+import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
 
 const Sublets = () => {
     // get user object from context
     const { user, loading } = useAuth();
-
-    // for toast notifications
-    const { toast } = useToast();
 
     // state
     const [activeTab, setActiveTab] = useState("active");
@@ -33,46 +19,37 @@ const Sublets = () => {
     const [requests, setRequests] = useState([]);
     const [fetching, setFetching] = useState(true);
 
-    // fetch listings from DB
+    // fetch listings and requests from DB
     useEffect(() => {
-        // fetch listings
-        const fetchLlistings = async () => {
-            // had hardcoded filters for this API call taken from Explore page
-            // but I removed them for now bc we weren't getting all the listings
-            // if we need to add those filters back we always can. code is in Explore page
-            const response = await fetch(`/api/listings`);
+        const fetchListingsAndRequests = async () => {
+            // if no user we can't fetch their requests
+            if (!user) return;
+
+            // fetch listings and requests
+            const responseListings = await fetch(`/api/listings`);
+            const responseRequests = await fetch(`/api/requests/user-requests/${user.id}`);
 
             // error handling
-            if (!response.ok) {
-                console.log(response);
+            if (!responseListings.ok) {
+                console.log("Error fetching listings: ", responseListings);
                 throw new Error("Failed to fetch listings");
             }
+            if (!responseRequests.ok) {
+                console.log("Error fetching requests: ", responseRequests);
+                throw new Error("Failed to fetch requests");
+            }
 
-            // update state with listings, sorting them first
-            const receivedListings = await response.json();
+            const receivedListings = await responseListings.json();
+            const receivedRequests = await responseRequests.json();
+
             setListings(
                 receivedListings.sort((p1, p2) => new Date(p2.createdAt) - new Date(p1.createdAt))
             );
+            setRequests(receivedRequests);
+            setFetching(false);
         };
-        fetchLlistings();
-    }, [user]);
 
-    // fetch requests from DB
-    useEffect(() => {
-        // if no user we can't fetch their requests
-        if (!user) return;
-
-        // fetch requests
-        const fetchRequests = async () => {
-            const response = await fetch(`/api/requests/user-requests/${user.id}`);
-            if (!response.ok) {
-                console.log(response);
-                throw new Error("Failed to fetch requests");
-            }
-            const data = await response.json();
-            setRequests(data);
-        };
-        fetchRequests();
+        fetchListingsAndRequests();
     }, [user]);
 
     // memoized filtered request IDs
@@ -85,7 +62,7 @@ const Sublets = () => {
     }, [requests]);
     const pastRequestListingIds = useMemo(() => {
         return requests
-            .filter((request) => PAST_STATUSES.includes(request.status) || request.showSubTenant)
+            .filter((request) => PAST_STATUSES.includes(request.status))
             .map((request) => request.listingId);
     }, [requests]);
     const confirmedRequestListingIds = useMemo(() => {
@@ -122,13 +99,6 @@ const Sublets = () => {
                 setDisplayListings([]);
         }
     });
-
-    // set fetching to false once listings and requests are fetched
-    useEffect(() => {
-        if (listings.length && requests.length) {
-            setFetching(false);
-        }
-    }, [activeListings, pastListings, confirmedListings]);
 
     // loading component
     const Loading = () => {
@@ -179,7 +149,7 @@ const Sublets = () => {
         <>
             <div className="flex flex-col items-center justify-start min-h-screen mx-8 pt-10 pb-32">
                 <SubletsTabs setActiveTab={setActiveTab} />
-                {listings.length ? (
+                {listings.length && !fetching ? (
                     <>
                         <p className="self-start mb-1 text-gray-700 text-sm">
                             {displayListings.length} listing{displayListings.length !== 1 && "s"}{" "}
@@ -187,21 +157,51 @@ const Sublets = () => {
                         </p>
                         <div className="grid grid-cols-1 gap-10 mt-2">
                             {displayListings.map((listing) => {
-                                // get all requests for this listing
-                                const listingRequests = requests.filter(
-                                    (request) => request.listingId === listing._id
-                                );
-
-                                return activeTab === "past" ? (
-                                    <ListingItemWithRequests
-                                        key={listing.id}
-                                        listing={listing}
-                                        requests={listingRequests}
-                                        deleteListing={handleDeleteListing}
-                                    />
-                                ) : (
-                                    <ListingItem key={listing.id} listing={listing} />
-                                );
+                                switch (activeTab) {
+                                    case "past":
+                                        const pastRequests = requests.filter(
+                                            (request) =>
+                                                PAST_STATUSES.includes(request.status) &&
+                                                request.listingId === listing._id
+                                        );
+                                        return (
+                                            <ListingItemWithRequests
+                                                key={listing._id}
+                                                listing={listing}
+                                                requests={pastRequests}
+                                                deleteListing={handleDeleteListing}
+                                            />
+                                        );
+                                    case "active":
+                                        const activeRequests = requests.filter(
+                                            (request) =>
+                                                ACTIVE_STATUSES.includes(request.status) &&
+                                                request.listingId === listing._id
+                                        ); // should only be one request here
+                                        return (
+                                            <ListingItemForSublets
+                                                key={listing._id}
+                                                listing={listing}
+                                                request={activeRequests[0]}
+                                                activeTab={activeTab}
+                                            />
+                                        );
+                                    case "confirmed":
+                                        const confirmedRequests = requests.filter(
+                                            (request) =>
+                                                CONFIRMED_STATUSES.includes(request.status) &&
+                                                request.listingId === listing._id
+                                        ); // should only be one request here
+                                        return (
+                                            <ListingItemForSublets
+                                                key={listing._id}
+                                                listing={listing}
+                                                request={confirmedRequests[0]}
+                                                activeTab={activeTab}
+                                                showActiveBids={false}
+                                            />
+                                        );
+                                }
                             })}
                         </div>
                     </>

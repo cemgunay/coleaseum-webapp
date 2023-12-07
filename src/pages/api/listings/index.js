@@ -113,6 +113,7 @@ export default async function handler(req, res) {
 
                     res.status(200).json(availableListings);
                 } catch (error) {
+                    console.log("got error with filtering: ", error);
                     res.status(500).json({ error: "Internal Server Error" });
                 }
             } else {
@@ -121,6 +122,7 @@ export default async function handler(req, res) {
                     const listings = await Listing.find(dbQuery).exec();
                     res.status(200).json(listings);
                 } catch (error) {
+                    console.log("got error without filtering: ", error);
                     res.status(500).json({ error: "Internal Server Error" });
                 }
             }

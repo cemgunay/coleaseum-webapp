@@ -27,9 +27,13 @@ export async function fetchWithTimeout(resource, options = {}, timeout = 8000) {
 }
 
 // helper function to format price (so it has dollar sign, commas, and 2 decimal places)
-export function formatPrice(price) {
-    return `$${price.toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    })}`;
+export function formatPrice(price, addDecimalPlaces = true) {
+    if (addDecimalPlaces) {
+        return `$${price.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    } else {
+        return `$${price.toLocaleString()}`;
+    }
 }

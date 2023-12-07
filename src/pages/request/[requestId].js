@@ -275,13 +275,15 @@ const Request = ({ request, listing, activeRequests }) => {
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <div className="flex justify-between items-center">
                             <h3 className="text-2xl font-bold">{listing.title}</h3>
-                            <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
-                                Highest offer:{" "}
-                                {highestActiveRequest
-                                    ? formatPrice(highestActiveRequest.price, false)
-                                    : "N/A"}{" "}
-                                {isCurrentRequestHighest ? "(yours)" : ""}
-                            </div>
+                            {ACTIVE_STATUSES.includes(request.status) && (
+                                <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
+                                    Highest offer:{" "}
+                                    {highestActiveRequest
+                                        ? formatPrice(highestActiveRequest.price, false)
+                                        : "N/A"}{" "}
+                                    {isCurrentRequestHighest ? "(yours)" : ""}
+                                </div>
+                            )}
                         </div>
                         <address className="text-lg">{formattedAddress}</address>
                         <p className="mt-2 text-xl">{formattedRoomInfo}</p>
@@ -334,17 +336,6 @@ const Request = ({ request, listing, activeRequests }) => {
                             <p>{formatPrice(dueAtSigning)} CAD</p>
                         </div>
                     </div>
-                    {/* non-sticky button */}
-                    {/* <Button
-                        className="bg-color-primary fixed bottom-0 w-full"
-                        // button disabled if request is not active
-                        disabled={
-                            PAST_STATUSES.includes(request.status) ||
-                            CONFIRMED_STATUSES.includes(request.status)
-                        }
-                    >
-                        Submit Request
-                    </Button> */}
                 </div>
                 {/* sticky button */}
                 <footer className="fixed bottom-0 z-50 w-full">

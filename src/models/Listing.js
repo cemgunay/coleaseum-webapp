@@ -19,10 +19,10 @@ const ListingSchema = new Schema(
         },
         images: [
             {
-                url: String,
-                filename: String,
-                file: Object,
-                progress: Number,
+                cloudinaryUrl: String,
+                path: String,
+                preview: String,
+                uniqueId: String,
             },
         ],
         location: {

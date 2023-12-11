@@ -8,6 +8,7 @@ import {
     imagesReducer,
 } from "@/reducers";
 import { useRouter } from "next/router";
+import { determineRoute } from "@/utils/determineRoute";
 
 // Create a context for the listing form.
 export const ListingFormContext = createContext();
@@ -147,6 +148,14 @@ export const ListingFormProvider = ({ children }) => {
                 type: "LOAD_STATE",
                 payload: payload,
             });
+
+            // Determine the next step
+            const nextStep = determineRoute(data);
+
+            // Redirect to the correct step if necessary
+            if (router.asPath !== nextStep) {
+                await router.push(nextStep);
+            }
         } catch (error) {
             console.error("Error loading form data:", error);
             // TODO: Implement error handling with user notifications.

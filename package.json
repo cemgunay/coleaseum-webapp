@@ -23,6 +23,7 @@
         "@vis.gl/react-google-maps": "^0.3.3",
         "bcryptjs": "^2.4.3",
         "class-variance-authority": "^0.7.0",
+        "cloudinary": "^1.41.0",
         "clsx": "^2.0.0",
         "date-fns": "^2.30.0",
         "jsonwebtoken": "^9.0.2",

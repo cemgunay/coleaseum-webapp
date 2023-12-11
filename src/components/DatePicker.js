@@ -1,11 +1,15 @@
-import React, { useState } from "react";
-import { format } from "date-fns";
+import React, { useEffect, useState } from "react";
+import { format, parseISO } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
 import { cn } from "@/utils/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
 import {
     Select,
     SelectContent,
@@ -15,7 +19,10 @@ import {
 } from "@/components/ui/select";
 
 const YearPicker = ({ selectedYear, setSelectedYear }) => {
-    const years = Array.from({ length: 100 }, (_, i) => new Date().getFullYear() - i);
+    const years = Array.from(
+        { length: 100 },
+        (_, i) => new Date().getFullYear() - i
+    );
 
     return (
         <Select onValueChange={(value) => setSelectedYear(parseInt(value, 10))}>
@@ -50,7 +57,9 @@ const MonthPicker = ({ selectedMonth, setSelectedMonth }) => {
     ];
 
     return (
-        <Select onValueChange={(value) => setSelectedMonth(months.indexOf(value))}>
+        <Select
+            onValueChange={(value) => setSelectedMonth(months.indexOf(value))}
+        >
             <SelectTrigger>
                 <SelectValue placeholder={months[selectedMonth]} />
             </SelectTrigger>
@@ -65,11 +74,38 @@ const MonthPicker = ({ selectedMonth, setSelectedMonth }) => {
     );
 };
 
-const DatePicker = ({ formData, setFormData, className }) => {
+const DatePicker = ({
+    formData,
+    setFormData,
+    propertyToUpdate,
+    minDate,
+    maxDate,
+    className,
+}) => {
     const [date, setDate] = useState(null);
     const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [popoverDisplayDate, setPopoverDisplayDate] = useState(new Date());
+
+    //to set default dates for moveIn, moveOut, and viewingDates
+    useEffect(() => {
+        if (propertyToUpdate.includes("viewingDates")) {
+            if (formData && typeof formData === "string") {
+                const parsedViewingDate = parseISO(formData);
+                setDate(parsedViewingDate);
+            } else setDate(formData);
+        } else {
+            if (
+                formData[propertyToUpdate] &&
+                typeof formData[propertyToUpdate] === "string"
+            ) {
+                const parsedDate = parseISO(formData[propertyToUpdate]);
+                setDate(parsedDate);
+            } else {
+                setDate(formData[propertyToUpdate]);
+            }
+        }
+    }, [formData, propertyToUpdate]);
 
     const handleYearChange = (year) => {
         setSelectedYear(year);
@@ -78,7 +114,9 @@ const DatePicker = ({ formData, setFormData, className }) => {
             setDate(newDate);
             setPopoverDisplayDate(newDate);
         } else {
-            setPopoverDisplayDate(new Date(year, popoverDisplayDate.getMonth()));
+            setPopoverDisplayDate(
+                new Date(year, popoverDisplayDate.getMonth())
+            );
         }
     };
 
@@ -89,15 +127,26 @@ const DatePicker = ({ formData, setFormData, className }) => {
             setDate(newDate);
             setPopoverDisplayDate(newDate);
         } else {
-            setPopoverDisplayDate(new Date(popoverDisplayDate.getFullYear(), month));
+            setPopoverDisplayDate(
+                new Date(popoverDisplayDate.getFullYear(), month)
+            );
         }
     };
 
+    //handleDateSelect now checks propertyToUpdate and handles it different if its an array such as viewingDates
     const handleDateSelect = (date) => {
-        // console.log(format(date, "PPP"));
-        // console.log(format(date, "yyyy-MM-dd"));
         setDate(date);
-        setFormData({ ...formData, dateOfBirth: date });
+        if (propertyToUpdate.includes("viewingDates")) {
+            // If propertyToUpdate includes "viewingDates", then handle array update
+            const index = parseInt(
+                propertyToUpdate.split("[")[1].split("]")[0],
+                10
+            );
+            setFormData(date, index);
+        } else {
+            // Otherwise, handle normal date update
+            setFormData({ ...formData, [propertyToUpdate]: date });
+        }
     };
 
     return (
@@ -117,7 +166,10 @@ const DatePicker = ({ formData, setFormData, className }) => {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 flex flex-col items-center">
                 <div className="flex gap-2 p-2">
-                    <YearPicker selectedYear={selectedYear} setSelectedYear={handleYearChange} />
+                    <YearPicker
+                        selectedYear={selectedYear}
+                        setSelectedYear={handleYearChange}
+                    />
                     <MonthPicker
                         selectedMonth={selectedMonth}
                         setSelectedMonth={handleMonthChange}
@@ -129,6 +181,7 @@ const DatePicker = ({ formData, setFormData, className }) => {
                     onSelect={handleDateSelect}
                     displayDate={popoverDisplayDate}
                     setDisplayDate={setPopoverDisplayDate}
+                    disabled={{ before: minDate, after: maxDate }}
                     initialFocus
                 />
             </PopoverContent>

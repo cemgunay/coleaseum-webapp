@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
 import Carousel from "@/components/Carousel";
 import { FaCircleChevronLeft } from "react-icons/fa6";
@@ -10,58 +10,18 @@ import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
-import { usePusher } from "@/context/PusherContext";
-import { fetchWithTimeout } from "@/utils/utils";
+import { useListingForm } from "@/hooks/useListingForm";
 
-// moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
+const Preview = () => {
 
-//Getting listing details on server side
-export async function getServerSideProps(context) {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-    if (!apiUrl) {
-        // Redirect to a custom error page
-        return {
-            notFound: true,
-        };
-    }
-
-    const { listingId } = context.params;
-    const response = await fetchWithTimeout(
-        `${apiUrl}/api/listings/${listingId}`,
-        {},
-        5000
-    );
-
-    // Handle fetch failure
-    if (response.error) {
-        console.error("Fetch failed: ", response.message);
-        return {
-            notFound: true,
-        };
-    }
-
-    // Handle HTTP errors like 404 or 500
-    // If an error is thrown inside getServerSideProps, it will show the pages/500.js file automatically
-    // During development this file will not be used and the dev overlay will be shown instead.
-    if (!response.ok) {
-        if (response.status === 404) {
-            return { notFound: true };
-        } else {
-            // Throw an error to trigger the 500 page
-            throw new Error(`HTTP Error: ${response.status}`);
-        }
-    }
-
-    const listing = await response.json();
-    return { props: { listing } };
-}
-
-const Listing = ({ listing }) => {
-    // get listing ID from route params
+    //initialize router
     const router = useRouter();
 
-    // get pusher context
-    const pusher = usePusher();
+    //get context from listing form
+    const { isLoading, listingId, combinedListingFormState } = useListingForm();
+
+    //shorthand listing from context state
+    const listing = combinedListingFormState;
 
     // Derived state or computations
     const { formattedAddress, formattedRoomInfo, images } = useMemo(() => {
@@ -81,13 +41,14 @@ const Listing = ({ listing }) => {
             (bedroom) => bedroom.bedType
         ).length;
         const numBedrooms = listing.basics.bedrooms.length;
-        const numBathrooms = listing.basics.bathrooms;
+        const numBathrooms =
+            listing.basics.bathrooms === null ? 0 : listing.basics.bathrooms;
         const formattedRoomInfo = `${numBeds} bed${
             numBeds === 1 ? "" : "s"
         } • ${numBedrooms} bedroom${
             numBedrooms === 1 ? "" : "s"
         } • ${numBathrooms} bathroom${numBathrooms === 1 ? "" : "s"}`;
-        const images = listing.images.map(({ url }) => url);
+        const images = listing.images.map(({ cloudinaryUrl }) => cloudinaryUrl);
 
         return {
             formattedAddress,
@@ -100,32 +61,12 @@ const Listing = ({ listing }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showGrid, setShowGrid] = useState(false);
     const [showModalCarousel, setShowModalCarousel] = useState(false);
-    const [highestRequest, setHighestRequest] = useState(null);
-    const [numberOfRequests, setNumberOfRequests] = useState(null);
     const [user, setUser] = useState(null);
 
-    //useEffect to update requests and user on client side
     useEffect(() => {
-        // fetch active requests for listing
-        const fetchActiveRequests = async () => {
-            const response = await fetch(
-                `/api/requests/listingactiverequests/${listing._id}`
-            );
-            if (!response.ok) {
-                throw new Error("Failed to fetch active requests :(");
-            }
-            const activeRequests = await response.json();
-            const activeRequestPrices = activeRequests.map(
-                (req) => req.price || 0
-            );
-            setHighestRequest(Math.max(...activeRequestPrices));
-            setNumberOfRequests(activeRequests.length);
-        };
-
-        fetchActiveRequests();
-
         // fetch user
         const fetchUser = async () => {
+            console.log(listing);
             const response = await fetch(`/api/users/${listing?.userId}`);
             if (!response.ok) {
                 throw new Error("Failed to fetch user :(");
@@ -134,51 +75,10 @@ const Listing = ({ listing }) => {
             setUser(data);
         };
 
-        fetchUser();
-    }, [listing]);
-
-    //useEffect for pusher realtime connection to update highestRequest and active bid number
-    useEffect(() => {
-        // check if pusher is initialized
-        if (pusher) {
-            //check if already subscribed
-            if (!pusher.channel("bids-channel")) {
-                // Subscribe to the channel
-                const channel = pusher.subscribe("bids-channel");
-
-                channel.bind("pusher:subscription_succeeded", () => {
-                    console.log("subscribed!");
-
-                    // Bind to bid create events
-                    channel.bind("bid-created", (data) => {
-                        if (data.listingId === listing._id) {
-                            setNumberOfRequests(
-                                (prevNumberOfRequests) =>
-                                    prevNumberOfRequests + 1
-                            );
-                        }
-                    });
-                    // Bind to bid update events
-                    channel.bind("bid-updated", (data) => {
-                        if (data.listingId === listing._id) {
-                            setHighestRequest(data.newHighestBid);
-                        }
-                    });
-                });
-            }
-
-            // Unbind all events and unsubscribe when component unmounts if subscribed
-            return () => {
-                const channel = pusher.channel("bids-channel");
-                const subscribed = channel?.subscribed;
-                if (subscribed) {
-                    channel.unbind();
-                    pusher.unsubscribe("bids-channel");
-                    console.log("unsubscribed!");
-                }
-            };
+        if (listing.userId) {
+            fetchUser();
         }
-    }, [pusher]);
+    }, [listing]);
 
     // still not sure if this state is needed in new version yet
     // might need it for the BottomBar component
@@ -195,9 +95,42 @@ const Listing = ({ listing }) => {
         setShowModalCarousel(true);
     };
 
-    // loading component for bids
-    const LoadingBids = () => {
-        return <Skeleton className="h-6 w-full" />;
+    const handleBack = () => {
+        router.push(`/host/create-listing/${listingId}/publish`);
+    };
+
+    // loading component for entire component
+    const Loading = () => {
+        return (
+            <div className="flex flex-col h-screen w-full">
+                <Skeleton className="h-60 w-full rounded-none mb-6" />
+                <div className="mx-8">
+                    <div className="flex flex-col gap-2 pb-4 border-b-2">
+                        <Skeleton className="h-8 w-1/3 " />
+                        <Skeleton className="h-6 w-full" />
+                        <div className="flex justify-between">
+                            <Skeleton className="h-6 w-1/2" />
+                            <Skeleton className="h-6 w-1/4" />
+                        </div>
+                    </div>
+                    <div className="flex flex-col gap-2 py-4 border-b-2">
+                        <Skeleton className="h-6 w-full" />
+                        <Skeleton className="h-6 w-full" />
+                    </div>
+                    <div className="py-4 border-b-2">
+                        <Skeleton className="h-6 w-full" />
+                    </div>
+                    <div className="flex flex-col gap-2 py-4 border-b-2">
+                        <Skeleton className="h-8 w-1/3" />
+                        <div className="flex gap-2">
+                            <Skeleton className="h-32 w-24" />
+                            <Skeleton className="h-32 w-24" />
+                            <Skeleton className="h-32 w-24" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        );
     };
 
     // loading component for user
@@ -205,13 +138,18 @@ const Listing = ({ listing }) => {
         return <Skeleton className="h-6 w-full" />;
     };
 
+    //Load the loading component when still fetfching data
+    if (isLoading) {
+        return <Loading />;
+    }
+
     return (
         <>
             {/* Back button */}
             {!showGrid && !showModalCarousel && (
                 <div
                     className="absolute top-0 left-0 w-fit z-[100] p-4"
-                    onClick={router.back}
+                    onClick={handleBack}
                 >
                     <FaCircleChevronLeft className="text-2xl text-gray-800" />
                 </div>
@@ -269,23 +207,9 @@ const Listing = ({ listing }) => {
                         <address className="text-lg">
                             {formattedAddress}
                         </address>
-                        {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
-                            {!highestRequest ? (
-                                <LoadingBids />
-                            ) : (
-                                <>
-                                    <p>
-                                        {highestRequest > 0
-                                            ? `$${highestRequest} (Highest Bid)`
-                                            : `$${listing.price} (Listing Price)`}
-                                    </p>
-                                    <p>
-                                        {numberOfRequests} active bid
-                                        {numberOfRequests === 1 ? "" : "s"}
-                                    </p>
-                                </>
-                            )}
+                            <p>{`$${listing.price} (Listing Price)`}</p>
+                            <p>No active bid</p>
                         </div>
                     </div>
                     {/* Dynamically load username */}
@@ -374,4 +298,4 @@ const Listing = ({ listing }) => {
     );
 };
 
-export default Listing;
+export default Preview;

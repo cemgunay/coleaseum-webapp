@@ -13,8 +13,6 @@ export default async function handler(req, res) {
 
         const listings = await Listing.find({ userId, draft: true });
 
-        console.log(listings)
-
         res.status(200).json(listings);
     } catch (error) {
         console.error("Error fetching in-progress listings:", error);

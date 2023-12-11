@@ -7,9 +7,7 @@ export async function getListingsInProgress(userId) {
     if (!response.ok) {
         throw new Error("Network response was not ok");
     }
-    const data = await response.json()
-    console.log(data)
-    return data;
+    return response.json();
 }
 
 export async function getListingsCompleted(userId) {

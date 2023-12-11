@@ -76,7 +76,9 @@ export default async function handler(req, res) {
         // only allowing GET requests (for now, not sure if this endpoint needs PUTs or POSTs too)
         if (req.method == "GET") {
             // extract query filters from request
-            const filters = req.query.filters ? JSON.parse(req.query.filters) : {};
+            const filters = req.query.filters
+                ? JSON.parse(req.query.filters)
+                : {};
 
             // build db query with helper
             const dbQuery = buildDBQuery(req.query, filters);

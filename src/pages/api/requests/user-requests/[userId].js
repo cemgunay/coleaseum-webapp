@@ -1,5 +1,6 @@
 import connectMongo from "@/utils/connectMongo";
 import Request from "@/models/Request";
+import DocumentModel from "@/models/Document";
 
 // get all requests for a given user
 export default async function handler(req, res) {

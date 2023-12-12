@@ -5,7 +5,7 @@ import { useListingForm } from "@/hooks/useListingForm";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-//Validation function for title input.
+//Validation function for description input.
 const validateDescription = (value, name) => {
     if (!value) {
         return null;

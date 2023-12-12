@@ -9,6 +9,7 @@ import {
 } from "@/reducers";
 import { useRouter } from "next/router";
 import { determineRoute } from "@/utils/determineRoute";
+import { useToast } from "@/components/ui/use-toast";
 
 // Create a context for the listing form.
 export const ListingFormContext = createContext();
@@ -52,17 +53,20 @@ const initialUtilitiesState = {};
 const initialImagesState = [];
 
 //base pathname for the context this will be given to
-const PATHNAME = "/host/create-listing/";
+const PATHNAME_CREATE = "/host/create-listing/";
+const PATHNAME_EDIT = "/host/manage-listings";
 
 // Provider component for the ListingFormContext.
 export const ListingFormProvider = ({ children }) => {
     // Retrieve the current user and initialize router for navigation.
     const { user: contextUser } = useAuth();
     const router = useRouter();
+    const { toast } = useToast();
 
-    // Extract the listing ID from the URL, and check if the current route is part of the listing creation process.
+    // Extract the listing ID from the URL, and check if the current route is part of the listing creation process or edit listing process.
     const { listingId } = router.query;
-    const isCreateListingRoute = router.pathname.startsWith(PATHNAME);
+    const isCreateListingRoute = router.pathname.startsWith(PATHNAME_CREATE);
+    const isEditListingRoute = router.pathname.startsWith(PATHNAME_EDIT);
 
     // States to manage the loading and pushing (data submission) status.
     const [isLoading, setIsLoading] = useState(true);
@@ -153,7 +157,7 @@ export const ListingFormProvider = ({ children }) => {
             const nextStep = determineRoute(data);
 
             // Redirect to the correct step if necessary
-            if (router.asPath !== nextStep) {
+            if (router.asPath !== nextStep && isCreateListingRoute) {
                 await router.push(nextStep);
             }
         } catch (error) {
@@ -165,7 +169,7 @@ export const ListingFormProvider = ({ children }) => {
 
     // Effect to load data when the listing ID changes or when navigating between pages.
     useEffect(() => {
-        if (isCreateListingRoute && listingId) {
+        if ((isCreateListingRoute || isEditListingRoute) && listingId) {
             loadData();
         }
     }, [isCreateListingRoute, listingId]);
@@ -190,20 +194,34 @@ export const ListingFormProvider = ({ children }) => {
             const updatedListing = await response.json();
             console.log("Listing updated:", updatedListing);
 
-            // Navigate to the next page after successful submission.
-            if (nextPage === "manage-listings") {
-                router.push("/host/manage-listings");
+            // Check if nextPage is provided before navigating
+            if (nextPage) {
+                if (nextPage === "manage-listings") {
+                    router.push("/host/manage-listings");
+                } else {
+                    router
+                        .push(`/host/create-listing/${listingId}/${nextPage}`)
+                        .then(() => {
+                            setPushing(false);
+                        });
+                }
             } else {
-                router
-                    .push(`/host/create-listing/${listingId}/${nextPage}`)
-                    .then(() => {
-                        setPushing(false);
-                    });
+                // If nextPage is not provided, just stop pushing without navigating
+                setPushing(false);
+                toast({
+                    variant: "default",
+                    title: "Updated!",
+                    description: "Listing updated successfully",
+                });
             }
         } catch (error) {
             console.error("Error updating listing:", error);
             setPushing(false);
-            // TODO: Implement error handling with user notifications.
+            toast({
+                variant: "destructive",
+                title: "Failed to update listing :(",
+                description: error,
+            });
         }
     };
 

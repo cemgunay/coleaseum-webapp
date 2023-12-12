@@ -5,7 +5,7 @@ import {
     getListingsInProgress,
     getListingsCompleted,
     getListingsBooked,
-} from "../../services/apiServices";
+} from "../../../services/apiServices";
 import { format, parseISO } from "date-fns";
 import Image from "next/image";
 import { transformCloudinaryImage } from "@/utils/cloudinary";
@@ -117,13 +117,13 @@ const ManageListings = () => {
             toast({
                 variant: "default",
                 title: "Deleted!",
-                description: "RIP to that request ☠️",
+                description: "RIP to that listing ☠️",
             });
         } catch (error) {
-            console.log(`Error deleting request: ${error}`);
+            console.log(`Error deleting listing: ${error}`);
             toast({
                 variant: "destructive",
-                title: "Failed to delete request :(",
+                title: "Failed to delete listing :(",
                 description: error,
             });
         }

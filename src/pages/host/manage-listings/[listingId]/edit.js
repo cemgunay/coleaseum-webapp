@@ -1,8 +1,13 @@
 import Skeleton from "@/components/Skeleton";
 import EditAmenities from "@/components/editListing/EditAmenities";
 import EditBasics from "@/components/editListing/EditBasics";
+import EditLocation from "@/components/editListing/EditLocation";
 import { useListingForm } from "@/hooks/useListingForm";
 import { BiArrowToRight } from "react-icons/bi";
+import { useLoadScript } from "@react-google-maps/api";
+
+//need places library to be able to use autocomplete functions
+const libraries = ["places"];
 
 const Edit = () => {
     //get context from listing form
@@ -17,11 +22,17 @@ const Edit = () => {
 
     const listing = combinedListingFormState;
 
+    //google maps api load script
+    const { isLoaded, loadError } = useLoadScript({
+        googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY,
+        libraries,
+    });
+
     const Loading = () => {
         return <div>Loading...</div>;
     };
 
-    if (isLoading) {
+    if (isLoading || !isLoaded) {
         return <Loading />;
     }
 
@@ -42,6 +53,12 @@ const Edit = () => {
                     pushing={pushing}
                 />
                 <EditAmenities
+                    listing={listing}
+                    dispatch={combinedListingFormDispatch}
+                    pushToDatabase={pushToDatabase}
+                    pushing={pushing}
+                />
+                <EditLocation
                     listing={listing}
                     dispatch={combinedListingFormDispatch}
                     pushToDatabase={pushToDatabase}

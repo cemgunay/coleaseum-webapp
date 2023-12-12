@@ -1,4 +1,5 @@
 import Skeleton from "@/components/Skeleton";
+import EditAmenities from "@/components/editListing/EditAmenities";
 import EditBasics from "@/components/editListing/EditBasics";
 import { useListingForm } from "@/hooks/useListingForm";
 import { BiArrowToRight } from "react-icons/bi";
@@ -35,6 +36,12 @@ const Edit = () => {
             </div>
             <div className="flex flex-col gap-4">
                 <EditBasics
+                    listing={listing}
+                    dispatch={combinedListingFormDispatch}
+                    pushToDatabase={pushToDatabase}
+                    pushing={pushing}
+                />
+                <EditAmenities
                     listing={listing}
                     dispatch={combinedListingFormDispatch}
                     pushToDatabase={pushToDatabase}

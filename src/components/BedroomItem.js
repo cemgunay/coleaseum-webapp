@@ -5,8 +5,7 @@ import Input from "./Input";
 const bedTypes = ["Single", "Double", "Queen", "King", "Sofa Bed", "Other"];
 
 //Each bedroom item for creating a listing that updates "basics"
-const BedroomItem = ({ index, bedrooms, bedroom, dispatch }) => {
-
+const BedroomItem = ({ index, bedrooms, bedroom, dispatch, setBedrooms }) => {
     //to toggle the bed types in the bedroom
     const handleBedType = (e) => {
         const { name, checked } = e.target;
@@ -25,10 +24,17 @@ const BedroomItem = ({ index, bedrooms, bedroom, dispatch }) => {
         });
 
         // Dispatch the update using the existing UPDATE_BASICS action type
-        dispatch({
-            type: "UPDATE_BASICS",
-            payload: { bedrooms: updatedBedrooms },
-        });
+        if (dispatch) {
+            dispatch({
+                type: "UPDATE_BASICS",
+                payload: { bedrooms: updatedBedrooms },
+            });
+        } else {
+            setBedrooms((prevState) => ({
+                ...prevState,
+                bedrooms: updatedBedrooms,
+            }));
+        }
     };
 
     //to toggle if bedroom item has an ensuite
@@ -42,10 +48,17 @@ const BedroomItem = ({ index, bedrooms, bedroom, dispatch }) => {
         });
 
         // Dispatch the update using the existing UPDATE_BASICS action type
-        dispatch({
-            type: "UPDATE_BASICS",
-            payload: { bedrooms: updatedBedrooms },
-        });
+        if (dispatch) {
+            dispatch({
+                type: "UPDATE_BASICS",
+                payload: { bedrooms: updatedBedrooms },
+            });
+        } else {
+            setBedrooms((prevState) => ({
+                ...prevState,
+                bedrooms: updatedBedrooms,
+            }));
+        }
     };
 
     return (

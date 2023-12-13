@@ -221,13 +221,15 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
                 }
             } else {
                 //it is the correct address, do the above calculations and move on
+                console.log("hii");
                 const addressComponents = formatLocationData(results[0]);
                 const { lat, lng } = getLatLng(results[0]);
                 const updateData = { ...addressComponents, lat, lng };
+                console.log(updateData);
                 setEditedLocation(updateData);
                 setIncorrectAddress(false);
 
-                return true;
+                return updateData;
             }
         } catch (error) {
             console.error("Error: ", error);
@@ -237,10 +239,10 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
     //handle saves
     const handleSave = async () => {
         //get if it is an incorrect address or not using our handleGeoCheck function
-        const advanceToNextFormStep = await handleGeoCheck();
+        const result = await handleGeoCheck();
 
         //do the following if we get true
-        if (advanceToNextFormStep) {
+        if (result) {
             setTouched({
                 address1: true,
                 city: true,
@@ -253,16 +255,22 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
             //check if there are any errors, if not, update database
             if (Object.values(errors).every((error) => error === null)) {
                 //format data for update
-                const updateData = { location: editedLocation };
+                const updateData = { location: result };
 
                 //update state
                 dispatch({
                     type: "UPDATE_LOCATION",
-                    payload: editedLocation,
+                    payload: result,
                 });
 
                 //call the function to push to database from context
                 await pushToDatabase(listing._id, updateData);
+
+                //reset states
+                clearSuggestions();
+                setIncorrectAddress(false);
+                setPartialAddress("");
+                setAutocompleteSuggestions([]);
                 setIsEditing(false);
             }
         }
@@ -292,6 +300,8 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
 
             //call the function to push to database from context
             await pushToDatabase(listing._id, updateData);
+
+            //reset states
             clearSuggestions();
             setIncorrectAddress(false);
             setPartialAddress("");
@@ -315,6 +325,8 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
             postalcode: false,
             countryregion: false,
         }));
+
+        //reset states
         clearSuggestions();
         setIncorrectAddress(false);
         setPartialAddress("");

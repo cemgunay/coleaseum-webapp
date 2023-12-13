@@ -1,28 +1,42 @@
 import React from "react";
 import { PiPlusCircleThin, PiMinusCircleThin } from "react-icons/pi";
 
-const IncrementalBedroomInput = ({ bathrooms, dispatch }) => {
+const IncrementalBathroomInput = ({ bathrooms, dispatch, setBathrooms }) => {
     // set the current number of bathrooms
     const currentBathrooms = bathrooms === null ? 0 : bathrooms;
 
     // decrement the number of bathrooms by 1
     const handleDecrement = () => {
         if (currentBathrooms > 0) {
-            dispatch({
-                type: "UPDATE_BASICS",
-                payload: { bathrooms: currentBathrooms - 1 },
-            });
+            if (dispatch) {
+                dispatch({
+                    type: "UPDATE_BASICS",
+                    payload: { bathrooms: currentBathrooms - 1 },
+                });
+            } else {
+                setBathrooms((prevState) => ({
+                    ...prevState,
+                    bathrooms: currentBathrooms - 1,
+                }));
+            }
         }
     };
 
     // increment the number of bathrooms by 1
     const handleIncrement = () => {
-        dispatch({
-            type: "UPDATE_BASICS",
-            payload: {
+        if (dispatch) {
+            dispatch({
+                type: "UPDATE_BASICS",
+                payload: {
+                    bathrooms: currentBathrooms + 1,
+                },
+            });
+        } else {
+            setBathrooms((prevState) => ({
+                ...prevState,
                 bathrooms: currentBathrooms + 1,
-            },
-        });
+            }));
+        }
     };
 
     return (
@@ -42,4 +56,4 @@ const IncrementalBedroomInput = ({ bathrooms, dispatch }) => {
     );
 };
 
-export default IncrementalBedroomInput;
+export default IncrementalBathroomInput;

@@ -69,7 +69,7 @@ const ListingSchema = new Schema(
         },
         basics: {
             bedrooms: [bedroomSchema],
-            bathrooms: { type: Number, default: null },
+            bathrooms: { type: Number, default: 0 },
         },
         amenities: {
             inUnitWasherAndDrier: {

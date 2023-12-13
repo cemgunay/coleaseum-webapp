@@ -278,7 +278,7 @@ const EditBasics = ({ listing, dispatch, pushToDatabase, pushing }) => {
                                 error={errors.title}
                                 touched={touched.title}
                             />
-                            <div>{titleCount}/32</div>
+                            <div className="font-light">{titleCount}/32</div>
                         </div>
                     ) : (
                         <div className="font-light">{listing.title}</div>
@@ -342,7 +342,7 @@ const EditBasics = ({ listing, dispatch, pushToDatabase, pushing }) => {
                             </div>
                         </div>
                     ) : (
-                        <div>{listing.description}</div>
+                        <div className="font-light">{listing.description}</div>
                     )}
                 </div>
                 <div className="flex flex-col gap-2">

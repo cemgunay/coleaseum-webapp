@@ -6,6 +6,7 @@ import { useListingForm } from "@/hooks/useListingForm";
 import { BiArrowToRight } from "react-icons/bi";
 import { useLoadScript } from "@react-google-maps/api";
 import EditPropertyAndRooms from "@/components/editListing/EditPropertyAndRooms";
+import EditImages from "@/components/editListing/EditImages";
 
 //need places library to be able to use autocomplete functions
 const libraries = ["places"];
@@ -66,6 +67,12 @@ const Edit = () => {
                     pushing={pushing}
                 />
                 <EditPropertyAndRooms
+                    listing={listing}
+                    dispatch={combinedListingFormDispatch}
+                    pushToDatabase={pushToDatabase}
+                    pushing={pushing}
+                />
+                <EditImages
                     listing={listing}
                     dispatch={combinedListingFormDispatch}
                     pushToDatabase={pushToDatabase}

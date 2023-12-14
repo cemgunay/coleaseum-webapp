@@ -1,14 +1,18 @@
 import React from "react";
 import Slider from "react-slick";
 
+import cn from "classnames";
+
 const Carousel = ({
     slidesToShow,
     dots,
     index,
     images,
     onClick,
-    addMargins,
-    setWidth,
+    margins,
+    padding,
+    width,
+    height,
     rounded,
 }) => {
     const settings = {
@@ -29,9 +33,16 @@ const Carousel = ({
                     src={element}
                     alt={`Slide ${i}`}
                     onClick={onClick}
-                    className={`${addMargins ? "carousel-image with-margin" : "carousel-image"} ${
-                        setWidth ? "set-width" : ""
-                    } ${rounded ? "rounded-md" : ""}`}
+                    className={cn(
+                        "object-cover", // Common class for all images
+                        {
+                            [margins]: margins,
+                            [padding]: padding,
+                            "rounded-md": rounded,
+                            [`w-${width}`]: width,
+                            [`h-${height}`]: height,
+                        }
+                    )}
                 />
             ))}
         </Slider>

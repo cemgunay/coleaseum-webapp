@@ -1,17 +1,14 @@
-import CreateListingLayout from "@/components/CreateListingLayout";
-import Skeleton from "@/components/Skeleton";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { useToast } from "@/components/ui/use-toast";
-import { useListingForm } from "@/hooks/useListingForm";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useToast } from "../ui/use-toast";
+import Carousel from "../Carousel";
+import { Button } from "../ui/button";
 import Image from "next/image";
-import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { FaChevronLeft, FaEllipsisH } from "react-icons/fa";
 import { useDropzone } from "react-dropzone";
-import { FaEllipsisH } from "react-icons/fa";
+import { CircularProgress } from "@mui/material";
+
+import isEqual from "lodash/isEqual";
 
 import {
     MAX_FILE_SIZE,
@@ -21,36 +18,64 @@ import {
     UPLOAD_TIMEOUT,
 } from "@/utils/constants";
 
-const Images = () => {
+const EditImages = ({ listing, dispatch, pushToDatabase, pushing }) => {
     //cloudinary
     const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME;
 
-    //initialize router
-    const router = useRouter();
+    //editing state variables
+    const [isEditing, setIsEditing] = useState(false);
+    const [files, setFiles] = useState(listing.images);
 
-    //get context from listing form
-    const {
-        listingId,
-        combinedListingFormState,
-        combinedListingFormDispatch,
-        pushToDatabase,
-    } = useListingForm();
+    //to see if we can save on upload
+    const [canSave, setCanSave] = useState(false);
 
-    //initialize files array
-    const [files, setFiles] = useState([]);
+    //to check if we can go next (only go next if there are minimum 3 uploaded images and none in progress)
+    const checkCanSave = () => {
+        const uploadedImagesCount = files.filter(
+            (file) => uploadProgress[file.uniqueId]?.progress === 100
+        ).length;
 
-    // useEffect to sync state with props
+        const isUploadInProgress = Object.values(uploadProgress).some(
+            (progress) => progress.progress < 100
+        );
+
+        setCanSave(uploadedImagesCount >= 3 && !isUploadInProgress);
+    };
+
+    //useEffect so that checkCanGoNext runs everytime the files state updates
     useEffect(() => {
-        if (combinedListingFormState.images) {
-            setFiles(combinedListingFormState.images);
-        }
-    }, [combinedListingFormState.images]);
+        checkCanSave();
+    }, [files]);
+
+    const listingId = useMemo(() => {
+        return listing._id;
+    }, [listing._id]);
 
     //initialize upload progress object for each file
     const [uploadProgress, setUploadProgress] = useState({});
 
-    //to check if we can proceed to next page
-    const [canGoNext, setCanGoNext] = useState(false);
+    //useEffect to update progress state for each file from database
+    useEffect(() => {
+        if (listing.images && listing.images.length) {
+            setUploadProgress((prevProgress) => {
+                // Create a new progress object
+                const newProgress = { ...prevProgress };
+
+                // Iterate over the images array
+                listing.images.forEach((image) => {
+                    // Assuming each image has a uniqueId property
+                    if (image.uniqueId) {
+                        newProgress[image.uniqueId] = {
+                            progress: 100,
+                            status: "success",
+                        };
+                    }
+                });
+
+                return newProgress;
+            });
+        }
+    }, [listing.images]);
 
     //useToast hook
     const { toast } = useToast();
@@ -136,6 +161,7 @@ const Images = () => {
 
     //function to upload each image with a 10 second timeout per image
     const uploadImage = async (file) => {
+        console.log(file);
         const formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", "coleaseum_listings");
@@ -222,50 +248,6 @@ const Images = () => {
         });
     };
 
-    //useEffect to update progress state for each file from database
-    useEffect(() => {
-        if (
-            combinedListingFormState.images &&
-            combinedListingFormState.images.length
-        ) {
-            setUploadProgress((prevProgress) => {
-                // Create a new progress object
-                const newProgress = { ...prevProgress };
-
-                // Iterate over the images array
-                combinedListingFormState.images.forEach((image) => {
-                    // Assuming each image has a uniqueId property
-                    if (image.uniqueId) {
-                        newProgress[image.uniqueId] = {
-                            progress: 100,
-                            status: "success",
-                        };
-                    }
-                });
-
-                return newProgress;
-            });
-        }
-    }, [combinedListingFormState.images]);
-
-    //to check if we can go next (only go next if there are minimum 3 uploaded images and none in progress)
-    const checkCanGoNext = () => {
-        const uploadedImagesCount = files.filter(
-            (file) => uploadProgress[file.uniqueId]?.progress === 100
-        ).length;
-
-        const isUploadInProgress = Object.values(uploadProgress).some(
-            (progress) => progress.progress < 100
-        );
-
-        setCanGoNext(uploadedImagesCount >= 3 && !isUploadInProgress);
-    };
-
-    //useEffect so that checkCanGoNext runs everytime the files state updates
-    useEffect(() => {
-        checkCanGoNext();
-    }, [files]);
-
     //function to remove image
     const removeImage = (uniqueId) => {
         setFiles((files) => {
@@ -306,8 +288,12 @@ const Images = () => {
         });
     };
 
-    //handle submit and push to databse
-    const handleSubmit = async (e) => {
+    //handlers
+    const handleEdit = () => {
+        setIsEditing(!isEditing);
+    };
+
+    const handleSave = async (e) => {
         e.preventDefault();
 
         // Filter out files that are fully uploaded and have Cloudinary URLs
@@ -323,33 +309,23 @@ const Images = () => {
         };
 
         // Push to database
-        await pushToDatabase(listingId, updateData, "title");
+        await pushToDatabase(listingId, updateData);
 
         //To update the state with files
-        combinedListingFormDispatch({
+        dispatch({
             type: "UPDATE_IMAGES",
             payload: uploadedFiles,
         });
+
+        setIsEditing(false);
     };
 
-    //handleback
-    const handleBack = () => {
-        router.push(`/host/create-listing/${listingId}/amenities`);
+    const handleCancel = () => {
+        setIsEditing(!isEditing);
+        setFiles(listing.images)
     };
 
-    //loading component
-    const Loading = () => {
-        return (
-            <div className="mx-8 mb-4 h-full flex flex-col gap-4">
-                <Skeleton className="h-14 w-3/4 mb-2" />
-                <div className="grid grid-cols-1 gap-4">
-                    {[...Array(4)].map((_, index) => (
-                        <Skeleton key={index} className="h-56 w-full" /> // Adjust height as per PropertyTypeOption
-                    ))}
-                </div>
-            </div>
-        );
-    };
+    //redner components
 
     // image block UI
     const imageBlock = (file, index) => (
@@ -416,44 +392,111 @@ const Images = () => {
     );
 
     return (
-        <CreateListingLayout
-            Loading={Loading}
-            currentStep={5}
-            totalSteps={10}
-            onNext={handleSubmit}
-            onBack={handleBack}
-            canGoNext={canGoNext}
-        >
-            <div className="mx-8">
-                <div className="flex flex-col gap-2">
-                    <div>Add some photos of your apartment</div>
-                    <div className="text-sm font-light">
-                        You'll need 3 photos to get started. You can add more or
-                        make changes later.
+        <div className="flex flex-col gap-4 w-full">
+            {/* Edit modal */}
+            {isEditing && (
+                <div className="fixed inset-0 z-10 bg-white flex items-center justify-center overflow-y-auto p-8">
+                    <div className="flex flex-col gap-4 h-full w-full">
+                        {/* Modal content here */}
+                        <div className="flex justify-between">
+                            <Button
+                                size="sm"
+                                variant="link"
+                                className="h-6 p-0"
+                                onClick={handleCancel}
+                            >
+                                <FaChevronLeft className="text-lg text-black cursor-pointer" />
+                            </Button>
+                            <div>Edit Images</div>
+                            <Button
+                                size="sm"
+                                variant="link"
+                                className="underline h-6 p-0"
+                                onClick={handleSave}
+                                disabled={
+                                    isEqual(files, listing.images) || pushing
+                                }
+                            >
+                                {pushing ? (
+                                    <CircularProgress
+                                        size={24}
+                                        color="inherit"
+                                    />
+                                ) : (
+                                    "Save"
+                                )}
+                            </Button>
+                        </div>
+
+                        {/* Image List */}
+                        <div className="flex flex-col pb-8">
+                            {files.map((file, index) =>
+                                imageBlock(file, index)
+                            )}
+
+                            {/* Dropzone */}
+                            <div
+                                {...getRootProps({
+                                    className:
+                                        "p-5 border-2 border-dashed border-color-primary rounded bg-gray-100 text-gray-400 outline-none transition-border duration-200 ease-in-out cursor-pointer my-4",
+                                })}
+                            >
+                                <input {...getInputProps()} />
+                                <p>
+                                    Drag 'n' drop some files of type
+                                    jpg/jpeg/png here, or click to select files
+                                </p>
+                            </div>
+                        </div>
                     </div>
                 </div>
+            )}
 
-                {/* Image List */}
-                <div className="flex flex-col mt-4">
-                    {files.map((file, index) => imageBlock(file, index))}
-                </div>
-
-                {/* Dropzone */}
-                <div
-                    {...getRootProps({
-                        className:
-                            "p-5 border-2 border-dashed border-color-primary rounded bg-gray-100 text-gray-400 outline-none transition-border duration-200 ease-in-out cursor-pointer my-4",
-                    })}
-                >
-                    <input {...getInputProps()} />
-                    <p>
-                        Drag 'n' drop some files of type jpg/jpeg/png here, or
-                        click to select files
-                    </p>
-                </div>
+            <div className="flex justify-between items-center">
+                <div className="text-lg font-bold">Images</div>
+                {isEditing ? (
+                    <div className="flex gap-4 items-center">
+                        <Button
+                            size="sm"
+                            variant="link"
+                            className="underline h-6 p-0"
+                            onClick={handleSave}
+                            disabled={pushing}
+                        >
+                            {pushing ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : (
+                                "Save"
+                            )}
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="link"
+                            className="h-6 p-0"
+                            onClick={handleCancel}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                ) : (
+                    <div onClick={handleEdit}>Edit</div>
+                )}
             </div>
-        </CreateListingLayout>
+            <div className="w-full h-24">
+                <Carousel
+                    dots={true}
+                    images={listing.images.map(
+                        ({ cloudinaryUrl }) => cloudinaryUrl
+                    )}
+                    index={0}
+                    rounded
+                    slidesToShow={2}
+                    padding={"px-2"}
+                    borderRadius={true}
+                />
+            </div>
+        </div>
     );
 };
 
-export default Images;
+export default EditImages;

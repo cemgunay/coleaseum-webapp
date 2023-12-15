@@ -78,7 +78,7 @@ const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }
                 return (
                     <h3 className="font-medium text-color-warning">
                         {highestActiveRequestPrice
-                            ? `Price: ${highestActiveRequestPrice}`
+                            ? `Offer: ${highestActiveRequestPrice}`
                             : "No Offers"}
                     </h3>
                 );
@@ -97,7 +97,7 @@ const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }
                     <div className="flex justify-between mt-2">
                         <h3 className="font-medium">{listing.title}</h3>
                         {listing.views >= 0 ? (
-                            <p className="rounded-sm px-2 bg-slate-200 text-slate-600 text-sm pt-[0.1rem]">
+                            <p className="rounded-sm px-2 bg-slate-200 text-slate-600 text-sm pt-[0.1rem] mr-1">
                                 {listing.views} views
                             </p>
                         ) : null}

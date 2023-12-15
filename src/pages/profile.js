@@ -155,7 +155,11 @@ const profile = () => {
                                     <PiHouse className="text-lg" />
                                     List a sublet
                                 </div>
-                                <div
+
+                                {/* This button will likely be removed in prod, but useful to access */}
+                                {/* host sublets page for development */}
+                                <Link
+                                    href="/host/sublets"
                                     className={cn(
                                         "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
                                         "flex items-center gap-2"
@@ -163,7 +167,7 @@ const profile = () => {
                                 >
                                     <GoArrowSwitch className="text-lg" />
                                     Switch to hosting
-                                </div>
+                                </Link>
                             </div>
                         </div>
                     </div>

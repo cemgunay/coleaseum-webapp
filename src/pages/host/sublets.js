@@ -4,7 +4,6 @@ import Skeleton from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import GuestPage from "@/components/GuestPage";
-import ListingItemWithRequests from "@/components/ListingItemWithRequests";
 import ListingItemForHostSublets from "@/components/ListingItemForHostSublets";
 
 const HostSublets = () => {

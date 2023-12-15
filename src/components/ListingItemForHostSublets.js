@@ -1,9 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
 import Skeleton from "./Skeleton";
-import { cn } from "@/utils/utils";
-import { de } from "date-fns/locale";
 
 // exact same as ListingItem, except Links to request page instead of listing page,
 // and the offer information is displayed slightly differently
@@ -55,29 +53,6 @@ const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }
     // format address string from location info
     const { address1, city, stateprovince } = listing.location;
     const formattedAddress = `${address1}, ${city}, ${stateprovince}`;
-
-    // // function to generate tailwind classes for price display depending on active tab
-    // const priceClass = (activeTab) => {
-    //     return cn(
-    //         "font-medium",
-    //         activeTab === "past" && "text-color-error",
-    //         activeTab === "active" && "text-color-warning",
-    //         activeTab === "confirmed" && "text-color-pass"
-    //     );
-    // };
-
-    // let priceText = "";
-    // switch (activeTab) {
-    //     case "past":
-    //         priceText = "Rejected Offer(s)";
-    //         break;
-    //     case "active":
-    //         priceText = `Your Offer: ${request?.price}`;
-    //         break;
-    //     case "confirmed":
-    //         priceText = `Accepted Offer: ${request?.price}`;
-    //         break;
-    // }
 
     // function to render price text depending on active tab and price info
     // rendering full <p> tags here so I can conditionally add text and styling in one function

@@ -5,9 +5,7 @@ import BottomNav from "@/components/BottomNav";
 import { useAuth } from "@/hooks/useAuth";
 import GuestPage from "@/components/GuestPage";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
-import ListingItemForSublets from "@/components/ListingItemForSublets";
-import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
-import { set } from "date-fns";
+import ListingItemForHostSublets from "@/components/ListingItemForHostSublets";
 
 const HostSublets = () => {
     // get user object from context
@@ -163,11 +161,10 @@ const HostSublets = () => {
                         <div className="grid grid-cols-1 gap-10 mt-2">
                             {displayListings.map((listing) => {
                                 return (
-                                    <ListingItemWithRequests
+                                    <ListingItemForHostSublets
                                         key={listing._id}
                                         listing={listing}
-                                        requests={listing.requests}
-                                        // deleteListing={handleDeleteListing}
+                                        activeTab={activeTab}
                                     />
                                 );
                             })}

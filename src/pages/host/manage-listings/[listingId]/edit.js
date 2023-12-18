@@ -8,6 +8,8 @@ import { useLoadScript } from "@react-google-maps/api";
 import EditPropertyAndRooms from "@/components/editListing/EditPropertyAndRooms";
 import EditImages from "@/components/editListing/EditImages";
 import EditPricingAndDates from "@/components/editListing/EditPricingAndDates";
+import Link from "next/link";
+import { FaChevronLeft } from "react-icons/fa";
 
 //need places library to be able to use autocomplete functions
 const libraries = ["places"];
@@ -67,12 +69,19 @@ const Edit = () => {
 
     return (
         <div className="m-8 flex flex-col gap-4">
-            <div className="flex justify-between pb-4 border-b-2">
-                <div className="font-bold text-lg">{listing.title}</div>
-                <div className="flex items-center gap-2">
+            <div className="flex justify-between items-center pb-4 border-b-2">
+                <Link href={"/host/manage-listings"} className="flex gap-2 items-center">
+                    <FaChevronLeft className="text-lg text-black cursor-pointer" />
+                    <div>Back</div>
+                </Link>
+
+                <Link
+                    href={`/host/manage-listings/${listingId}/preview`}
+                    className="flex items-center gap-2"
+                >
                     <div>Preview Listing</div>
                     <BiArrowToRight />
-                </div>
+                </Link>
             </div>
             <div className="flex flex-col gap-4">
                 <EditBasics

@@ -1,10 +1,22 @@
 import { Button } from "@/components/ui/button";
+import { Router } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import React from "react";
 
 const Info = () => {
+    const router = useRouter();
     return (
         <>
+            <div onClick={router.back}>
+                <Button
+                    variant="outline"
+                    size="lg"
+                    className="font-normal text-base text-slate-600"
+                >
+                    Back
+                </Button>
+            </div>
             <div>Use Coleaseum</div>
             <div>You could make $XCAD / month</div>
             <div>The above number will be based on our average rent</div>

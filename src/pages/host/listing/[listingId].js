@@ -301,7 +301,7 @@ const HostListing = ({ listing, requests, user }) => {
                                 </p>
                                 <p>
                                     <span className="font-semibold">Submitted: </span>
-                                    {format(new Date(request.createdAt), "yyyy-MM-dd")}
+                                    {format(new Date(request.createdAt), "yyyy-MM-dd 'at' h:mm a")}
                                 </p>
                             </div>
                         ))}

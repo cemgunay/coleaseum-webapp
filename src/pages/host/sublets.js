@@ -75,12 +75,12 @@ const HostSublets = () => {
     // create active/past/confirmed listings arrays
     const activeListings = useMemo(() => {
         return publishedListingsWithRequests.filter(
-            (listing) => !listing.requests.some((request) => request.status == "confirmed")
+            (listing) => !listing.requests.some((request) => request.status === "confirmed")
         );
     }, [publishedListingsWithRequests]);
     const confirmedListings = useMemo(() => {
         return publishedListingsWithRequests.filter((listing) =>
-            listing.requests.some((request) => request.status == "confirmed")
+            listing.requests.some((request) => request.status === "confirmed")
         );
     }, [publishedListingsWithRequests]);
     const pastListings = expiredListingsWithRequests;
@@ -163,6 +163,7 @@ const HostSublets = () => {
                                     <ListingItemForHostSublets
                                         key={listing._id}
                                         listing={listing}
+                                        requests={listing.requests}
                                         activeTab={activeTab}
                                     />
                                 );

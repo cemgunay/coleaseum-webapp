@@ -6,6 +6,7 @@ import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
 } from "use-places-autocomplete";
+import Skeleton from "../Skeleton";
 
 // Validate the postal code or zip code using the regex pattern for Confirm Address
 const validatePostalCode = (postalCode) => {
@@ -76,7 +77,7 @@ const hasErrors = (errors) => {
     return Object.values(errors).some((error) => error);
 };
 
-const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
+const EditLocation = ({ listing, dispatch, pushToDatabase, pushing, isLoaded, loadError }) => {
     //editing state variable
     const [isEditing, setIsEditing] = useState(false);
     const [editedLocation, setEditedLocation] = useState(listing.location);
@@ -333,6 +334,24 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing }) => {
         setAutocompleteSuggestions([]);
         setIsEditing(false);
     };
+
+    const Loading = () => {
+        return <div>
+            <Skeleton className={"w-full h-6"}/>
+        </div>
+    }
+
+    const LoadError = () => {
+        return <div>Error loading google maps... please try again later</div>
+    }
+
+    if (!isLoaded) {
+        return <Loading />
+    }
+
+    if(loadError) {
+        return <LoadError />
+    }
 
     return (
         <div className="flex flex-col gap-4 w-full">

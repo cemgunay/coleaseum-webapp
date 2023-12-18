@@ -45,7 +45,7 @@ export const listingDetailsReducer = (state, action) => {
         case "ADD_VIEWING_DATE":
             return {
                 ...state,
-                viewingDates: [...state.viewingDates, null],
+                viewingDates: [...state.viewingDates, new Date()],
             };
         case "REMOVE_VIEWING_DATE":
             return {
@@ -53,6 +53,11 @@ export const listingDetailsReducer = (state, action) => {
                 viewingDates: state.viewingDates.filter(
                     (_, index) => index !== action.payload.index
                 ),
+            };
+        case "UPDATE_DATES":
+            return {
+                ...state,
+                ...action.payload,
             };
         // ... other cases for different form sections
         default:

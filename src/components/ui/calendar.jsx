@@ -13,6 +13,7 @@ function Calendar({
     setDisplayDate,
     ...props
 }) {
+    console.log(props)
     return (
         <DayPicker
             month={displayDate}

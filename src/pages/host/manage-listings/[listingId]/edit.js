@@ -7,6 +7,7 @@ import { BiArrowToRight } from "react-icons/bi";
 import { useLoadScript } from "@react-google-maps/api";
 import EditPropertyAndRooms from "@/components/editListing/EditPropertyAndRooms";
 import EditImages from "@/components/editListing/EditImages";
+import EditPricingAndDates from "@/components/editListing/EditPricingAndDates";
 
 //need places library to be able to use autocomplete functions
 const libraries = ["places"];
@@ -22,6 +23,7 @@ const Edit = () => {
         isLoading,
     } = useListingForm();
 
+    //for shorthand
     const listing = combinedListingFormState;
 
     //google maps api load script
@@ -31,10 +33,35 @@ const Edit = () => {
     });
 
     const Loading = () => {
-        return <div>Loading...</div>;
+        return (
+            <div className="m-8 flex flex-col gap-4">
+                <div className="flex justify-between pb-4 border-b-2">
+                    <Skeleton className={"w-1/3 h-6 "} />
+                    <Skeleton className={"w-1/3 h-6 "} />
+                </div>
+                <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-2">
+                        <Skeleton className={"w-1/2 h-6 "} />
+                        <Skeleton className={"w-full h-72 "} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Skeleton className={"w-1/2 h-6 "} />
+                        <Skeleton className={"w-full h-72 "} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Skeleton className={"w-1/2 h-6 "} />
+                        <Skeleton className={"w-full h-72 "} />
+                    </div>
+                    <div className="flex flex-col gap-2">
+                        <Skeleton className={"w-1/2 h-6 "} />
+                        <Skeleton className={"w-full h-72 "} />
+                    </div>
+                </div>
+            </div>
+        );
     };
 
-    if (isLoading || !isLoaded) {
+    if (isLoading) {
         return <Loading />;
     }
 
@@ -65,6 +92,8 @@ const Edit = () => {
                     dispatch={combinedListingFormDispatch}
                     pushToDatabase={pushToDatabase}
                     pushing={pushing}
+                    isLoaded={isLoaded}
+                    loadError={loadError}
                 />
                 <EditPropertyAndRooms
                     listing={listing}
@@ -73,6 +102,12 @@ const Edit = () => {
                     pushing={pushing}
                 />
                 <EditImages
+                    listing={listing}
+                    dispatch={combinedListingFormDispatch}
+                    pushToDatabase={pushToDatabase}
+                    pushing={pushing}
+                />
+                <EditPricingAndDates
                     listing={listing}
                     dispatch={combinedListingFormDispatch}
                     pushToDatabase={pushToDatabase}

@@ -1,12 +1,13 @@
 import CreateListingLayout from "@/components/CreateListingLayout";
-import DatePicker from "@/components/DatePicker";
 import Skeleton from "@/components/Skeleton";
 import { Button } from "@/components/ui/button";
 import { useListingForm } from "@/hooks/useListingForm";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 
-import { parseISO } from "date-fns";
+import { parseISO, startOfDay } from "date-fns";
+import DatePickerMovingDates from "@/components/DatePickerMovingDates";
+import DatePickerViewingDates from "@/components/DatePickerViewingDates";
 
 //function to validate that the date provided is a date object and if not parse it
 function getValidDate(dateInput) {
@@ -42,10 +43,15 @@ const Dates = () => {
         //moveInDate and moveOutDate exist, and IF there is a viewingDate it is not null
         const hasValidMoveInDate = combinedListingFormState.moveInDate !== null;
         const hasValidMoveOutDate =
-            combinedListingFormState.moveOutDate !== null;
+            combinedListingFormState.moveOutDate !== null &&
+            combinedListingFormState.moveOutDate >
+                combinedListingFormState.moveInDate;
         const hasValidViewingDates =
             combinedListingFormState.viewingDates.every(
-                (date) => date !== null
+                (date) =>
+                    date !== null &&
+                    getValidDate(date) <
+                        getValidDate(combinedListingFormState.moveInDate)
             );
 
         setCanGoNext(
@@ -56,29 +62,39 @@ const Dates = () => {
         );
     }, [combinedListingFormState]);
 
-    //change date in state using dispatch depending on the called action
-    const handleDateChange = (newDate, property) => {
-        if (property.includes("viewingDates")) {
-            const index = parseInt(property.split("[")[1].split("]")[0], 10);
-            const updatedViewingDates = [
-                ...combinedListingFormState.viewingDates,
-            ];
-            updatedViewingDates[index] = newDate;
-            combinedListingFormDispatch({
-                type: "UPDATE_VIEWING_DATES",
-                payload: updatedViewingDates,
-            });
-        } else if (property === "moveInDate") {
+    const [dateError, setDateError] = useState(null);
+
+    const handleMoveInDateChange = (newDate) => {
+        if (
+            combinedListingFormState.moveOutDate &&
+            newDate > getValidDate(combinedListingFormState.moveOutDate)
+        ) {
+            setDateError(
+                "Move-in date cannot be later than move-out date. Please adjust the move-out date first."
+            );
+        } else {
+            setDateError(null);
             combinedListingFormDispatch({
                 type: "UPDATE_MOVE_IN_DATE",
                 payload: newDate,
             });
-        } else if (property === "moveOutDate") {
-            combinedListingFormDispatch({
-                type: "UPDATE_MOVE_OUT_DATE",
-                payload: newDate,
-            });
         }
+    };
+
+    const handleMoveOutDateChange = (newDate) => {
+        combinedListingFormDispatch({
+            type: "UPDATE_MOVE_OUT_DATE",
+            payload: newDate,
+        });
+    };
+
+    const handleViewingDateChange = (newDate, index) => {
+        const updatedViewingDates = [...combinedListingFormState.viewingDates];
+        updatedViewingDates[index] = newDate;
+        combinedListingFormDispatch({
+            type: "UPDATE_VIEWING_DATES",
+            payload: updatedViewingDates,
+        });
     };
 
     // Adding a new viewing date
@@ -157,18 +173,22 @@ const Dates = () => {
                     onSubmit={handleSubmit}
                     className="flex flex-col w-full gap-8"
                 >
-                    <div className="flex flex-col w-3/4 gap-4">
+                    <div className="flex flex-col gap-4">
+                        {dateError && (
+                            <div className="text-color-error">{dateError}</div>
+                        )}
                         {/* move in input */}
                         <div className="flex flex-col">
                             <label className="text-base font-medium text-slate-900 mb-1 ml-0">
                                 Move In Date
                             </label>
-                            <DatePicker
-                                formData={combinedListingFormState}
-                                setFormData={(newDate, index) =>
-                                    handleDateChange(newDate, index)
+                            <DatePickerMovingDates
+                                date={getValidDate(
+                                    combinedListingFormState.moveInDate
+                                )}
+                                setDate={(newDate) =>
+                                    handleMoveInDateChange(newDate)
                                 }
-                                propertyToUpdate={"moveInDate"}
                                 minDate={new Date()}
                             />
                         </div>
@@ -177,12 +197,13 @@ const Dates = () => {
                             <label className="text-base font-medium text-slate-900 mb-1 ml-0">
                                 Move Out Date
                             </label>
-                            <DatePicker
-                                formData={combinedListingFormState}
-                                setFormData={(newDate, index) =>
-                                    handleDateChange(newDate, index)
+                            <DatePickerMovingDates
+                                date={getValidDate(
+                                    combinedListingFormState.moveOutDate
+                                )}
+                                setDate={(newDate) =>
+                                    handleMoveOutDateChange(newDate)
                                 }
-                                propertyToUpdate={"moveOutDate"}
                                 minDate={getValidDate(
                                     combinedListingFormState.moveInDate
                                 )}
@@ -202,19 +223,20 @@ const Dates = () => {
                                         Viewing Date {index + 1}
                                     </label>
                                     <div className="flex items-center justify-between gap-3">
-                                        <DatePicker
+                                        <DatePickerViewingDates
                                             className="w-3/4"
-                                            formData={viewingDate}
-                                            setFormData={(newDate) =>
-                                                handleDateChange(
+                                            date={getValidDate(viewingDate)}
+                                            setDate={(newDate) =>
+                                                handleViewingDateChange(
                                                     newDate,
-                                                    `viewingDates[${index}]`
+                                                    index
                                                 )
                                             }
-                                            propertyToUpdate={`viewingDates[${index}]`}
-                                            minDate={new Date()}
-                                            maxDate={getValidDate(
-                                                combinedListingFormState.moveInDate
+                                            minDate={startOfDay(new Date())}
+                                            maxDate={startOfDay(
+                                                getValidDate(
+                                                    combinedListingFormState.moveInDate
+                                                )
                                             )}
                                         />
                                         <div

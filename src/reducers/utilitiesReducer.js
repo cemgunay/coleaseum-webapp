@@ -7,7 +7,8 @@ export const utilitiesReducer = (state, action) => {
                 ...state,
                 [action.payload.name]: !state[action.payload.name],
             };
-        // ... other utility-specific actions
+            case "TOGGLE_ALL_UTILITIES":
+                return action.payload.utilities ?? state;
         default:
             return state;
     }

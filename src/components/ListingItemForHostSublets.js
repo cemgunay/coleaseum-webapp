@@ -5,7 +5,7 @@ import Skeleton from "./Skeleton";
 
 // exact same as ListingItem, except Links to request page instead of listing page,
 // and the offer information is displayed slightly differently
-const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }) => {
+const ListingItemForHostSublets = ({ listing, requests, activeTab, showActiveBids = true }) => {
     const images = listing.images.map(({ url }) => url);
     const [activeRequests, setActiveRequests] = useState([]);
     const [highestActiveRequestPrice, setHighestActiveRequestPrice] = useState(null);
@@ -60,7 +60,7 @@ const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }
         switch (activeTab) {
             // case "past":
             case "active":
-                if (listing.requests.every((request) => request.status === "rejected")) {
+                if (requests.every((request) => request.status === "rejected")) {
                     return <h3 className="font-medium text-color-warning">No Offers</h3>;
                 } else if (highestActiveRequestPrice) {
                     return (
@@ -87,9 +87,7 @@ const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }
 
     return (
         <div className="relative">
-            {/* will link to /host/listing/[listingId] in future when that page is made */}
-            {/* linking to regular listing page for now */}
-            <Link href={`/listing/${listing?._id}`} className="max-w-lg">
+            <Link href={`/host/listing/${listing?._id}`} className="max-w-lg">
                 <div className="w-full h-[13rem] rounded-md">
                     <Carousel dots={true} images={images} index={0} rounded />
                 </div>
@@ -98,7 +96,7 @@ const ListingItemForHostSublets = ({ listing, activeTab, showActiveBids = true }
                         <h3 className="font-medium">{listing.title}</h3>
                         {listing.views >= 0 ? (
                             <p className="rounded-sm px-2 bg-slate-200 text-slate-600 text-sm pt-[0.1rem] mr-1">
-                                {listing.views} views
+                                {listing.views} view{listing.views === 1 ? "" : "s"}
                             </p>
                         ) : null}
                     </div>

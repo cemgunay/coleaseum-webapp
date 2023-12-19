@@ -222,11 +222,9 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing, isLoaded, lo
                 }
             } else {
                 //it is the correct address, do the above calculations and move on
-                console.log("hii");
                 const addressComponents = formatLocationData(results[0]);
                 const { lat, lng } = getLatLng(results[0]);
                 const updateData = { ...addressComponents, lat, lng };
-                console.log(updateData);
                 setEditedLocation(updateData);
                 setIncorrectAddress(false);
 

@@ -165,8 +165,6 @@ const EditBasics = ({ listing, dispatch, pushToDatabase, pushing }) => {
             //format data for update
             const updateData = { published: editedStatus };
 
-            console.log(updateData);
-
             //call the function to push to database from context
             await pushToDatabase(listing._id, updateData);
         }

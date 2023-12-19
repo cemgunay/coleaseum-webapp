@@ -24,7 +24,6 @@ function getValidDate(dateInput) {
 
 //Validation function for price input.
 const validatePrice = (value, name) => {
-    console.log(value);
     if (!value) {
         return `${name} is required`;
     } else if (value < 10) {
@@ -54,8 +53,6 @@ const EditPricingAndDates = ({
     const [editedViewingDates, setEditedViewingDates] = useState(
         listing.viewingDates
     );
-
-    console.log(editedMoveOutDate);
 
     // State for handling form validation errors and touch status
     const [errors, setErrors] = useState({});

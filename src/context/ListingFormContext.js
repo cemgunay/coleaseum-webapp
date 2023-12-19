@@ -59,7 +59,7 @@ const PATHNAME_EDIT = "/host/manage-listings";
 // Provider component for the ListingFormContext.
 export const ListingFormProvider = ({ children }) => {
     // Retrieve the current user and initialize router for navigation.
-    const { user: contextUser } = useAuth();
+    const { user: contextUser, token: token } = useAuth();
     const router = useRouter();
     const { toast } = useToast();
 
@@ -182,16 +182,18 @@ export const ListingFormProvider = ({ children }) => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ listingId, updateData }),
             });
 
+            const updatedListing = await response.json();
+
             if (!response.ok) {
                 setPushing(false);
-                throw new Error("API call failed");
+                throw new Error(updatedListing.error || "API call failed");
             }
 
-            const updatedListing = await response.json();
             console.log("Listing updated:", updatedListing);
 
             // Check if nextPage is provided before navigating
@@ -220,7 +222,7 @@ export const ListingFormProvider = ({ children }) => {
             toast({
                 variant: "destructive",
                 title: "Failed to update listing :(",
-                description: error,
+                description: error.message,
             });
         }
     };

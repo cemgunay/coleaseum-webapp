@@ -156,7 +156,7 @@ const SignUp = () => {
                         title: "Sign up successful.",
                         description: "Welcome!",
                     });
-                    saveUser(user);
+                    saveUser(user, data.token);
                     router.push("/profile");
                 }
                 setIsSubmitting(false);

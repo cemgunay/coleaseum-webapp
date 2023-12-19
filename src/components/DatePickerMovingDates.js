@@ -87,8 +87,6 @@ const DatePickerMovingDates = ({
     //state to control Popover visibility
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-    console.log(minDate)
-
     const handleYearChange = (year) => {
         setSelectedYear(year);
         if (date) {

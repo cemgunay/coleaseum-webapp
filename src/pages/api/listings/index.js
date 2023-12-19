@@ -2,6 +2,8 @@ import connectMongo from "@/utils/connectMongo";
 import Listing from "@/models/Listing";
 import Booking from "@/models/Booking";
 
+const authenticate = require("../../../utils/authentication");
+
 // helper function to build the DB query from request query and filters
 const buildDBQuery = (reqQuery, filters) => {
     // create dbQuery to be edited by req query and filters
@@ -139,7 +141,14 @@ export default async function handler(req, res) {
                 res.status(500).json({ success: false, error: error.message });
             }
         } else if (req.method === "PUT") {
-            // Extract listing ID and data to update
+            // Authenticate the user
+            const user = await authenticate(req, res);
+            if (!user) {
+                // Authentication failed, response has been sent by authenticate
+                return;
+            }
+
+            // Extract the listing ID and data to update
             const { listingId, updateData } = req.body;
 
             if (!listingId || !updateData) {
@@ -149,15 +158,30 @@ export default async function handler(req, res) {
             }
 
             try {
+                const listing = await Listing.findById(listingId);
+
+                if (!listing) {
+                    return res.status(404).json({ error: "Listing not found" });
+                }
+
+                // Check if the logged-in user is the owner of the listing
+                if (listing.userId !== user.user.id) {
+                    return res.status(403).json({
+                        error: "You are not authorized to update this listing",
+                    });
+                }
+
                 // Update the listing in the database
                 const updatedListing = await Listing.findByIdAndUpdate(
                     listingId,
                     updateData,
                     { new: true }
                 );
+
                 if (!updatedListing) {
                     return res.status(404).json({ error: "Listing not found" });
                 }
+
                 res.status(200).json({ success: true, updatedListing });
             } catch (error) {
                 console.error("Update error: ", error);

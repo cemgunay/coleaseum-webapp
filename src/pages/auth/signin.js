@@ -48,7 +48,7 @@ const SignIn = () => {
                 // signin successful, save user in context and redirect to profile page
                 const data = await res.json();
                 const user = jwtDecode(data.token).user;
-                saveUser(user);
+                saveUser(user, data.token);
                 router.push("/profile");
             }
 
@@ -56,7 +56,9 @@ const SignIn = () => {
         } catch (error) {
             console.error("Signup failed", error);
             setIsSubmitting(false);
-            throw new Error(`Signup failed, error not caught by API route:\n${error}`);
+            throw new Error(
+                `Signup failed, error not caught by API route:\n${error}`
+            );
         }
     };
 
@@ -78,7 +80,10 @@ const SignIn = () => {
                 )}
 
                 {/* form */}
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-3 w-full"
+                >
                     {/* email input */}
                     <Input
                         placeholder="Email"
@@ -99,7 +104,11 @@ const SignIn = () => {
 
                     {/* submit button */}
                     <Button type="submit">
-                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
+                        {isSubmitting ? (
+                            <CircularProgress size={24} color="inherit" />
+                        ) : (
+                            "Sign In"
+                        )}
                     </Button>
                 </form>
                 <Link

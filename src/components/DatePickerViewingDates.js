@@ -86,8 +86,6 @@ const DatePickerViewingDates = ({
     const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
     const [popoverDisplayDate, setPopoverDisplayDate] = useState(new Date());
 
-    console.log(minDate)
-
     //state to control Popover visibility
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 

@@ -161,7 +161,6 @@ const EditImages = ({ listing, dispatch, pushToDatabase, pushing }) => {
 
     //function to upload each image with a 10 second timeout per image
     const uploadImage = async (file) => {
-        console.log(file);
         const formData = new FormData();
         formData.append("file", file);
         formData.append("upload_preset", "coleaseum_listings");

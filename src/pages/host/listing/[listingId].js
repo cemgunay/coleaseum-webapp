@@ -10,6 +10,8 @@ import { usePusher } from "@/context/PusherContext";
 import { fetchWithTimeout } from "@/utils/utils";
 import { formatPrice } from "@/utils/utils";
 import { format } from "date-fns";
+import { GrEdit } from "react-icons/gr";
+import RequestItemForHostListing from "@/components/RequestItemForHostListing";
 
 // get listing details on server side
 export async function getServerSideProps(context) {
@@ -204,6 +206,14 @@ const HostListing = ({ listing, requests, user }) => {
                 </div>
             )}
 
+            {/* Edit button */}
+            <div
+                className="absolute flex items-center justify-center top-0 right-0 z-[100] m-2 rounded-full bg-color-primary w-8 h-8 hover:cursor-pointer"
+                onClick={() => router.push(`host/manage/listings/${listing._id}/edit`)}
+            >
+                <GrEdit className="text-base text-gray-100" />
+            </div>
+
             {/* Main content */}
             <div
                 className={
@@ -288,23 +298,13 @@ const HostListing = ({ listing, requests, user }) => {
                     {/* List of requests for this listing */}
                     <h3 className="text-2xl font-bold mb-4 mt-2">Requests:</h3>
                     <div className="flex flex-col gap-2">
-                        {requests.map((request) => (
-                            <div
-                                key={request._id}
-                                className="flex flex-col rounded-md border border-slate-400 p-3"
-                            >
-                                <p className="text-lg font-bold">{formatPrice(request.price)}</p>
-                                <p>
-                                    <span className="font-semibold">Dates: </span>
-                                    {format(new Date(request.startDate), "yyyy-MM-dd")} —{" "}
-                                    {format(new Date(request.endDate), "yyyy-MM-dd")}
-                                </p>
-                                <p>
-                                    <span className="font-semibold">Submitted: </span>
-                                    {format(new Date(request.createdAt), "yyyy-MM-dd 'at' h:mm a")}
-                                </p>
-                            </div>
-                        ))}
+                        {requests.map((request) => {
+                            return (
+                                // created separate component for this so each one can
+                                // fetch its own user info for the request
+                                <RequestItemForHostListing request={request} />
+                            );
+                        })}
                     </div>
                 </div>
                 <BottomBar />

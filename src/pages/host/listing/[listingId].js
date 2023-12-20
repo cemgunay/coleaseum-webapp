@@ -12,6 +12,8 @@ import { formatPrice } from "@/utils/utils";
 import { format } from "date-fns";
 import { GrEdit } from "react-icons/gr";
 import RequestItemForHostListing from "@/components/RequestItemForHostListing";
+import Tabs from "@/components/Tabs";
+import { ACTIVE_STATUSES, PAST_STATUSES } from "@/utils/constants";
 
 // get listing details on server side
 export async function getServerSideProps(context) {
@@ -132,6 +134,8 @@ const HostListing = ({ listing, requests, user }) => {
     const [showModalCarousel, setShowModalCarousel] = useState(false);
     const [highestRequest, setHighestRequest] = useState(null);
     const [numberOfRequests, setNumberOfRequests] = useState(null);
+    const [activeTab, setActiveTab] = useState("active");
+    const [displayRequests, setDisplayRequests] = useState([]);
 
     // useEffect to fetch and update active request info on client side
     useEffect(() => {
@@ -197,6 +201,32 @@ const HostListing = ({ listing, requests, user }) => {
         return <Skeleton className="h-6 w-full" />;
     };
 
+    // filtering into active and past requests
+    const activeRequests = useMemo(() => {
+        return requests
+            .filter((request) => ACTIVE_STATUSES.includes(request.status))
+            .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
+    }, [requests]);
+    const pastRequests = useMemo(() => {
+        return requests
+            .filter((request) => PAST_STATUSES.includes(request.status))
+            .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
+    }, [requests]);
+
+    // useEffect to update displayListings when activeTab changes
+    useEffect(() => {
+        switch (activeTab) {
+            case "active":
+                setDisplayRequests(activeRequests);
+                break;
+            case "past":
+                setDisplayRequests(pastRequests);
+                break;
+            default:
+                setDisplayRequests([]);
+        }
+    }, [activeTab]);
+
     return (
         <>
             {/* Back button */}
@@ -218,7 +248,7 @@ const HostListing = ({ listing, requests, user }) => {
             <div
                 className={
                     !showGrid && !showModalCarousel
-                        ? "flex flex-col no-underline text-black overflow-hidden pb-24"
+                        ? "flex flex-col no-underline text-black overflow-hidden pb-36"
                         : "h-screen overflow-y-hidden"
                 }
             >
@@ -297,14 +327,23 @@ const HostListing = ({ listing, requests, user }) => {
 
                     {/* List of requests for this listing */}
                     <h3 className="text-2xl font-bold mb-4 mt-2">Requests:</h3>
+                    <Tabs
+                        tabList={["active", "past"]}
+                        setActiveTab={setActiveTab}
+                        defaultTab={"active"}
+                    />
                     <div className="flex flex-col gap-2">
-                        {requests.map((request) => {
-                            return (
-                                // created separate component for this so each one can
-                                // fetch its own user info for the request
-                                <RequestItemForHostListing request={request} />
-                            );
-                        })}
+                        {displayRequests.length > 0 ? (
+                            displayRequests.map((request) => {
+                                return (
+                                    // created separate component for this so each one can
+                                    // fetch its own user info for the request
+                                    <RequestItemForHostListing request={request} />
+                                );
+                            })
+                        ) : (
+                            <div className="h-28" />
+                        )}
                     </div>
                 </div>
                 <BottomBar />

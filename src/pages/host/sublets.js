@@ -100,7 +100,7 @@ const HostSublets = () => {
             default:
                 setDisplayListings([]);
         }
-    });
+    }, [activeTab]);
 
     // loading component
     const Loading = () => {

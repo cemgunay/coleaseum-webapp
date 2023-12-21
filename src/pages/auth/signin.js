@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
@@ -6,17 +6,30 @@ import Link from "next/link";
 import Input from "@/components/Input";
 import Button from "@/components/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { jwtDecode } from "jwt-decode";
 import { IoClose } from "react-icons/io5";
+import { signIn, useSession } from "next-auth/react";
+import { useToast } from "@/components/ui/use-toast";
 
 const SignIn = () => {
-    const { saveUser } = useAuth();
+    const { toast } = useToast();
+    // const { saveUser } = useAuth();
     const router = useRouter();
+    const { error } = router.query;
+
     const [formData, setFormData] = useState({
         email: "",
         password: "",
     });
     const [apiError, setApiError] = useState("");
+
+    useEffect(() => {
+        if (error === "AccountNotLinked") {
+            setApiError(
+                "Please sign in with your original method to link your accounts."
+            );
+        }
+    }, [error]);
+
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // handle form input changes
@@ -24,11 +37,39 @@ const SignIn = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    //handle social sign in
+    const handleSocialClick = (action) => {
+        signIn(action, { callbackUrl: "/profile" });
+    };
+
     // handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        setIsSubmitting(true);
+
+        signIn("credentials", {
+            ...formData,
+            redirect: false,
+        })
+            .then((callback) => {
+                if (!callback?.ok) {
+                    if (callback?.error) {
+                        toast({
+                            variant: "destructive",
+                            title: callback.error,
+                        });
+                        console.log(callback);
+                        setApiError(callback.error);
+                    }
+                } else {
+                    router.push("/profile");
+                }
+            })
+            .finally(setIsSubmitting(false));
+
         // proceed with form submission
+        /*
         try {
             setIsSubmitting(true);
 
@@ -60,6 +101,7 @@ const SignIn = () => {
                 `Signup failed, error not caught by API route:\n${error}`
             );
         }
+        */
     };
 
     return (
@@ -117,6 +159,9 @@ const SignIn = () => {
                 >
                     Don't have an account? Sign Up.
                 </Link>
+                <Button onClick={() => handleSocialClick("google")}>
+                    Google
+                </Button>
             </div>
             <BottomNav />
         </>

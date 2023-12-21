@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import Skeleton from "@/components/Skeleton";
 import BottomNav from "@/components/BottomNav";
@@ -11,12 +10,14 @@ import { IoSettingsOutline } from "react-icons/io5";
 import { PiHouse } from "react-icons/pi";
 import { GoArrowSwitch } from "react-icons/go";
 import GuestPage from "@/components/GuestPage";
+import { signOut } from "next-auth/react";
+import getLoggedInUserDetails from "@/utils/getLoggedInUserDetails";
 
 const profile = () => {
     // get user object from context
     // will only contain ID. this is for security reasons
     // we will use this ID to fetch the rest of their info from the db
-    const { user: contextUser, loading: contextLoading, signOut } = useAuth();
+    const { user: contextUser, status } = useAuth();
 
     // state for user object that will be fetched from db
     const [user, setUser] = useState(null);
@@ -27,29 +28,27 @@ const profile = () => {
 
     // fetch user data if user is logged in (i.e. contextUser is not null)
     useEffect(() => {
-        // do nothing if user is not logged in
         if (!contextUser) return;
 
-        // fetch user
         const fetchUser = async () => {
             setLoadingUserInfo(true);
             try {
-                const response = await fetch(`/api/users/${contextUser?.id}`);
-                if (!response.ok) {
-                    const error = await response.json().error;
-                    setError(`Error ${response.status}: ${error}`);
-                    setLoadingUserInfo(false);
-                    return;
+                const fetchedUser = await getLoggedInUserDetails(
+                    contextUser,
+                    status,
+                    setError,
+                    setLoadingUserInfo
+                );
+                if (fetchedUser) {
+                    setUser(fetchedUser);
                 }
-                const data = await response.json();
-                setUser(data);
-                // console.log(data);
             } catch (error) {
-                setError(error.message ? error.message : error);
-            } finally {
+                // Handle any additional error logic here, if needed
+                console.error("Error fetching user details:", error);
                 setLoadingUserInfo(false);
             }
         };
+
         fetchUser();
     }, [contextUser]);
 
@@ -80,7 +79,7 @@ const profile = () => {
         );
     };
 
-    if (contextLoading || loadingUserInfo) {
+    if (status === "loading" || loadingUserInfo) {
         return (
             <>
                 <Loading />
@@ -104,7 +103,10 @@ const profile = () => {
                     {/* (subject to change, just placeholders for now) */}
                     <div className="flex items-center gap-6">
                         {user?.profileImage ? (
-                            <img src={user.profileImage} className="h-20 w-20 rounded-full" />
+                            <img
+                                src={user.profileImage}
+                                className="h-20 w-20 rounded-full"
+                            />
                         ) : (
                             <ProfileImagePlaceholder />
                         )}
@@ -138,6 +140,15 @@ const profile = () => {
                                 >
                                     <IoSettingsOutline className="text-lg" />
                                     Account Settings
+                                </div>
+                                <div
+                                    className={cn(
+                                        "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
+                                        "flex items-center gap-2"
+                                    )}
+                                >
+                                    <IoSettingsOutline className="text-lg" />
+                                    Account Linking
                                 </div>
                             </div>
                         </div>
@@ -173,7 +184,7 @@ const profile = () => {
                         variant="outline"
                         size="lg"
                         className="font-normal text-base text-slate-600"
-                        onClick={signOut}
+                        onClick={() => signOut()}
                     >
                         Sign Out
                     </Button>

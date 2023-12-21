@@ -132,7 +132,7 @@ const SignUp = () => {
                 setIsSubmitting(true);
 
                 // call signup API route
-                const res = await fetch("/api/auth/signup", {
+                const res = await fetch("/api/register", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
@@ -149,15 +149,19 @@ const SignUp = () => {
                     });
                 } else {
                     // signup successful, save user in context and redirect to profile page
+                    /*
                     const data = await res.json();
                     const user = jwtDecode(data.token).user;
+                    */
                     toast({
                         variant: "success",
                         title: "Sign up successful.",
                         description: "Welcome!",
                     });
+                    /*
                     saveUser(user, data.token);
                     router.push("/profile");
+                    */
                 }
                 setIsSubmitting(false);
             } catch (error) {

@@ -16,11 +16,15 @@ const UserSchema = new Schema(
             require: true,
             unique: true,
         },
+        emailVerified: {
+            type: Date,
+        },
         password: {
             type: String,
             required: true,
             min: 6,
         },
+        accounts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Account" }],
         phoneNumber: {
             type: String,
         },
@@ -81,10 +85,6 @@ const UserSchema = new Schema(
             ref: "Request",
             default: null,
         },
-        emailVerified: {
-            type: Boolean,
-            default: false,
-        },
         passwordChangeRequired: {
             type: Boolean,
             default: false,
@@ -92,6 +92,16 @@ const UserSchema = new Schema(
     },
     { timestamps: true }
 );
+
+// Pre-save middleware
+UserSchema.pre("save", function (next) {
+    if (this.name && (!this.firstName || !this.lastName)) {
+        const splitName = this.name.split(" ");
+        this.firstName = splitName[0];
+        this.lastName = splitName.slice(1).join(" ");
+    }
+    next();
+});
 
 const UserModel = mongoose.models.User || mongoose.model("User", UserSchema);
 

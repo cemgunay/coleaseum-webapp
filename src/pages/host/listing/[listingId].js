@@ -338,7 +338,10 @@ const HostListing = ({ listing, requests, user }) => {
                                 return (
                                     // created separate component for this so each one can
                                     // fetch its own user info for the request
-                                    <RequestItemForHostListing request={request} />
+                                    <RequestItemForHostListing
+                                        key={request._id}
+                                        request={request}
+                                    />
                                 );
                             })
                         ) : (

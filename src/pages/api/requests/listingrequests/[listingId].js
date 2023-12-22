@@ -2,7 +2,7 @@ import connectMongo from "@/utils/connectMongo";
 import Request from "@/models/Request";
 import Document from "@/models/Document";
 
-// get all requests by ID
+// get all requests for a specific listing (by listing ID)
 export default async function handler(req, res) {
     // ensure request is a GET
     if (req.method !== "GET") {

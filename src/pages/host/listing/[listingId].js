@@ -2,21 +2,22 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/router";
 import Carousel from "@/components/Carousel";
 import { FaCircleChevronLeft } from "react-icons/fa6";
-import LocationMarker from "@/components/LocationMarker";
-import BedroomsDisplay from "@/components/BedroomsDisplay";
-import AmenitiesDisplay from "@/components/AmenitiesDisplay";
-import UtilitiesDisplay from "@/components/UtilitiesDisplay";
 import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
 import { usePusher } from "@/context/PusherContext";
 import { fetchWithTimeout } from "@/utils/utils";
+import { formatPrice } from "@/utils/utils";
+import { format } from "date-fns";
+import { GrEdit } from "react-icons/gr";
+import RequestItemForHostListing from "@/components/RequestItemForHostListing";
+import Tabs from "@/components/Tabs";
+import { ACTIVE_STATUSES, PAST_STATUSES } from "@/utils/constants";
 
-// moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
-
-// Getting listing details on server side
+// get listing details on server side
 export async function getServerSideProps(context) {
+    // make sure we have an API URL
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
         // Redirect to a custom error page
@@ -25,17 +26,17 @@ export async function getServerSideProps(context) {
         };
     }
 
+    // get listing from DB
     const { listingId } = context.params;
     const response = await fetchWithTimeout(`${apiUrl}/api/listings/${listingId}`, {}, 5000);
 
-    // Handle fetch failure
+    // error handling
     if (response.error) {
         console.error("Fetch failed: ", response.error);
         return {
             notFound: true,
         };
     }
-
     // Handle HTTP errors like 404 or 500
     // If an error is thrown inside getServerSideProps, it will show the pages/500.js file automatically
     // During development this file will not be used and the dev overlay will be shown instead.
@@ -49,10 +50,47 @@ export async function getServerSideProps(context) {
     }
 
     const listing = await response.json();
-    return { props: { listing } };
+
+    // if listing fetch was successful, fetch associated requests and user
+    if (listing && listing.userId) {
+        // get requests for this listing from DB
+        const requestsResponse = await fetchWithTimeout(
+            `${apiUrl}/api/requests/listingrequests/${listing._id}`,
+            {},
+            5000
+        );
+
+        // get user for this listing from DB
+        const userResponse = await fetchWithTimeout(
+            `${apiUrl}/api/users/${listing.userId}`,
+            {},
+            5000
+        );
+
+        // error handling
+        if (requestsResponse.error || !requestsResponse.ok) {
+            console.error(
+                "Failed to fetch requests for this listing: ",
+                requestsResponse.error || `HTTP Error: ${requestsResponse.status}`
+            );
+        } else if (userResponse.error || !userResponse.ok) {
+            console.error(
+                "Failed to fetch user for this listing: ",
+                userResponse.error || `HTTP Error: ${userResponse.status}`
+            );
+        } else {
+            const requests = await requestsResponse.json();
+            const user = await userResponse.json();
+            return { props: { listing, requests, user } };
+        }
+    } else {
+        // if we don't have a listing object or that listing object has no userId, something's wrong
+        // will trigger an error to show the 500 page
+        throw new Error("Something went wrong with the server side listing fetch");
+    }
 }
 
-const Listing = ({ listing }) => {
+const HostListing = ({ listing, requests, user }) => {
     // get listing ID from route params
     const router = useRouter();
 
@@ -94,40 +132,43 @@ const Listing = ({ listing }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showGrid, setShowGrid] = useState(false);
     const [showModalCarousel, setShowModalCarousel] = useState(false);
-    const [highestRequest, setHighestRequest] = useState(null);
+    const [highestRequestPrice, setHighestRequestPrice] = useState(null);
     const [numberOfRequests, setNumberOfRequests] = useState(null);
-    const [user, setUser] = useState(null);
+    const [requestsActiveTab, setRequestsActiveTab] = useState("active");
+    const [displayRequests, setDisplayRequests] = useState([]);
+    const [listingActiveTab, setListingActiveTab] = useState("");
 
-    //useEffect to update requests and user on client side
+    // already have requests from server side props, so filter into active and past requests
+    const activeRequests = requests
+        .filter((request) => ACTIVE_STATUSES.includes(request.status))
+        .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
+
+    const pastRequests = requests
+        .filter((request) => PAST_STATUSES.includes(request.status))
+        .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
+
+    // useEffect to do a few things on render
     useEffect(() => {
-        // fetch active requests for listing
-        const fetchActiveRequests = async () => {
-            const response = await fetch(`/api/requests/listingactiverequests/${listing._id}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch active requests :(");
-            }
-            const activeRequests = await response.json();
+        // figure out whether listing is active, past or confirmed
+        if (listing.published) {
+            setListingActiveTab("active");
+        } else if (listing.isBooked) {
+            setListingActiveTab("confirmed");
+        } else {
+            setListingActiveTab("past");
+        }
+
+        // set numberOfRequests state
+        setNumberOfRequests(activeRequests.length);
+
+        // set highest active request price
+        if (activeRequests.length > 0) {
             const activeRequestPrices = activeRequests.map((req) => req.price || 0);
-            setHighestRequest(Math.max(...activeRequestPrices));
-            setNumberOfRequests(activeRequests.length);
-        };
-
-        fetchActiveRequests();
-
-        // fetch user
-        const fetchUser = async () => {
-            const response = await fetch(`/api/users/${listing?.userId}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch user :(");
-            }
-            const data = await response.json();
-            setUser(data);
-        };
-
-        fetchUser();
+            setHighestRequestPrice(Math.max(...activeRequestPrices));
+        }
     }, [listing]);
 
-    //useEffect for pusher realtime connection to update highestRequest
+    // useEffect for pusher realtime connection to update highestRequestPrice
     useEffect(() => {
         if (pusher) {
             // Subscribe to the channel
@@ -136,7 +177,7 @@ const Listing = ({ listing }) => {
             // Bind to bid update events
             channel.bind("bid-updated", (data) => {
                 if (data.listingId === listing._id) {
-                    setHighestRequest(data.newHighestBid);
+                    setHighestRequestPrice(data.newHighestBid);
                 }
             });
 
@@ -157,14 +198,6 @@ const Listing = ({ listing }) => {
         }
     }, [pusher]);
 
-    // still not sure if this state is needed in new version yet
-    // might need it for the BottomBar component
-
-    // const [isBookedByUser, setIsBookedByUser] = useState(false);
-    // const [booking, setBooking] = useState(null);
-    // const [requests, setRequests] = useState([]);
-    // const [activeRequests, setActiveRequests] = useState([]);
-
     // function to handle image selection from grid
     const handleImageSelect = (index) => {
         setSelectedImageIndex(index);
@@ -182,6 +215,20 @@ const Listing = ({ listing }) => {
         return <Skeleton className="h-6 w-full" />;
     };
 
+    // useEffect to update displayListings when requestsActiveTab changes
+    useEffect(() => {
+        switch (requestsActiveTab) {
+            case "active":
+                setDisplayRequests(activeRequests);
+                break;
+            case "past":
+                setDisplayRequests(pastRequests);
+                break;
+            default:
+                setDisplayRequests([]);
+        }
+    }, [requestsActiveTab]);
+
     return (
         <>
             {/* Back button */}
@@ -191,11 +238,21 @@ const Listing = ({ listing }) => {
                 </div>
             )}
 
+            {/* Edit button */}
+            {listingActiveTab === "active" || listingActiveTab === "past" ? (
+                <div
+                    className="absolute flex items-center justify-center top-0 right-0 z-[100] m-3 rounded-full bg-color-primary w-8 h-8 hover:cursor-pointer"
+                    onClick={() => router.push(`host/manage/listings/${listing._id}/edit`)}
+                >
+                    <GrEdit className="text-base text-gray-100" />
+                </div>
+            ) : null}
+
             {/* Main content */}
             <div
                 className={
                     !showGrid && !showModalCarousel
-                        ? "flex flex-col no-underline text-black overflow-hidden pb-24"
+                        ? "flex flex-col no-underline text-black overflow-hidden pb-36"
                         : "h-screen overflow-y-hidden"
                 }
             >
@@ -241,14 +298,15 @@ const Listing = ({ listing }) => {
                         <address className="text-lg">{formattedAddress}</address>
                         {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
-                            {!highestRequest ? (
+                            {!highestRequestPrice ? (
                                 <LoadingBids />
                             ) : (
                                 <>
                                     <p>
-                                        {highestRequest > 0
-                                            ? `$${highestRequest} (Highest Bid)`
-                                            : `$${listing.price} (Listing Price)`}
+                                        Listed for:{" "}
+                                        <span className="font-semibold">
+                                            {formatPrice(listing.price, false)}
+                                        </span>
                                     </p>
                                     <p>
                                         {numberOfRequests} active bid
@@ -270,58 +328,29 @@ const Listing = ({ listing }) => {
                             <p>{formattedRoomInfo}</p>
                         </div>
                     </div>
-                    <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <p className="text-lg">
-                            {listing.description?.length > 250
-                                ? listing.description?.substring(0, 250).listing + "..."
-                                : listing.description}
-                        </p>
-                    </div>
-                    <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <h2 className="text-2xl font-bold">Bedrooms</h2>
-                        <BedroomsDisplay bedrooms={listing.basics.bedrooms} />
-                    </div>
-                    <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <h2 className="text-2xl font-bold">Utilities</h2>
-                        <UtilitiesDisplay utilities={listing.utilities} />
-                    </div>
-                    <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <h2 className="text-2xl font-bold">What this place offers</h2>
-                        <AmenitiesDisplay amenities={listing.amenities} />
-                    </div>
-                    <div className="py-4 border-b-[0.1rem] border-gray-300 h-[300px]">
-                        <h2 className="text-2xl font-bold">Location</h2>
-                        <LocationMarker
-                            className="mt-2"
-                            lat={listing.location.lat}
-                            lng={listing.location.lng}
-                        />
-                    </div>
-                    <div className="py-4">
-                        <h2 className="text-2xl font-bold mb-4">Legal</h2>
-                        <div className="flex flex-col gap-6">
-                            <div>
-                                <div className="font-semibold text-lg">Health & Safety</div>
-                                <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
-                                    WANNA REWRITE THIS SHIT EVERYTIME
-                                </p>
-                            </div>
-                            <div>
-                                <div className="font-semibold text-lg">Sublet Policy</div>
-                                <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
-                                    WANNA REWRITE THIS SHIT EVERYTIME
-                                </p>
-                            </div>
-                            <div>
-                                <div className="font-semibold text-lg">Report this listing</div>
-                                <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
-                                    WANNA REWRITE THIS SHIT EVERYTIME
-                                </p>
-                            </div>
-                        </div>
+
+                    {/* List of requests for this listing */}
+                    <h3 className="text-2xl font-bold mb-4 mt-2">Requests:</h3>
+                    <Tabs
+                        tabList={["active", "past"]}
+                        setActiveTab={setRequestsActiveTab}
+                        defaultTab={"active"}
+                    />
+                    <div className="flex flex-col gap-2">
+                        {displayRequests.length > 0 ? (
+                            displayRequests.map((request) => {
+                                return (
+                                    // created separate component for this so each one can
+                                    // fetch its own user info for the request
+                                    <RequestItemForHostListing
+                                        key={request._id}
+                                        request={request}
+                                    />
+                                );
+                            })
+                        ) : (
+                            <div className="h-28" />
+                        )}
                     </div>
                 </div>
                 <BottomBar />
@@ -330,4 +359,4 @@ const Listing = ({ listing }) => {
     );
 };
 
-export default Listing;
+export default HostListing;

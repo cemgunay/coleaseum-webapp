@@ -1,54 +1,23 @@
-import React, { useEffect, useState } from "react";
+import React, { useMemo } from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
-import Skeleton from "./Skeleton";
 
 // exact same as ListingItem, except Links to request page instead of listing page,
 // and the offer information is displayed slightly differently
 const ListingItemForHostSublets = ({ listing, requests, activeTab, showActiveBids = true }) => {
     const images = listing.images.map(({ url }) => url);
-    const [activeRequests, setActiveRequests] = useState([]);
-    const [highestActiveRequestPrice, setHighestActiveRequestPrice] = useState(null);
-    const [loading, setLoading] = useState(true);
 
-    // get all requests and all active requests
-    useEffect(() => {
-        const fetchRequests = async () => {
-            setLoading(true);
-            try {
-                // fetch all active requests for the current listing
-                const activeRequestsResponse = await fetch(
-                    `/api/requests/listingactiverequests/${listing._id}`
-                );
-                if (!activeRequestsResponse.ok) {
-                    throw new Error("Failed to fetch active requests :(");
-                }
-                const activeRequestsData = await activeRequestsResponse.json();
-                setActiveRequests(activeRequestsData);
+    // already have requests passed as a prop, so filter to get active ones
+    const activeRequests = useMemo(() => {
+        return requests.filter((request) => request.status !== "rejected");
+    }, [requests]);
 
-                // process data to find highest active request price
-                // create arrays of prices from each active request, defaulting to zero if no price found
-                // NB: defaulting to 0 instead of -Infinity bc we shouldn't have any negative prices
-                const activeRequestPrices = activeRequestsData.map((req) => req.price || 0);
-
-                // update state
-                // (no need to set to null if length is 0 since highestActiveRequestPrice start out as null)
-                if (activeRequestPrices.length) {
-                    setHighestActiveRequestPrice(Math.max(...activeRequestPrices));
-                }
-            } catch (error) {
-                console.error("Failed overall: \n", error);
-                throw new Error("Failed overall :(");
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        // if we have a listing, fetch the relevant requests
-        if (listing && listing._id) {
-            fetchRequests();
-        }
-    }, [listing._id]);
+    // get highest active request price (set to null if no active requests)
+    let highestActiveRequestPrice = null;
+    if (activeRequests.length) {
+        const activeRequestPrices = activeRequests.map((req) => req.price || 0);
+        highestActiveRequestPrice = Math.max(...activeRequestPrices);
+    }
 
     // format address string from location info
     const { address1, city, stateprovince } = listing.location;
@@ -58,30 +27,41 @@ const ListingItemForHostSublets = ({ listing, requests, activeTab, showActiveBid
     // rendering full <p> tags here so I can conditionally add text and styling in one function
     const renderPriceText = () => {
         switch (activeTab) {
-            // case "past":
+            case "past":
+                // showing nothing for past tab
+                return null;
             case "active":
                 if (requests.every((request) => request.status === "rejected")) {
+                    // there are offers, but they're all rejected
                     return <h3 className="font-medium text-color-warning">No Offers</h3>;
                 } else if (highestActiveRequestPrice) {
+                    // there are un-rejected offers, show highest offer
                     return (
                         <h3 className="font-medium text-color-pass">
                             Highest Offer: {highestActiveRequestPrice}
                         </h3>
                     );
                 } else {
-                    // should never get here, but just in case
-                    return <h3 className="font-medium text-color-error">SOMETHING'S WRONG</h3>;
+                    // no offers placed yet
+                    return <h3 className="font-medium text-color-warning">No Offers</h3>;
                 }
-            // case "confirmed":
-            default:
-                // putting a default here until i know exactly how to handle past and confirmed listings
-                return (
-                    <h3 className="font-medium text-color-warning">
-                        {highestActiveRequestPrice
-                            ? `Offer: ${highestActiveRequestPrice}`
-                            : "No Offers"}
-                    </h3>
-                );
+            case "confirmed":
+                const confirmedRequest = requests.find((request) => request.status === "confirmed");
+                if (confirmedRequest) {
+                    // there is a confirmed request, show its price
+                    return (
+                        <h3 className="font-medium text-color-pass">
+                            Confirmed Offer: {confirmedRequest.price}
+                        </h3>
+                    );
+                } else {
+                    // should reaching here be possible for confirmed tab?
+                    // my thinking says no, but this scenario is still happening in practice
+                    // maybe I'm misunderstanding all this logic somehow, but I made the changes exactly as suggested!
+                    // active listings are published = true, past listings are expired, confirmed listings are isBooked = true
+                    // I feel like we'll be able to streamline all of this once we sort out the request logic fully
+                    return <h3 className="font-medium text-color-warning">No Offers</h3>;
+                }
         }
     };
 
@@ -103,19 +83,15 @@ const ListingItemForHostSublets = ({ listing, requests, activeTab, showActiveBid
                     <address>{formattedAddress}</address>
                     <p>{listing.dates}</p>
                     <div className="flex justify-between">
-                        {loading ? <Skeleton className="h-5 w-32 mt-1" /> : renderPriceText()}
+                        {renderPriceText()}
                         {showActiveBids ? (
-                            loading ? (
-                                <Skeleton className="h-5 w-24 mt-1" />
-                            ) : (
-                                <p>
-                                    {activeRequests.length
-                                        ? `${activeRequests.length} active bid${
-                                              activeRequests.length === 1 ? "" : "s"
-                                          }`
-                                        : `No active bids`}
-                                </p>
-                            )
+                            <p>
+                                {activeRequests.length
+                                    ? `${activeRequests.length} active bid${
+                                          activeRequests.length === 1 ? "" : "s"
+                                      }`
+                                    : `No active bids`}
+                            </p>
                         ) : null}
                     </div>
                 </div>

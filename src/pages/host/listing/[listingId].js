@@ -132,28 +132,23 @@ const HostListing = ({ listing, requests, user }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showGrid, setShowGrid] = useState(false);
     const [showModalCarousel, setShowModalCarousel] = useState(false);
-    const [highestRequest, setHighestRequest] = useState(null);
+    const [highestRequestPrice, setHighestRequestPrice] = useState(null);
     const [numberOfRequests, setNumberOfRequests] = useState(null);
     const [requestsActiveTab, setRequestsActiveTab] = useState("active");
     const [displayRequests, setDisplayRequests] = useState([]);
     const [listingActiveTab, setListingActiveTab] = useState("");
 
-    // useEffect to fetch and update active request info on client side
-    // also determines whether listing is active, past or confirmed
-    useEffect(() => {
-        // fetch active requests for listing
-        const fetchActiveRequests = async () => {
-            const response = await fetch(`/api/requests/listingactiverequests/${listing._id}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch active requests :(");
-            }
-            const activeRequests = await response.json();
-            const activeRequestPrices = activeRequests.map((req) => req.price || 0);
-            setHighestRequest(Math.max(...activeRequestPrices));
-            setNumberOfRequests(activeRequests.length);
-        };
-        fetchActiveRequests();
+    // already have requests from server side props, so filter into active and past requests
+    const activeRequests = requests
+        .filter((request) => ACTIVE_STATUSES.includes(request.status))
+        .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
 
+    const pastRequests = requests
+        .filter((request) => PAST_STATUSES.includes(request.status))
+        .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
+
+    // useEffect to do a few things on render
+    useEffect(() => {
         // figure out whether listing is active, past or confirmed
         if (listing.published) {
             setListingActiveTab("active");
@@ -162,9 +157,18 @@ const HostListing = ({ listing, requests, user }) => {
         } else {
             setListingActiveTab("past");
         }
+
+        // set numberOfRequests state
+        setNumberOfRequests(activeRequests.length);
+
+        // set highest active request price
+        if (activeRequests.length > 0) {
+            const activeRequestPrices = activeRequests.map((req) => req.price || 0);
+            setHighestRequestPrice(Math.max(...activeRequestPrices));
+        }
     }, [listing]);
 
-    // useEffect for pusher realtime connection to update highestRequest
+    // useEffect for pusher realtime connection to update highestRequestPrice
     useEffect(() => {
         if (pusher) {
             // Subscribe to the channel
@@ -173,7 +177,7 @@ const HostListing = ({ listing, requests, user }) => {
             // Bind to bid update events
             channel.bind("bid-updated", (data) => {
                 if (data.listingId === listing._id) {
-                    setHighestRequest(data.newHighestBid);
+                    setHighestRequestPrice(data.newHighestBid);
                 }
             });
 
@@ -210,18 +214,6 @@ const HostListing = ({ listing, requests, user }) => {
     const LoadingUser = () => {
         return <Skeleton className="h-6 w-full" />;
     };
-
-    // filtering into active and past requests
-    const activeRequests = useMemo(() => {
-        return requests
-            .filter((request) => ACTIVE_STATUSES.includes(request.status))
-            .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
-    }, [requests]);
-    const pastRequests = useMemo(() => {
-        return requests
-            .filter((request) => PAST_STATUSES.includes(request.status))
-            .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
-    }, [requests]);
 
     // useEffect to update displayListings when requestsActiveTab changes
     useEffect(() => {
@@ -306,7 +298,7 @@ const HostListing = ({ listing, requests, user }) => {
                         <address className="text-lg">{formattedAddress}</address>
                         {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
-                            {!highestRequest ? (
+                            {!highestRequestPrice ? (
                                 <LoadingBids />
                             ) : (
                                 <>

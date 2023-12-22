@@ -12,11 +12,12 @@ const HostSublets = () => {
 
     // state
     const [activeTab, setActiveTab] = useState("active");
-    const [publishedListings, setPublishedListings] = useState([]);
-    const [expiredListings, setExpiredListings] = useState([]);
+    const [activeListings, setActiveListings] = useState([]);
+    const [pastListings, setPastListings] = useState([]);
+    const [confirmedListings, setConfirmedListings] = useState([]);
 
     const [displayListings, setDisplayListings] = useState([]);
-    const [requests, setRequests] = useState([]);
+    // const [requests, setRequests] = useState([]);
     const [fetching, setFetching] = useState(true);
 
     // fetch listings and requests from DB
@@ -25,16 +26,13 @@ const HostSublets = () => {
             // if no user we can't fetch their requests
             if (!user) return;
 
-            // fetch all requests and all published/expired listings for the user
-            const responseRequests = await fetch(`/api/requests`);
+            // fetch all requests and all published/expired/booked listings for the user
+            // API routes now attach requests to listings, so we only need to fetch listings
             const responseListingsPublished = await fetch(`/api/listings/published/${user.id}`);
             const responseListingsExpired = await fetch(`/api/listings/expired/${user.id}`);
+            const responseListingsBooked = await fetch(`/api/listings/booked/${user.id}`);
 
             // error handling
-            if (!responseRequests.ok) {
-                console.log("Error fetching requests: ", responseRequests);
-                throw new Error("Failed to fetch requests");
-            }
             if (!responseListingsPublished.ok) {
                 console.log("Error fetching published listings: ", responseListingsPublished);
                 throw new Error("Failed to fetch published listings");
@@ -43,47 +41,24 @@ const HostSublets = () => {
                 console.log("Error fetching expired listings: ", responseListingsExpired);
                 throw new Error("Failed to fetch expired listings");
             }
+            if (!responseListingsBooked.ok) {
+                console.log("Error fetching booked listings: ", responseListingsBooked);
+                throw new Error("Failed to fetch booked listings");
+            }
 
-            const receivedRequests = await responseRequests.json();
             const receivedListingsPublished = await responseListingsPublished.json();
             const receivedListingsExpired = await responseListingsExpired.json();
+            const receivedListingsBooked = await responseListingsBooked.json();
 
-            setRequests(receivedRequests);
-            setPublishedListings(receivedListingsPublished);
-            setExpiredListings(receivedListingsExpired);
+            setActiveListings(receivedListingsPublished);
+            console.log(receivedListingsPublished);
+            setPastListings(receivedListingsExpired);
+            setConfirmedListings(receivedListingsBooked);
             setFetching(false);
         };
 
         fetchListingsAndRequests();
     }, [user]);
-
-    // attach relevant requests to published and expired listings
-    // take each published/expired listing, filter all requests for the ones with same listing ID, and attach to listing
-    const publishedListingsWithRequests = useMemo(() => {
-        return publishedListings.map((listing) => {
-            const listingRequests = requests.filter((request) => request.listingId === listing._id);
-            return { ...listing, requests: listingRequests };
-        });
-    }, [publishedListings, requests]);
-    const expiredListingsWithRequests = useMemo(() => {
-        return expiredListings.map((listing) => {
-            const listingRequests = requests.filter((request) => request.listingId === listing._id);
-            return { ...listing, requests: listingRequests };
-        });
-    }, [expiredListings, requests]);
-
-    // create active/past/confirmed listings arrays
-    const activeListings = useMemo(() => {
-        return publishedListingsWithRequests.filter(
-            (listing) => !listing.requests.some((request) => request.status === "confirmed")
-        );
-    }, [publishedListingsWithRequests]);
-    const confirmedListings = useMemo(() => {
-        return publishedListingsWithRequests.filter((listing) =>
-            listing.requests.some((request) => request.status === "confirmed")
-        );
-    }, [publishedListingsWithRequests]);
-    const pastListings = expiredListingsWithRequests;
 
     // useEffect to update displayListings when activeTab changes
     useEffect(() => {
@@ -100,7 +75,7 @@ const HostSublets = () => {
             default:
                 setDisplayListings([]);
         }
-    }, [activeTab]);
+    }, [activeTab, fetching]);
 
     // loading component
     const Loading = () => {
@@ -151,7 +126,8 @@ const HostSublets = () => {
         <>
             <div className="flex flex-col items-center justify-start min-h-screen mx-8 pt-10 pb-32">
                 <SubletsTabs setActiveTab={setActiveTab} />
-                {(publishedListings.length || expiredListings.length) && !fetching ? (
+                {(activeListings.length || pastListings.length || confirmedListings.length) &&
+                !fetching ? (
                     <>
                         <p className="self-start mb-1 text-gray-700 text-sm">
                             {displayListings.length} listing{displayListings.length !== 1 && "s"}{" "}

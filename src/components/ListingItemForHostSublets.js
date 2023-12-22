@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
 
@@ -8,9 +8,7 @@ const ListingItemForHostSublets = ({ listing, requests, activeTab, showActiveBid
     const images = listing.images.map(({ url }) => url);
 
     // already have requests passed as a prop, so filter to get active ones
-    const activeRequests = useMemo(() => {
-        return requests.filter((request) => request.status !== "rejected");
-    }, [requests]);
+    const activeRequests = requests.filter((request) => request.status !== "rejected");
 
     // get highest active request price (set to null if no active requests)
     let highestActiveRequestPrice = null;

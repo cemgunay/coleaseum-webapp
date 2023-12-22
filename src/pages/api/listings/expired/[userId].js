@@ -19,13 +19,23 @@ export default async function handler(req, res) {
                 // connect to DB
                 await connectMongo();
 
-                // get all expired listings for the user
+                // get all expired listings for the user, with those listings' requests attached
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-                const listings = await Listing.find({ userId, expiryDate: { $lt: today } });
+                const listingsWithRequests = await Listing.aggregate([
+                    { $match: { userId, expiryDate: { $lt: today } } },
+                    {
+                        $lookup: {
+                            from: "requests", // the collection to join
+                            localField: "_id", // field from the source collection (listings)
+                            foreignField: "listingId", // field from the foreign collection (requests)
+                            as: "requests", // name of field to hold the joined data
+                        },
+                    },
+                ]);
 
                 // return the listings with 200 status code
-                res.status(200).json(listings);
+                res.status(200).json(listingsWithRequests);
             } catch (error) {
                 console.error(`Failed to retrieve listings:\n`, error);
                 res.status(500).json({ error: "Internal Server Error" });

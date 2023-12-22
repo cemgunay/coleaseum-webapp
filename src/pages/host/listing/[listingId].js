@@ -134,10 +134,12 @@ const HostListing = ({ listing, requests, user }) => {
     const [showModalCarousel, setShowModalCarousel] = useState(false);
     const [highestRequest, setHighestRequest] = useState(null);
     const [numberOfRequests, setNumberOfRequests] = useState(null);
-    const [activeTab, setActiveTab] = useState("active");
+    const [requestsActiveTab, setRequestsActiveTab] = useState("active");
     const [displayRequests, setDisplayRequests] = useState([]);
+    const [listingActiveTab, setListingActiveTab] = useState("");
 
     // useEffect to fetch and update active request info on client side
+    // also determines whether listing is active, past or confirmed
     useEffect(() => {
         // fetch active requests for listing
         const fetchActiveRequests = async () => {
@@ -150,8 +152,16 @@ const HostListing = ({ listing, requests, user }) => {
             setHighestRequest(Math.max(...activeRequestPrices));
             setNumberOfRequests(activeRequests.length);
         };
-
         fetchActiveRequests();
+
+        // figure out whether listing is active, past or confirmed
+        if (listing.published) {
+            setListingActiveTab("active");
+        } else if (listing.isBooked) {
+            setListingActiveTab("confirmed");
+        } else {
+            setListingActiveTab("past");
+        }
     }, [listing]);
 
     // useEffect for pusher realtime connection to update highestRequest
@@ -213,9 +223,9 @@ const HostListing = ({ listing, requests, user }) => {
             .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
     }, [requests]);
 
-    // useEffect to update displayListings when activeTab changes
+    // useEffect to update displayListings when requestsActiveTab changes
     useEffect(() => {
-        switch (activeTab) {
+        switch (requestsActiveTab) {
             case "active":
                 setDisplayRequests(activeRequests);
                 break;
@@ -225,7 +235,7 @@ const HostListing = ({ listing, requests, user }) => {
             default:
                 setDisplayRequests([]);
         }
-    }, [activeTab]);
+    }, [requestsActiveTab]);
 
     return (
         <>
@@ -237,12 +247,14 @@ const HostListing = ({ listing, requests, user }) => {
             )}
 
             {/* Edit button */}
-            <div
-                className="absolute flex items-center justify-center top-0 right-0 z-[100] m-2 rounded-full bg-color-primary w-8 h-8 hover:cursor-pointer"
-                onClick={() => router.push(`host/manage/listings/${listing._id}/edit`)}
-            >
-                <GrEdit className="text-base text-gray-100" />
-            </div>
+            {listingActiveTab === "active" || listingActiveTab === "past" ? (
+                <div
+                    className="absolute flex items-center justify-center top-0 right-0 z-[100] m-3 rounded-full bg-color-primary w-8 h-8 hover:cursor-pointer"
+                    onClick={() => router.push(`host/manage/listings/${listing._id}/edit`)}
+                >
+                    <GrEdit className="text-base text-gray-100" />
+                </div>
+            ) : null}
 
             {/* Main content */}
             <div
@@ -329,7 +341,7 @@ const HostListing = ({ listing, requests, user }) => {
                     <h3 className="text-2xl font-bold mb-4 mt-2">Requests:</h3>
                     <Tabs
                         tabList={["active", "past"]}
-                        setActiveTab={setActiveTab}
+                        setActiveTab={setRequestsActiveTab}
                         defaultTab={"active"}
                     />
                     <div className="flex flex-col gap-2">

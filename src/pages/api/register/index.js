@@ -1,7 +1,34 @@
 import connectMongo from "@/utils/connectMongo";
 import bcrypt from "bcryptjs";
 import User from "@/models/User";
-import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "../auth/[...nextauth]";
+import { sendVerificationEmail } from "@/utils/sendVerificationEmail";
+
+async function createUser(reqBody) {
+    const { firstName, lastName, email, password, dateOfBirth, location } =
+        reqBody;
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+        throw new Error("Email already in use");
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    const user = new User({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        dateOfBirth,
+        location,
+    });
+
+    await user.save();
+    return user;
+}
 
 const handler = async (req, res) => {
     try {
@@ -10,53 +37,46 @@ const handler = async (req, res) => {
 
         // Process POST request
         if (req.method === "POST") {
-            // destructure req.body (just for convenience)
-            const {
-                firstName,
-                lastName,
-                email,
-                password,
-                // phoneNumber,
-                dateOfBirth,
-                // profilePicture,
-                // about,
-                location,
-            } = req.body;
-
-            // check if user already exists
-            let user = await User.findOne({ email });
-            if (user) {
-                return res
-                    .status(400)
-                    .json({ error: "That email is already in use." });
+            let user;
+            try {
+                user = await createUser(req.body);
+            } catch (error) {
+                return res.status(400).json({ error: error.message });
             }
 
-            // hash password
-            const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password, salt);
-
-            // create new user object
-            user = new User({
-                firstName,
-                lastName,
-                email,
-                password: hashedPassword,
-                // phoneNumber,
-                dateOfBirth,
-                // profilePicture,
-                // about,
-                location,
-            });
-
-            await user.save();
+            try {
+                await sendVerificationEmail(user.email);
+            } catch (error) {
+                console.error("Email sending error:", error);
+                // Decide how to handle email errors - log, notify admin, etc.
+            }
 
             return res.status(200).json(user);
-        }
-        // Add logic for other HTTP methods (GET, PUT, etc.) here
-        // ...
+        } else if (req.method === "PUT") {
+            // Verify session
+            const session = await getServerSession(req, res, authOptions);
 
-        // Unsupported method
-        else {
+            if (!session) {
+                return res
+                    .status(401)
+                    .json({ error: "You must be signed in." });
+            }
+
+            const { email, ...updateData } = req.body;
+
+            // Find the user and update
+            const updatedUser = await User.findOneAndUpdate(
+                { email }, // filter by email
+                { $set: updateData }, // update the given fields
+                { new: true, runValidators: true } // options
+            );
+
+            if (!updatedUser) {
+                return res.status(404).json({ error: "User not found." });
+            }
+
+            return res.status(200).json(updatedUser);
+        } else {
             res.setHeader("Allow", ["GET", "POST"]); // Update this as necessary
             res.status(405).end(`Method ${req.method} Not Allowed`);
         }

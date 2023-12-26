@@ -4,7 +4,7 @@ import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import AuthInput from "@/components/AuthInput";
-import Button from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/ui/use-toast";
@@ -149,19 +149,12 @@ const SignUp = () => {
                     });
                 } else {
                     // signup successful, save user in context and redirect to profile page
-                    /*
-                    const data = await res.json();
-                    const user = jwtDecode(data.token).user;
-                    */
-                    toast({
-                        variant: "success",
-                        title: "Sign up successful.",
-                        description: "Welcome!",
-                    });
-                    /*
-                    saveUser(user, data.token);
-                    router.push("/profile");
-                    */
+                    const user = await res.json();
+                    //const user = jwtDecode(data.token).user;
+                    localStorage.setItem("email", user.email);
+
+                    //saveUser(user, data.token);
+                    router.push("/auth/signup/verification");
                 }
                 setIsSubmitting(false);
             } catch (error) {
@@ -173,13 +166,6 @@ const SignUp = () => {
             } finally {
                 setIsSubmitting(false);
             }
-
-            // toast({
-            //     variant: "success",
-            //     title: "Sign up successful.",
-            //     description: "Welcome!",
-            // });
-            // setIsSubmitting(false);
         }
     };
 
@@ -230,7 +216,6 @@ const SignUp = () => {
         <>
             <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
                 <h1 className="font-bold text-3xl">Sign Up</h1>
-                <p className="text-lg text-slate-500">Lorem Ipsum.</p>
 
                 {/* form */}
                 <form
@@ -346,7 +331,7 @@ const SignUp = () => {
                     />
 
                     {/* submit button */}
-                    <Button type="submit">
+                    <Button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? (
                             <CircularProgress size={24} color="inherit" />
                         ) : (

@@ -8,22 +8,18 @@ export default async function isGoogleAccountLinked(user, providerAccountId) {
         providerAccountId: providerAccountId,
     });
 
-    console.log(1);
-    console.log(user);
-    console.log(2);
-    console.log(account);
+    if (account) {
+        // Check if the account is already linked in the user record
+        const alreadyLinked = user.accounts.includes(account._id);
 
-    // Check if the account is already linked in the user record
-    const alreadyLinked = user.accounts.includes(account._id);
-
-    console.log(3);
-    console.log(alreadyLinked);
-
-    if (!alreadyLinked) {
-        await User.updateOne(
-            { _id: user._id },
-            { $push: { accounts: account._id } }
-        );
+        if (!alreadyLinked) {
+            await User.updateOne(
+                { _id: user._id },
+                { $push: { accounts: account._id } }
+            );
+        }
+    } else {
+        return false;
     }
 
     return !!account;

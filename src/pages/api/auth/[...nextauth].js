@@ -7,7 +7,6 @@ import clientPromise from "@/utils/mongodbClient";
 import User from "@/models/User";
 import connectMongo from "@/utils/connectMongo";
 import isGoogleAccountLinked from "@/utils/isGoogleAccountLinked";
-import processSplitName from "@/utils/splitName";
 
 export const authOptions = {
     adapter: MongoDBAdapter(clientPromise),
@@ -26,6 +25,10 @@ export const authOptions = {
                 if (!credentials?.email || !credentials?.password) {
                     throw new Error("Missing Email or Password!");
                 }
+
+                //connect to mongo so we can perform find operation
+                await connectMongo();
+
                 // Find your user in the database using MongoDBAdapter
                 const user = await User.findOne({ email: credentials.email });
 
@@ -68,6 +71,9 @@ export const authOptions = {
 
             //check if using google provider to sign in
             if (account.provider === "google") {
+                //connect to mongo so we can perform find operation
+                await connectMongo();
+
                 // Check if the user already exists with the same email
                 const existingUser = await User.findOne({ email: user.email });
 
@@ -105,8 +111,6 @@ export const authOptions = {
             // Send properties to the client, like an access_token and user id from a provider.
             session.accessToken = token.accessToken;
             session.user.id = token.id;
-
-            //await processSplitName()
 
             return session;
         },

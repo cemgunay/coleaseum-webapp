@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import Input from "@/components/Input";
-import Button from "@/components/Button";
+import { Button } from "@/components/ui/button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { IoClose } from "react-icons/io5";
-import { signIn, useSession } from "next-auth/react";
+import { signIn } from "next-auth/react";
 import { useToast } from "@/components/ui/use-toast";
+import { BsGoogle } from "react-icons/bs";
 
 const SignIn = () => {
     const { toast } = useToast();
@@ -46,70 +46,43 @@ const SignIn = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        setIsSubmitting(true);
-
-        signIn("credentials", {
-            ...formData,
-            redirect: false,
-        })
-            .then((callback) => {
-                if (!callback?.ok) {
-                    if (callback?.error) {
-                        toast({
-                            variant: "destructive",
-                            title: callback.error,
-                        });
-                        console.log(callback);
-                        setApiError(callback.error);
-                    }
-                } else {
-                    router.push("/profile");
-                }
-            })
-            .finally(setIsSubmitting(false));
-
-        // proceed with form submission
-        /*
         try {
             setIsSubmitting(true);
-
-            // call signin API route
-            const res = await fetch("/api/auth/signin", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(formData),
+            const result = await signIn("credentials", {
+                ...formData,
+                redirect: false,
             });
-            if (!res.ok) {
-                // signin failed, display error message
-                const error = JSON.parse(await res.text()).error;
-                setApiError(error);
+
+            // Check if signIn was not successful
+            if (!result.ok) {
+                // If there's an error message, display it using toast
+                if (result.error) {
+                    toast({
+                        variant: "destructive",
+                        title: result.error,
+                    });
+                    setApiError(result.error);
+                }
             } else {
-                // signin successful, save user in context and redirect to profile page
-                const data = await res.json();
-                const user = jwtDecode(data.token).user;
-                saveUser(user, data.token);
+                // If signIn was successful, redirect to the profile page
                 router.push("/profile");
             }
-
-            setIsSubmitting(false);
         } catch (error) {
-            console.error("Signup failed", error);
+            // If an exception occurred, handle it here
+            toast({
+                variant: "destructive",
+                title: "An error occurred during sign in.",
+            });
+            console.error("Sign in failed:", error);
+        } finally {
             setIsSubmitting(false);
-            throw new Error(
-                `Signup failed, error not caught by API route:\n${error}`
-            );
         }
-        */
     };
 
     return (
         <>
-            <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
-                <h1 className="font-bold text-3xl">Sign In</h1>
-                <p className="text-lg text-slate-500">Lorem Ipsum.</p>
-
+            <div className="flex flex-col items-start justify-start gap-5 mx-8 pt-10 pb-32">
+                <h1 className="font-bold text-2xl">Sign In</h1>
                 {/* display error message if we have one */}
                 {apiError && (
                     <div className="relative self-center w-4/5 rounded-sm px-4 py-4 text-center text-base bg-red-200 text-red-600">
@@ -120,32 +93,36 @@ const SignIn = () => {
                         />
                     </div>
                 )}
-
                 {/* form */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex flex-col gap-3 w-full"
-                >
+                <form className="space-y-6" onSubmit={handleSubmit}>
                     {/* email input */}
                     <Input
+                        disabled={isSubmitting}
                         placeholder="Email"
                         type="email"
                         name="email"
                         value={formData.email}
                         onChange={handleChange}
+                        required
                     />
 
                     {/* password input */}
                     <Input
+                        disabled={isSubmitting}
                         placeholder="Password"
                         type="password"
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
+                        required
                     />
 
                     {/* submit button */}
-                    <Button type="submit">
+                    <Button
+                        className={"w-full"}
+                        disabled={isSubmitting}
+                        type="submit"
+                    >
                         {isSubmitting ? (
                             <CircularProgress size={24} color="inherit" />
                         ) : (
@@ -153,15 +130,47 @@ const SignIn = () => {
                         )}
                     </Button>
                 </form>
-                <Link
-                    href="/auth/signup"
-                    className="self-end mr-2 underline cursor-pointer text-[#61C0BF]"
-                >
-                    Don't have an account? Sign Up.
-                </Link>
-                <Button onClick={() => handleSocialClick("google")}>
-                    Google
-                </Button>
+
+                {/* Line separator with text */}
+                <div className="relative w-full text-sm">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-full border-t border-gray-300" />
+                    </div>
+                    <div className="relative flex justify-center">
+                        <span className="bg-white px-2 text-gray-500">
+                            Or continue with
+                        </span>
+                    </div>
+                </div>
+
+                <div className="flex gap-2 w-full">
+                    {/* Social Buttons */}
+                    <Button
+                        className={
+                            "inline-flex items-center gap-2 w-full justify-center rounded-md bg-white px-4 py-2 text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0"
+                        }
+                        onClick={() => handleSocialClick("google")}
+                    >
+                        <BsGoogle />
+                        Google
+                    </Button>
+                    {/* Add more social buttons as needed */}
+                </div>
+
+                <div className="w-full flex flex-col items-end gap-2 text-sm text-gray-500">
+                    <Link
+                        href="/auth/reset-password"
+                        className="self-end mr-2 underline cursor-pointer text-[#61C0BF]"
+                    >
+                        Forgot Password
+                    </Link>
+                    <Link
+                        href="/auth/signup"
+                        className="self-end mr-2 underline cursor-pointer text-[#61C0BF]"
+                    >
+                        Don't have an account? Sign Up.
+                    </Link>
+                </div>
             </div>
             <BottomNav />
         </>

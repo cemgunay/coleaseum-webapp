@@ -12,6 +12,8 @@ import { GoArrowSwitch } from "react-icons/go";
 import GuestPage from "@/components/GuestPage";
 import { signOut } from "next-auth/react";
 import getLoggedInUserDetails from "@/utils/getLoggedInUserDetails";
+import RadialProgress from "@/components/ui/RadialProgress";
+import { useRouter } from "next/router";
 
 const profile = () => {
     // get user object from context
@@ -19,12 +21,54 @@ const profile = () => {
     // we will use this ID to fetch the rest of their info from the db
     const { user: contextUser, status } = useAuth();
 
+    const router = useRouter();
+
     // state for user object that will be fetched from db
     const [user, setUser] = useState(null);
+
+    useEffect(() => {
+        if (user && !user.firstName && !user.lastName && user.name) {
+            const nameParts = user.name.split(" ");
+            // Create a new object with updated fields
+            const updatedUser = {
+                ...user,
+                firstName: nameParts[0],
+                lastName: nameParts.slice(1).join(" "),
+            };
+
+            // Set the new user object
+            setUser(updatedUser);
+        }
+    }, [user]);
 
     // other state
     const [error, setError] = useState(null);
     const [loadingUserInfo, setLoadingUserInfo] = useState(false);
+
+    //calculate profile completion
+    const calculateProfileCompletion = (user) => {
+        const requiredFields = [
+            "firstName",
+            "lastName",
+            "dateOfBirth",
+            "location",
+            "email",
+        ];
+        let completedFields = 0;
+
+        requiredFields.forEach((field) => {
+            if (user && user[field]) {
+                completedFields += 1;
+            }
+        });
+
+        //if the name is in database give an extra 2 points so that user doesnt get discouraged from radial progress showing very little
+        if (user && user["name"] && !user["firstName"] && !user["lastName"]) {
+            completedFields += 2;
+        }
+
+        return (completedFields / requiredFields.length) * 100;
+    };
 
     // fetch user data if user is logged in (i.e. contextUser is not null)
     useEffect(() => {
@@ -88,6 +132,40 @@ const profile = () => {
         );
     }
 
+    const ProfileCompletion = ({ user }) => {
+        const completionPercentage = calculateProfileCompletion(user);
+
+        console.log(completionPercentage);
+
+        return (
+            <>
+                {completionPercentage !== 100 ? (
+                    <div className="border border-slate-200 rounded-lg p-4 mb-4">
+                        <div className="text-lg mb-2">
+                            Complete Your Profile
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <div>Reach 100% to access all feautres</div>
+                            <RadialProgress progress={completionPercentage} />
+                        </div>
+
+                        <Button
+                            className="mt-3"
+                            variant="outline"
+                            // Add onClick to navigate to the profile edit page
+                            onClick={() => {
+                                /* Navigate to profile edit page */
+                                router.push("/profile/edit");
+                            }}
+                        >
+                            Complete Profile
+                        </Button>
+                    </div>
+                ) : null}
+            </>
+        );
+    };
+
     return (
         <>
             {contextUser ? (
@@ -102,22 +180,24 @@ const profile = () => {
                     {/* display profile img and welcome message/email */}
                     {/* (subject to change, just placeholders for now) */}
                     <div className="flex items-center gap-6">
-                        {user?.profileImage ? (
+                        {user?.image ? (
                             <img
-                                src={user.profileImage}
-                                className="h-20 w-20 rounded-full"
+                                src={user.image}
+                                className="w-20 h-20 rounded-full"
                             />
                         ) : (
                             <ProfileImagePlaceholder />
                         )}
                         <div className="flex flex-col gap-3 items-start justify-center">
-                            <h1>Welcome, {user?.firstName}!</h1>
-                            <p>Email: {user?.email}</p>
+                            <h1 className="text-xl font-bold">
+                                Welcome, {user?.firstName}!
+                            </h1>
                         </div>
                     </div>
 
                     {/* content */}
                     <div className="w-full flex flex-col gap-1">
+                        <ProfileCompletion user={user} />
                         {/* account links */}
                         <div className="flex flex-col border-y border-slate-200 py-2">
                             <h2 className="text-2xl font-bold mb-1">Account</h2>

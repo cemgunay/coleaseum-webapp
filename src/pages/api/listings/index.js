@@ -1,8 +1,7 @@
 import connectMongo from "@/utils/connectMongo";
 import Listing from "@/models/Listing";
 import Booking from "@/models/Booking";
-
-const authenticate = require("../../../utils/authentication");
+import authenticate from "@/utils/authentication";
 
 // helper function to build the DB query from request query and filters
 const buildDBQuery = (reqQuery, filters) => {
@@ -142,8 +141,9 @@ export default async function handler(req, res) {
             }
         } else if (req.method === "PUT") {
             // Authenticate the user
-            const user = await authenticate(req, res);
-            if (!user) {
+            const token = await authenticate(req, res);
+
+            if (!token) {
                 // Authentication failed, response has been sent by authenticate
                 return;
             }
@@ -165,7 +165,7 @@ export default async function handler(req, res) {
                 }
 
                 // Check if the logged-in user is the owner of the listing
-                if (listing.userId !== user.user.id) {
+                if (listing.userId !== token.id) {
                     return res.status(403).json({
                         error: "You are not authorized to update this listing",
                     });

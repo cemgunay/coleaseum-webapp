@@ -1,16 +1,16 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useAuth } from "@/hooks/useAuth";
 import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import AuthInput from "@/components/AuthInput";
 import { Button } from "@/components/ui/button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/ui/use-toast";
 import Autocomplete from "react-google-autocomplete";
 import { cn } from "@/utils/utils";
 import DatePickerBirthday from "@/components/DatePickerBirthday";
+import { useAuth } from "@/hooks/useAuth";
+import Skeleton from "@/components/Skeleton";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -63,8 +63,16 @@ const validateRequired = (value, name) => {
 };
 
 const SignUp = () => {
-    const { saveUser } = useAuth();
     const router = useRouter();
+    const { status } = useAuth();
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            // User is already signed in, redirect to home or another page
+            router.replace("/");
+        }
+    }, [status, router]);
+
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -74,7 +82,6 @@ const SignUp = () => {
         password: "",
         confirmPassword: "",
     });
-    const formDataRef = useRef(formData);
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({
         firstName: false,
@@ -211,6 +218,18 @@ const SignUp = () => {
             }
         };
     }, [formData]);
+
+    const Loading = () => {
+        return (
+            <div>
+                <Skeleton className={"w-4 h-4"} />
+            </div>
+        );
+    };
+
+    if (status === "loading" || status === "authenticated") {
+        return <Loading />;
+    }
 
     return (
         <>

@@ -9,9 +9,11 @@ import { useToast } from "@/components/ui/use-toast";
 import Autocomplete from "react-google-autocomplete";
 import { cn } from "@/utils/utils";
 import DatePickerBirthday from "@/components/DatePickerBirthday";
-import getLoggedInUserDetails from "@/utils/getLoggedInUserDetails";
 import { FaChevronLeft } from "react-icons/fa";
+import useUser from "@/hooks/useUser";
+import Skeleton from "@/components/Skeleton";
 
+//function to validate required
 const validateRequired = (value, name) => {
     if (!value) {
         return `${name} is required`;
@@ -26,52 +28,27 @@ const EditProfile = () => {
 
     const formRef = useRef(null);
 
-    // state for user object that will be fetched from db
+    // user object from db
+    const {
+        user: initialUser,
+        isLoading,
+        error,
+    } = useUser(contextUser?.id, status);
+
+    //user state ob
     const [user, setUser] = useState({
         firstName: "",
         lastName: "",
-        dateOfBirth: null,
+        dateOfBirth: "",
         location: "",
     });
-    const [error, setError] = useState(null);
-    const [loadingUserInfo, setLoadingUserInfo] = useState(false);
 
-    // fetch user data if user is logged in (i.e. contextUser is not null)
+    //update the user ob with initialUser from db
     useEffect(() => {
-        if (!contextUser) return;
-
-        const fetchUser = async () => {
-            setLoadingUserInfo(true);
-            try {
-                const fetchedUser = await getLoggedInUserDetails(
-                    contextUser,
-                    status,
-                    setError,
-                    setLoadingUserInfo
-                );
-                if (fetchedUser) {
-                    // Check if firstName and lastName exist
-                    if (
-                        !fetchedUser.firstName &&
-                        !fetchedUser.lastName &&
-                        fetchedUser.name
-                    ) {
-                        const nameParts = fetchedUser.name.split(" ");
-                        // Assuming the format "FirstName LastName"
-                        fetchedUser.firstName = nameParts[0];
-                        // Join the remaining parts in case of middle name or compound last names
-                        fetchedUser.lastName = nameParts.slice(1).join(" ");
-                    }
-                    setUser(fetchedUser);
-                }
-            } catch (error) {
-                console.error("Error fetching user details:", error);
-                setLoadingUserInfo(false);
-            }
-        };
-
-        fetchUser();
-    }, [contextUser]);
+        if (initialUser) {
+            setUser(initialUser);
+        }
+    }, [initialUser]);
 
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({
@@ -191,6 +168,18 @@ const EditProfile = () => {
         };
     }, [user]);
 
+    const Loading = () => {
+        return (
+            <div>
+                <Skeleton className={"w-4, h-4"} />
+            </div>
+        );
+    };
+
+    if (isLoading || !initialUser) {
+        return <Loading />;
+    }
+
     return (
         <div className="flex flex-col items-start justify-start min-h-screen gap-5 mx-8 pt-10 pb-32">
             <div className="flex justify-between items-center w-full">
@@ -296,6 +285,7 @@ const EditProfile = () => {
                         options={{
                             types: ["(cities)"], // restrict search to cities only
                         }}
+                        defaultValue={user.location}
                     />
                     {errors.location && touched.location && (
                         <p className="text-sm ml-3 mt-1 text-red-500">

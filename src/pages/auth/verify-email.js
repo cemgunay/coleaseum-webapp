@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { CircularProgress } from "@mui/material";
 import { BsCheckCircleFill, BsFillXCircleFill } from "react-icons/bs";
+import { useAuth } from "@/hooks/useAuth";
 
 const VerifyEmail = () => {
     const [message, setMessage] = useState("");
@@ -9,6 +10,15 @@ const VerifyEmail = () => {
     const [isVerified, setIsVerified] = useState(false);
     const router = useRouter();
     const { token } = router.query;
+
+    const { status } = useAuth();
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            // User is already signed in, redirect to home or another page
+            router.push("/auth/signin");
+        }
+    }, [status, router]);
 
     useEffect(() => {
         const verifyEmail = async () => {
@@ -63,7 +73,7 @@ const VerifyEmail = () => {
         );
     };
 
-    if (isLoading) {
+    if (isLoading || status === "loading") {
         return <Loading />;
     }
 
@@ -75,7 +85,10 @@ const VerifyEmail = () => {
                     style={{ color: "var(--color-primary)" }}
                 />
                 <div>{message}</div>
-                <a href="/auth/signin" className="text-sm text-color-secondary-light underline">
+                <a
+                    href="/auth/signin"
+                    className="text-sm text-color-secondary-light underline"
+                >
                     Click here if you are not redirected.
                 </a>
             </div>

@@ -19,7 +19,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 const ManageListings = () => {
     //get context user from hook
-    const { user: contextUser } = useAuth();
+    const { user } = useAuth();
 
     // State Variables
     const [isLoading, setIsLoading] = useState(true);
@@ -61,10 +61,10 @@ const ManageListings = () => {
             }
         }
 
-        if (contextUser?.id) {
-            fetchData(contextUser.id);
+        if (user?.id) {
+            fetchData(user.id);
         }
-    }, [contextUser]);
+    }, [user]);
 
     // Handlers
 

@@ -10,6 +10,8 @@ import {
 import { useRouter } from "next/router";
 import { determineRoute } from "@/utils/determineRoute";
 import { useToast } from "@/components/ui/use-toast";
+import useSWR from "swr";
+import fetcher from "@/utils/fetcher";
 
 // Create a context for the listing form.
 export const ListingFormContext = createContext();
@@ -59,7 +61,8 @@ const PATHNAME_EDIT = "/host/manage-listings";
 // Provider component for the ListingFormContext.
 export const ListingFormProvider = ({ children }) => {
     // Retrieve the current user and initialize router for navigation.
-    const { user: contextUser, token: token } = useAuth();
+    const { user, status } = useAuth();
+
     const router = useRouter();
     const { toast } = useToast();
 
@@ -69,8 +72,9 @@ export const ListingFormProvider = ({ children }) => {
     const isEditListingRoute = router.pathname.startsWith(PATHNAME_EDIT);
 
     // States to manage the loading and pushing (data submission) status.
-    const [isLoading, setIsLoading] = useState(true);
     const [pushing, setPushing] = useState(false);
+    // Additional state to handle routing loading
+    const [isRouting, setIsRouting] = useState(true);
 
     // Reducers for managing different aspects of the listing form.
     const [listingDetailsState, listingDetailsDispatch] = useReducer(
@@ -108,71 +112,46 @@ export const ListingFormProvider = ({ children }) => {
 
     // Update the user ID in the listing details when the context user changes.
     useEffect(() => {
-        if (contextUser) {
+        if (user) {
             listingDetailsDispatch({
                 type: "UPDATE_USER_ID",
-                payload: contextUser.id,
+                payload: user.id,
             });
         }
-    }, [contextUser]);
+    }, [user]);
 
     // Function to load data from the database based on the listing ID.
-    const loadData = async () => {
-        setIsLoading(true);
-        try {
-            const response = await fetch(`/api/listings/${listingId}`);
+    const { data, error, isLoading } = useSWR(
+        listingId ? `/api/listings/${listingId}` : null,
+        fetcher
+    );
 
-            // Handle different response statuses and navigate to appropriate pages.
-            if (!response.ok) {
-                if (response.status === 404) {
-                    router.push("/404"); // Navigate to 404 page on not found error.
-                    return;
-                } else if (response.status === 500) {
-                    router.push("/500"); // Navigate to 500 page on server error.
-                    return;
-                }
-                throw new Error(
-                    `API call failed with status ${response.status}`
-                );
-            }
-
-            const data = await response.json();
-
-            // Prepare the payload to update states with fetched data.
+    // Update form states based on fetched data
+    useEffect(() => {
+        setIsRouting(true);
+        if (data) {
             const { utilities, images, amenities, ...listingDetails } = data;
-            const payload = {
-                listingDetails,
-                utilities,
-                images,
-                amenities,
-            };
-
-            // Dispatch action to update all parts of the form state.
+            const payload = { listingDetails, utilities, images, amenities };
             combinedListingFormDispatch({
                 type: "LOAD_STATE",
                 payload: payload,
             });
 
-            // Determine the next step
+            // Determine the next step based on the data
             const nextStep = determineRoute(data);
-
-            // Redirect to the correct step if necessary
-            if (router.asPath !== nextStep && isCreateListingRoute) {
-                await router.push(nextStep);
+            if (
+                router.asPath !== nextStep &&
+                (isCreateListingRoute || isEditListingRoute) &&
+                listingId
+            ) {
+                router.push(nextStep).then(() => setIsRouting(false));
+            } else {
+                setIsRouting(false);
             }
-        } catch (error) {
-            console.error("Error loading form data:", error);
-            // TODO: Implement error handling with user notifications.
+        } else {
+            setIsRouting(false);
         }
-        setIsLoading(false);
-    };
-
-    // Effect to load data when the listing ID changes or when navigating between pages.
-    useEffect(() => {
-        if ((isCreateListingRoute || isEditListingRoute) && listingId) {
-            loadData();
-        }
-    }, [isCreateListingRoute, listingId]);
+    }, [data, isCreateListingRoute, isEditListingRoute]);
 
     // Function to push data to the database and navigate to the next form page.
     const pushToDatabase = async (listingId, updateData, nextPage) => {
@@ -182,7 +161,6 @@ export const ListingFormProvider = ({ children }) => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ listingId, updateData }),
             });
@@ -227,13 +205,16 @@ export const ListingFormProvider = ({ children }) => {
         }
     };
 
+    // Combined loading state for the UI
+    const isLoadingCombined = isLoading || isRouting;
+
     return (
         <ListingFormContext.Provider
             value={{
                 listingId,
                 combinedListingFormState,
                 combinedListingFormDispatch,
-                isLoading,
+                isLoading: isLoadingCombined,
                 setPushing,
                 pushToDatabase,
                 pushing,

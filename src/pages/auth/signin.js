@@ -9,12 +9,21 @@ import { IoClose } from "react-icons/io5";
 import { signIn } from "next-auth/react";
 import { useToast } from "@/components/ui/use-toast";
 import { BsGoogle } from "react-icons/bs";
+import { useAuth } from "@/hooks/useAuth";
+import Skeleton from "@/components/Skeleton";
 
 const SignIn = () => {
     const { toast } = useToast();
-    // const { saveUser } = useAuth();
     const router = useRouter();
     const { error } = router.query;
+    const { status } = useAuth();
+
+    useEffect(() => {
+        if (status === "authenticated") {
+            // User is already signed in, redirect to home or another page
+            router.replace("/");
+        }
+    }, [status, router]);
 
     const [formData, setFormData] = useState({
         email: "",
@@ -78,6 +87,18 @@ const SignIn = () => {
             setIsSubmitting(false);
         }
     };
+
+    const Loading = () => {
+        return (
+            <div>
+                <Skeleton className={"w-4 h-4"} />
+            </div>
+        );
+    };
+
+    if (status === "loading" || status === "authenticated") {
+        return <Loading />;
+    }
 
     return (
         <>

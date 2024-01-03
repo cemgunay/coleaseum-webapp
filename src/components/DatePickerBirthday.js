@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
@@ -17,6 +17,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import getValidDate from "@/utils/getValidDate";
 
 const YearPicker = ({ selectedYear, setSelectedYear }) => {
     const years = Array.from(
@@ -81,6 +82,13 @@ const DatePickerBirthday = ({ formData, setFormData, maxDate, className }) => {
     //state to control Popover visibility
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
+    //set initial values
+    useEffect(() => {
+        if (formData?.dateOfBirth) {
+            setDate(formData.dateOfBirth);
+        }
+    }, [formData]);
+
     const handleYearChange = (year) => {
         setSelectedYear(year);
         if (date) {
@@ -131,7 +139,11 @@ const DatePickerBirthday = ({ formData, setFormData, maxDate, className }) => {
                     )}
                 >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                    {date ? (
+                        format(getValidDate(date), "PPP")
+                    ) : (
+                        <span>Pick a date</span>
+                    )}
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0 flex flex-col items-center">
@@ -151,7 +163,7 @@ const DatePickerBirthday = ({ formData, setFormData, maxDate, className }) => {
                     onSelect={handleDateSelect}
                     displayDate={popoverDisplayDate}
                     setDisplayDate={setPopoverDisplayDate}
-                    disabled={{after: maxDate}}
+                    disabled={{ after: maxDate }}
                     initialFocus
                 />
             </PopoverContent>

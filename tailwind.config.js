@@ -81,10 +81,15 @@ module.exports = {
                     from: { height: "var(--radix-accordion-content-height)" },
                     to: { height: 0 },
                 },
+                "click-feedback": {
+                    from: { color: "#4CAF50" },
+                    to: { color: "black" },
+                },
             },
             animation: {
                 "accordion-down": "accordion-down 0.2s ease-out",
                 "accordion-up": "accordion-up 0.2s ease-out",
+                "click-animation": "click-feedback 0.5s ease",
             },
         },
     },

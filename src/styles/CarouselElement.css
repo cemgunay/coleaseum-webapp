@@ -13,6 +13,8 @@
 }
 
 .slick-slide {
+    width: 100%;
+    height: 100%;
     overflow: hidden;
 }
 
@@ -30,11 +32,6 @@
 
 .carousel-image.with-margin {
     margin: 0 5px;
-}
-
-.set-width {
-    width: 13rem !important;
-    height: 100% !important;
 }
 
 .slick-dots {

@@ -2,6 +2,8 @@ import connectMongo from "@/utils/connectMongo";
 import Listing from "@/models/Listing";
 import Booking from "@/models/Booking";
 
+const authenticate = require("../../../utils/authentication");
+
 // helper function to build the DB query from request query and filters
 const buildDBQuery = (reqQuery, filters) => {
     // create dbQuery to be edited by req query and filters
@@ -73,10 +75,12 @@ export default async function handler(req, res) {
         // attempt DB connection
         await connectMongo();
 
-        // only allowing GET requests (for now, not sure if this endpoint needs PUTs or POSTs too)
+        // GET, POST, and PUT requests
         if (req.method == "GET") {
             // extract query filters from request
-            const filters = req.query.filters ? JSON.parse(req.query.filters) : {};
+            const filters = req.query.filters
+                ? JSON.parse(req.query.filters)
+                : {};
 
             // build db query with helper
             const dbQuery = buildDBQuery(req.query, filters);
@@ -126,8 +130,66 @@ export default async function handler(req, res) {
                     res.status(500).json({ error: "Internal Server Error" });
                 }
             }
+        } else if (req.method === "POST") {
+            // Handle POST request for creating a new listing
+            try {
+                const newListing = new Listing(req.body);
+
+                const savedListing = await newListing.save();
+                res.status(201).json({ success: true, id: savedListing._id });
+            } catch (error) {
+                res.status(500).json({ success: false, error: error.message });
+            }
+        } else if (req.method === "PUT") {
+            // Authenticate the user
+            const user = await authenticate(req, res);
+            if (!user) {
+                // Authentication failed, response has been sent by authenticate
+                return;
+            }
+
+            // Extract the listing ID and data to update
+            const { listingId, updateData } = req.body;
+
+            if (!listingId || !updateData) {
+                return res
+                    .status(400)
+                    .json({ error: "Listing ID and update data are required" });
+            }
+
+            try {
+                const listing = await Listing.findById(listingId);
+
+                if (!listing) {
+                    return res.status(404).json({ error: "Listing not found" });
+                }
+
+                // Check if the logged-in user is the owner of the listing
+                if (listing.userId !== user.user.id) {
+                    return res.status(403).json({
+                        error: "You are not authorized to update this listing",
+                    });
+                }
+
+                // Update the listing in the database
+                const updatedListing = await Listing.findByIdAndUpdate(
+                    listingId,
+                    updateData,
+                    { new: true }
+                );
+
+                if (!updatedListing) {
+                    return res.status(404).json({ error: "Listing not found" });
+                }
+
+                res.status(200).json({ success: true, updatedListing });
+            } catch (error) {
+                console.error("Update error: ", error);
+                res.status(500).json({ error: "Internal Server Error" });
+            }
         } else {
-            res.setHeader("Allow", ["GET"]);
+            // Handle unsupported methods
+            res.setHeader("Allow", ["GET", "POST"]);
             res.status(405).end(`Method ${req.method} Not Allowed`);
         }
     } catch (error) {

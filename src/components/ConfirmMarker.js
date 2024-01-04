@@ -3,16 +3,11 @@ import GoogleMap from "@/components/Map";
 import { MdLocationOn } from "react-icons/md";
 import Skeleton from "./Skeleton";
 
-const ConfirmMarker = ({
-    position,
-    isLoaded,
-    loadError,
-    combinedListingFormDispatch,
-}) => {
+const ConfirmMarker = ({ position, isLoaded, loadError, combinedListingFormDispatch }) => {
     return (
         <div className="h-full mx-8">
             <div className="h-full flex flex-col justify-between pb-4 gap-4">
-                <div className="text-lg">Is the pin in the right spot?</div>
+                <div className="text-lg">Is the pin in the right spot? Drag to move.</div>
                 <GoogleMap
                     position={position}
                     isLoaded={isLoaded}

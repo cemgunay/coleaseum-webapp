@@ -1,10 +1,6 @@
 import CreateListingLayout from "@/components/CreateListingLayout";
 import Skeleton from "@/components/Skeleton";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import { useListingForm } from "@/hooks/useListingForm";
 import Image from "next/image";
@@ -29,12 +25,8 @@ const Images = () => {
     const router = useRouter();
 
     //get context from listing form
-    const {
-        listingId,
-        combinedListingFormState,
-        combinedListingFormDispatch,
-        pushToDatabase,
-    } = useListingForm();
+    const { listingId, combinedListingFormState, combinedListingFormDispatch, pushToDatabase } =
+        useListingForm();
 
     //initialize files array
     const [files, setFiles] = useState([]);
@@ -88,9 +80,7 @@ const Images = () => {
                             } MB.`;
                             break;
                         case "file-too-small":
-                            message += `File is too small. Min size is ${
-                                MIN_FILE_SIZE / 1024
-                            } KB.`;
+                            message += `File is too small. Min size is ${MIN_FILE_SIZE / 1024} KB.`;
                             break;
                         case "file-invalid-type":
                             message += `Invalid file type. Allowed types are ${ALLOWED_FILE_TYPES.join(
@@ -179,24 +169,16 @@ const Images = () => {
                 toast({
                     variant: "destructive",
                     title: "Upload Error",
-                    description:
-                        error.message ||
-                        "An error occurred during file upload.",
+                    description: error.message || "An error occurred during file upload.",
                 });
-                updateProgress(
-                    file.uniqueId,
-                    0,
-                    error.message || "Upload error"
-                );
+                updateProgress(file.uniqueId, 0, error.message || "Upload error");
             }
         }
     };
 
     //remove file preview if upload fail
     const removeFilePreview = (uniqueId) => {
-        setFiles((currentFiles) =>
-            currentFiles.filter((file) => file.uniqueId !== uniqueId)
-        );
+        setFiles((currentFiles) => currentFiles.filter((file) => file.uniqueId !== uniqueId));
     };
 
     //update file state with cloudinaryUrl
@@ -224,10 +206,7 @@ const Images = () => {
 
     //useEffect to update progress state for each file from database
     useEffect(() => {
-        if (
-            combinedListingFormState.images &&
-            combinedListingFormState.images.length
-        ) {
+        if (combinedListingFormState.images && combinedListingFormState.images.length) {
             setUploadProgress((prevProgress) => {
                 // Create a new progress object
                 const newProgress = { ...prevProgress };
@@ -280,15 +259,9 @@ const Images = () => {
         setFiles((prevFiles) => {
             const newFiles = [...prevFiles];
             if (direction === "up" && index > 0) {
-                [newFiles[index], newFiles[index - 1]] = [
-                    newFiles[index - 1],
-                    newFiles[index],
-                ];
+                [newFiles[index], newFiles[index - 1]] = [newFiles[index - 1], newFiles[index]];
             } else if (direction === "down" && index < newFiles.length - 1) {
-                [newFiles[index], newFiles[index + 1]] = [
-                    newFiles[index + 1],
-                    newFiles[index],
-                ];
+                [newFiles[index], newFiles[index + 1]] = [newFiles[index + 1], newFiles[index]];
             }
 
             return newFiles;
@@ -312,9 +285,7 @@ const Images = () => {
 
         // Filter out files that are fully uploaded and have Cloudinary URLs
         const uploadedFiles = files.filter(
-            (file) =>
-                file.cloudinaryUrl &&
-                uploadProgress[file.uniqueId]?.progress === 100
+            (file) => file.cloudinaryUrl && uploadProgress[file.uniqueId]?.progress === 100
         );
 
         //format data for update
@@ -377,9 +348,7 @@ const Images = () => {
                 <div
                     className="bg-color-primary h-1 dark:bg-color-primary"
                     style={{
-                        width: `${
-                            uploadProgress[file.uniqueId]?.progress || 0
-                        }%`,
+                        width: `${uploadProgress[file.uniqueId]?.progress || 0}%`,
                     }}
                 ></div>
             </div>
@@ -387,26 +356,34 @@ const Images = () => {
             <Popover>
                 <PopoverTrigger asChild>
                     <button className="absolute top-1 right-1 bg-white rounded-full p-1 shadow-lg m-2">
-                        <FaEllipsisH className="text-black text-sm" />{" "}
-                        {/* Black ellipsis icon */}
+                        <FaEllipsisH className="text-black text-sm" /> {/* Black ellipsis icon */}
                     </button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto text-sm mr-8">
+                <PopoverContent className="w-auto text-sm mr-6">
                     <ul className="flex flex-col">
-                        <li onClick={() => makeCoverPhoto(index)}>
+                        <li
+                            onClick={() => makeCoverPhoto(index)}
+                            className="border-b pb-1.5 border-gray-200"
+                        >
                             Make Cover Photo
                         </li>
                         {index > 0 && (
-                            <li onClick={() => moveImage(index, "up")}>
+                            <li
+                                onClick={() => moveImage(index, "up")}
+                                className="border-b pb-1.5 pt-1 border-gray-200"
+                            >
                                 Move Up
                             </li>
                         )}
                         {index < files.length - 1 && (
-                            <li onClick={() => moveImage(index, "down")}>
+                            <li
+                                onClick={() => moveImage(index, "down")}
+                                className="border-b pb-1.5 pt-1 border-gray-200"
+                            >
                                 Move Down
                             </li>
                         )}
-                        <li onClick={() => removeImage(file.uniqueId)}>
+                        <li onClick={() => removeImage(file.uniqueId)} className="pt-1">
                             Delete
                         </li>
                     </ul>
@@ -428,8 +405,7 @@ const Images = () => {
                 <div className="flex flex-col gap-2">
                     <div>Add some photos of your apartment</div>
                     <div className="text-sm font-light">
-                        You'll need 3 photos to get started. You can add more or
-                        make changes later.
+                        You'll need 3 photos to get started. You can add more or make changes later.
                     </div>
                 </div>
 
@@ -447,8 +423,7 @@ const Images = () => {
                 >
                     <input {...getInputProps()} />
                     <p>
-                        Drag 'n' drop some files of type jpg/jpeg/png here, or
-                        click to select files
+                        Drag 'n' drop some files of type jpg/jpeg/png here, or click to select files
                     </p>
                 </div>
             </div>

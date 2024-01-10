@@ -98,7 +98,7 @@ const Sublets = () => {
             default:
                 setDisplayListings([]);
         }
-    });
+    }, [activeTab]);
 
     // loading component
     const Loading = () => {

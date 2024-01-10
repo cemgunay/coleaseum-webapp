@@ -242,7 +242,7 @@ const HostListing = ({ listing, requests, user }) => {
             {listingActiveTab === "active" || listingActiveTab === "past" ? (
                 <div
                     className="absolute flex items-center justify-center top-0 right-0 z-[100] m-3 rounded-full bg-color-primary w-8 h-8 hover:cursor-pointer"
-                    onClick={() => router.push(`host/manage/listings/${listing._id}/edit`)}
+                    onClick={() => router.push(`/host/manage-listings/${listing._id}/edit`)}
                 >
                     <GrEdit className="text-base text-gray-100" />
                 </div>

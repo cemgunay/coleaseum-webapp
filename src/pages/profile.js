@@ -146,7 +146,8 @@ const profile = () => {
                             <h2 className="text-2xl font-bold mb-1">Tenant</h2>
                             <div className="flex flex-col">
                                 {/* will prob replace these divs with Links later */}
-                                <div
+                                <Link
+                                    href="/host/create-listing/info"
                                     className={cn(
                                         "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
                                         "flex items-center gap-2"
@@ -154,12 +155,17 @@ const profile = () => {
                                 >
                                     <PiHouse className="text-lg" />
                                     List a sublet
+
                                 </div>
 
                                 {/* This button will likely be removed in prod, but useful to access */}
                                 {/* host sublets page for development */}
                                 <Link
                                     href="/host/sublets"
+
+                                </Link>
+                                <div
+
                                     className={cn(
                                         "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
                                         "flex items-center gap-2"

@@ -19,10 +19,10 @@ const ListingSchema = new Schema(
         },
         images: [
             {
-                url: String,
-                filename: String,
-                file: Object,
-                progress: Number,
+                cloudinaryUrl: String,
+                path: String,
+                preview: String,
+                uniqueId: String,
             },
         ],
         location: {
@@ -32,14 +32,16 @@ const ListingSchema = new Schema(
             postalcode: { type: String },
             stateprovince: { type: String },
             unitnumber: { type: String },
-            lat: { type: Number },
-            lng: { type: Number },
+            lat: { type: Number, default: null },
+            lng: { type: Number, default: null },
         },
         moveInDate: {
             type: Date,
+            default: null,
         },
         moveOutDate: {
             type: Date,
+            default: null,
         },
         shorterStays: {
             type: Boolean,
@@ -49,7 +51,7 @@ const ListingSchema = new Schema(
             type: Boolean,
             default: true,
         },
-        viewingDates: [{ type: String }],
+        viewingDates: [{ type: Date }],
         expiryDate: {
             type: Date,
         },
@@ -59,15 +61,15 @@ const ListingSchema = new Schema(
         },
         price: {
             type: Number,
-            default: 0,
+            default: 100,
         },
-        aboutyourplace: {
-            propertyType: { type: String },
-            privacyType: { type: String },
+        aboutYourPlace: {
+            propertyType: { type: String, default: "" },
+            privacyType: { type: String, default: "" },
         },
         basics: {
             bedrooms: [bedroomSchema],
-            bathrooms: { type: Number },
+            bathrooms: { type: Number, default: 0 },
         },
         amenities: {
             inUnitWasherAndDrier: {
@@ -102,6 +104,54 @@ const ListingSchema = new Schema(
                 type: Boolean,
                 default: false,
             },
+            Test1: {
+                type: Boolean,
+                default: false,
+            },
+            Test2: {
+                type: Boolean,
+                default: false,
+            },
+            Test3: {
+                type: Boolean,
+                default: false,
+            },
+            Test4: {
+                type: Boolean,
+                default: false,
+            },
+            Test5: {
+                type: Boolean,
+                default: false,
+            },
+            Test6: {
+                type: Boolean,
+                default: false,
+            },
+            Test7: {
+                type: Boolean,
+                default: false,
+            },
+            Test8: {
+                type: Boolean,
+                default: false,
+            },
+            Test9: {
+                type: Boolean,
+                default: false,
+            },
+            Test10: {
+                type: Boolean,
+                default: false,
+            },
+            Test11: {
+                type: Boolean,
+                default: false,
+            },
+            Test12: {
+                type: Boolean,
+                default: false,
+            },
         },
         utilities: {
             hydro: {
@@ -128,6 +178,10 @@ const ListingSchema = new Schema(
             type: Boolean,
             default: false,
         },
+        draft: {
+            type: Boolean,
+            default: false,
+        },
         transactionInProgress: {
             type: Boolean,
             default: false,
@@ -147,7 +201,11 @@ const ListingSchema = new Schema(
             default: false,
         },
     },
-    { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
+    {
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true },
+    }
 );
 
 // // virtual properties
@@ -162,14 +220,13 @@ const ListingSchema = new Schema(
 // (rewriting with extra error handling steps bc some entries in the DB
 // don't have .expiryDate anymore and were giving errors)
 ListingSchema.virtual("daysLeft").get(function () {
-    if (this.expiryDate && this.expiryDate instanceof Date) {
-        const now = new Date();
-        const diffTime = this.expiryDate.getTime() - now.getTime();
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        return diffDays;
-    } else {
-        return 0;
+    if (!this.expiryDate) {
+        return null; // or some default value
     }
+    const now = new Date();
+    const diffTime = this.expiryDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
 });
 
 ListingSchema.virtual("numOfBedrooms").get(function () {
@@ -179,6 +236,7 @@ ListingSchema.virtual("numOfBedrooms").get(function () {
 ListingSchema.set("toObject", { virtuals: true });
 ListingSchema.set("toJSON", { virtuals: true });
 
-const ListingModel = mongoose.models.Listing || mongoose.model("Listing", ListingSchema);
+const ListingModel =
+    mongoose.models.Listing || mongoose.model("Listing", ListingSchema);
 
 export default ListingModel;

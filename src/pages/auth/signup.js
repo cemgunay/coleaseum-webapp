@@ -5,12 +5,12 @@ import BottomNav from "@/components/BottomNav";
 import Link from "next/link";
 import AuthInput from "@/components/AuthInput";
 import Button from "@/components/Button";
-import DatePicker from "@/components/DatePicker";
 import CircularProgress from "@mui/material/CircularProgress";
 import { jwtDecode } from "jwt-decode";
 import { useToast } from "@/components/ui/use-toast";
 import Autocomplete from "react-google-autocomplete";
 import { cn } from "@/utils/utils";
+import DatePickerBirthday from "@/components/DatePickerBirthday";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -101,11 +101,17 @@ const SignUp = () => {
         const newErrors = {
             email: validateEmail(formData.email),
             password: validatePassword(formData.password),
-            confirmPassword: validateConfirmPassword(formData.confirmPassword, formData.password),
+            confirmPassword: validateConfirmPassword(
+                formData.confirmPassword,
+                formData.password
+            ),
             firstName: validateRequired(formData.firstName, "First name"),
             lastName: validateRequired(formData.lastName, "Last name"),
             location: validateRequired(formData.location, "Location"),
-            dateOfBirth: validateRequired(formData.dateOfBirth, "Date of birth"),
+            dateOfBirth: validateRequired(
+                formData.dateOfBirth,
+                "Date of birth"
+            ),
             // can add more if we need
         };
         setErrors(newErrors);
@@ -117,7 +123,9 @@ const SignUp = () => {
         }
         setTouched(allTouched);
 
-        const isValid = Object.values(newErrors).every((error) => error === null);
+        const isValid = Object.values(newErrors).every(
+            (error) => error === null
+        );
         if (isValid) {
             // proceed with form submission
             try {
@@ -148,14 +156,16 @@ const SignUp = () => {
                         title: "Sign up successful.",
                         description: "Welcome!",
                     });
-                    saveUser(user);
+                    saveUser(user, data.token);
                     router.push("/profile");
                 }
                 setIsSubmitting(false);
             } catch (error) {
                 console.error("Signup failed", error);
                 setIsSubmitting(false);
-                throw new Error(`Signup failed, error not caught by API route:\n${error}`);
+                throw new Error(
+                    `Signup failed, error not caught by API route:\n${error}`
+                );
             } finally {
                 setIsSubmitting(false);
             }
@@ -219,13 +229,20 @@ const SignUp = () => {
                 <p className="text-lg text-slate-500">Lorem Ipsum.</p>
 
                 {/* form */}
-                <form onSubmit={handleSubmit} className="flex flex-col gap-3 w-full">
+                <form
+                    onSubmit={handleSubmit}
+                    className="flex flex-col gap-3 w-full"
+                >
                     {/* date of birth input */}
                     <div className="flex flex-col">
                         <label className="text-base font-medium text-slate-900 mb-1 ml-0">
                             Date of Birth
                         </label>
-                        <DatePicker formData={formData} setFormData={setFormData} />
+                        <DatePickerBirthday
+                            formData={formData}
+                            setFormData={setFormData}
+                            maxDate={new Date()}
+                        />
                     </div>
 
                     {/* first name input */}
@@ -264,7 +281,10 @@ const SignUp = () => {
                             onPlaceSelected={(place) => {
                                 if (onPlaceSelectedRef.current) {
                                     onPlaceSelectedRef.current(place);
-                                    setErrors({ ...errors, location: validate("location", place) });
+                                    setErrors({
+                                        ...errors,
+                                        location: validate("location", place),
+                                    });
                                 }
                             }}
                             className={cn(
@@ -278,7 +298,9 @@ const SignUp = () => {
                             }}
                         />
                         {errors.location && touched.location && (
-                            <p className="text-sm ml-3 mt-1 text-red-500">{errors.location}</p>
+                            <p className="text-sm ml-3 mt-1 text-red-500">
+                                {errors.location}
+                            </p>
                         )}
                     </div>
 
@@ -321,7 +343,11 @@ const SignUp = () => {
 
                     {/* submit button */}
                     <Button type="submit">
-                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Sign Up"}
+                        {isSubmitting ? (
+                            <CircularProgress size={24} color="inherit" />
+                        ) : (
+                            "Sign Up"
+                        )}
                     </Button>
                 </form>
                 <Link

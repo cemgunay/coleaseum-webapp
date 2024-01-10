@@ -178,6 +178,10 @@ const ListingSchema = new Schema(
             type: Boolean,
             default: false,
         },
+        draft: {
+            type: Boolean,
+            default: false,
+        },
         transactionInProgress: {
             type: Boolean,
             default: false,

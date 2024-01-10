@@ -48,6 +48,7 @@ const Publish = () => {
         //format data for update
         const updateData = {
             published: true,
+            draft: false,
         };
 
         //call the function to push to database from context

@@ -17,6 +17,7 @@ const basics = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
 
     //state variables that will be used in component for shorthand
@@ -57,6 +58,7 @@ const basics = () => {
 
     // go back
     const handleBack = () => {
+        setUserBack(true)
         router.push(`/host/create-listing/${listingId}/location`);
     };
 

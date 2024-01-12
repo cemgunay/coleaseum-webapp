@@ -26,6 +26,7 @@ const Description = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
 
     //declare description for shorthand
@@ -97,6 +98,7 @@ const Description = () => {
 
     //go back
     const handleBack = () => {
+        setUserBack(true)
         router.push(`/host/create-listing/${listingId}/title`);
     };
 

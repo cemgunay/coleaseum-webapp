@@ -28,7 +28,7 @@ function checkListingCompleteness(listing) {
     if (listing.basics.bedrooms.length === 0) {
         return FORM_STEPS.BASICS;
     }
-    if (listing.images.length <= 3) {
+    if (listing.images.length < 3) {
         return FORM_STEPS.IMAGES;
     }
     if (!listing.title) {
@@ -37,8 +37,8 @@ function checkListingCompleteness(listing) {
     if (!listing.description) {
         return FORM_STEPS.DESCRIPTION;
     }
-    if (listing.price === 100) {
-        return FORM_STEPS.PRICE; // this is the default
+    if (!listing.priceChanged) {
+        return FORM_STEPS.PRICE;
     }
     if (!listing.moveInDate || !listing.moveOutDate) {
         return FORM_STEPS.DATES;
@@ -46,7 +46,15 @@ function checkListingCompleteness(listing) {
     return FORM_STEPS.PUBLISH;
 }
 
-export function determineRoute(listing) {
+export function determineRoute(listing, currentRoute) {
+    // Split the path and check if the last segment is 'preview'
+    const pathSegments = currentRoute.split("/");
+    const lastSegment = pathSegments[pathSegments.length - 1];
+
+    if (lastSegment === "preview" || lastSegment === "edit") {
+        return; // Do nothing if the last segment is 'preview'
+    }
+
     const nextStepKey = checkListingCompleteness(listing);
 
     if (nextStepKey) {

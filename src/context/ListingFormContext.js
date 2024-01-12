@@ -44,7 +44,8 @@ const initialListingDetailsState = {
     title: "",
     description: "",
     published: false,
-    price: null,
+    price: 100,
+    priceChanged: false,
     moveInDate: null,
     moveOutDate: null,
     expiryDate: null,
@@ -70,11 +71,14 @@ export const ListingFormProvider = ({ children }) => {
     const { listingId } = router.query;
     const isCreateListingRoute = router.pathname.startsWith(PATHNAME_CREATE);
     const isEditListingRoute = router.pathname.startsWith(PATHNAME_EDIT);
+    const currentRoute = router.pathname;
 
     // States to manage the loading and pushing (data submission) status.
     const [pushing, setPushing] = useState(false);
     // Additional state to handle routing loading
     const [isRouting, setIsRouting] = useState(true);
+    // To check if user used the back button
+    const [userBack, setUserBack] = useState(false);
 
     // Reducers for managing different aspects of the listing form.
     const [listingDetailsState, listingDetailsDispatch] = useReducer(
@@ -121,37 +125,74 @@ export const ListingFormProvider = ({ children }) => {
     }, [user]);
 
     // Function to load data from the database based on the listing ID.
-    const { data, error, isLoading } = useSWR(
+    const { data, error, isLoading, mutate } = useSWR(
         listingId ? `/api/listings/${listingId}` : null,
         fetcher
     );
 
-    // Update form states based on fetched data
+    //check if user is authorized if not redirect, if so then load database data into listing state
     useEffect(() => {
-        setIsRouting(true);
-        if (data) {
-            const { utilities, images, amenities, ...listingDetails } = data;
-            const payload = { listingDetails, utilities, images, amenities };
-            combinedListingFormDispatch({
-                type: "LOAD_STATE",
-                payload: payload,
-            });
+        const checkAuthAndLoadData = async () => {
+            if (isCreateListingRoute || isEditListingRoute) {
+                setIsRouting(true); // Set routing to true at the start
 
-            // Determine the next step based on the data
-            const nextStep = determineRoute(data);
-            if (
-                router.asPath !== nextStep &&
-                (isCreateListingRoute || isEditListingRoute) &&
-                listingId
-            ) {
-                router.push(nextStep).then(() => setIsRouting(false));
-            } else {
-                setIsRouting(false);
+                if (listingId && status === "authenticated") {
+                    if (data) {
+                        // Check if authenticated user matches listing user
+                        if (data.userId !== user.id) {
+                            // Redirect the user to the 403 page
+                            router.replace("/403").then(() => {
+                                setIsRouting(false);
+                            });
+                            return;
+                        }
+
+                        // Load listing data into context
+                        const {
+                            utilities,
+                            images,
+                            amenities,
+                            ...listingDetails
+                        } = data;
+                        const payload = {
+                            listingDetails,
+                            utilities,
+                            images,
+                            amenities,
+                        };
+                        combinedListingFormDispatch({
+                            type: "LOAD_STATE",
+                            payload: payload,
+                        });
+
+                        // to check if user manually entered a url
+                        if (!userBack) {
+                            // Determine the next step based on the data
+                            const nextStep = determineRoute(data, currentRoute);
+                            if (
+                                nextStep &&
+                                router.asPath !== nextStep &&
+                                listingId
+                            ) {
+                                await router.replace(nextStep); // Wait for the routing to complete
+                            }
+                        }
+                    }
+                }
+                setIsRouting(false); // Set routing to false at the end
             }
-        } else {
-            setIsRouting(false);
-        }
-    }, [data, isCreateListingRoute, isEditListingRoute]);
+        };
+
+        checkAuthAndLoadData();
+    }, [
+        listingId,
+        status,
+        data,
+        isCreateListingRoute,
+        isEditListingRoute,
+        router,
+        user,
+    ]);
 
     // Function to push data to the database and navigate to the next form page.
     const pushToDatabase = async (listingId, updateData, nextPage) => {
@@ -172,6 +213,7 @@ export const ListingFormProvider = ({ children }) => {
                 throw new Error(updatedListing.error || "API call failed");
             }
 
+            await mutate(); // Force revalidation of the listing data
             console.log("Listing updated:", updatedListing);
 
             // Check if nextPage is provided before navigating
@@ -218,6 +260,7 @@ export const ListingFormProvider = ({ children }) => {
                 setPushing,
                 pushToDatabase,
                 pushing,
+                setUserBack,
             }}
         >
             {children}

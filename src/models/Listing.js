@@ -63,6 +63,10 @@ const ListingSchema = new Schema(
             type: Number,
             default: 100,
         },
+        priceChanged: {
+            type: Boolean,
+            default: false,
+        },
         aboutYourPlace: {
             propertyType: { type: String, default: "" },
             privacyType: { type: String, default: "" },

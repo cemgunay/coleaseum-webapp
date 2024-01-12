@@ -3,8 +3,10 @@ import fetcher from "@/utils/fetcher";
 import { useMemo } from "react";
 
 function useUser(userId, status) {
+    const shouldFetch = status ? status === "authenticated" : !!userId;
+
     const { data, error, isLoading } = useSWR(
-        () => (status === "authenticated" ? `/api/users/${userId}` : null),
+        shouldFetch ? `/api/users/${userId}` : null,
         fetcher
     );
 

@@ -25,6 +25,7 @@ const Amenities = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
     const amenities = combinedListingFormState.amenities;
 
@@ -55,6 +56,7 @@ const Amenities = () => {
 
     //go back
     const handleBack = () => {
+        setUserBack(true)
         router.push(`/host/create-listing/${listingId}/basics`);
     };
 

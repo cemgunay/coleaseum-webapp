@@ -95,6 +95,7 @@ const Location = () => {
         combinedListingFormState,
         combinedListingFormDispatch,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
 
     //name our data and formattedAddress variable that we will use
@@ -310,6 +311,7 @@ const Location = () => {
     //Conditionally render the correct components when clicking back (ConfirmAddress, ConfirmMarker) and then go back to about-your-place
     const handleBack = () => {
         if (currentLocationFormStep === 1) {
+            setUserBack(true)
             router.push(`/host/create-listing/${listingId}/about-your-place`);
         } else if (currentLocationFormStep === 2) {
             setCurrentLocationFormStep(1);

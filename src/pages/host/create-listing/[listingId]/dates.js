@@ -19,6 +19,7 @@ const Dates = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
 
     //to determine if we can proceed to next page
@@ -113,6 +114,7 @@ const Dates = () => {
 
     //go back
     const handleBack = () => {
+        setUserBack(true)
         router.push(`/host/create-listing/${listingId}/price`);
     };
 

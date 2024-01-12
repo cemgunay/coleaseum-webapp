@@ -16,7 +16,6 @@ const validateTitle = (value, name) => {
 };
 
 const Title = () => {
-
     //initialize router
     const router = useRouter();
 
@@ -26,6 +25,7 @@ const Title = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack,
     } = useListingForm();
 
     //declare title for shorthand
@@ -96,6 +96,7 @@ const Title = () => {
 
     //go back
     const handleBack = () => {
+        setUserBack(true);
         router.push(`/host/create-listing/${listingId}/images`);
     };
 

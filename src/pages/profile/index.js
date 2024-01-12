@@ -14,6 +14,7 @@ import { signOut } from "next-auth/react";
 import RadialProgress from "@/components/ui/RadialProgress";
 import { useRouter } from "next/router";
 import useUser from "@/hooks/useUser";
+import Link from "next/link";
 
 const profile = () => {
     // get user object from context
@@ -186,7 +187,9 @@ const profile = () => {
                         <h2 className="text-2xl font-bold mb-1">Account</h2>
                         <div className="flex flex-col">
                             {/* will prob replace these divs with Links later */}
-                            <div
+
+                            <Link
+                                href={"/profile/edit"}
                                 className={cn(
                                     "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
                                     "flex items-center gap-2"
@@ -194,7 +197,7 @@ const profile = () => {
                             >
                                 <FaRegUser className="text-lg" />
                                 Personal Info
-                            </div>
+                            </Link>
                             <div
                                 className={cn(
                                     "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
@@ -203,15 +206,6 @@ const profile = () => {
                             >
                                 <IoSettingsOutline className="text-lg" />
                                 Account Settings
-                            </div>
-                            <div
-                                className={cn(
-                                    "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
-                                    "flex items-center gap-2"
-                                )}
-                            >
-                                <IoSettingsOutline className="text-lg" />
-                                Account Linking
                             </div>
                         </div>
                     </div>

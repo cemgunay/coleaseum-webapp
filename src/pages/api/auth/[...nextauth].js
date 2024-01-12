@@ -62,6 +62,8 @@ export const authOptions = {
 
     secret: process.env.NEXTAUTH_SECRET,
 
+    pages: { signIn: "/auth/signin", signOut: "/profile" },
+
     callbacks: {
         // This callback is triggered on every sign in
         async signIn({ user, account, profile }) {

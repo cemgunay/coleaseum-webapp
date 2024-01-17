@@ -150,12 +150,6 @@ const VerificationPage = () => {
                             : "Resend email"}
                     </div>
                 </div>
-                <Link
-                    href="/auth/signin"
-                    className="self-end mr-2 underline cursor-pointer text-[#61C0BF]"
-                >
-                    Already have an account? Sign In
-                </Link>
             </div>
         </div>
     );

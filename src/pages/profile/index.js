@@ -15,6 +15,7 @@ import RadialProgress from "@/components/ui/RadialProgress";
 import { useRouter } from "next/router";
 import useUser from "@/hooks/useUser";
 import Link from "next/link";
+import { useToast } from "@/components/ui/use-toast";
 
 const profile = () => {
     // get user object from context
@@ -23,6 +24,8 @@ const profile = () => {
     const { user: contextUser, status } = useAuth();
 
     const router = useRouter();
+
+    const { toast } = useToast();
 
     // user object from db
     const {
@@ -57,7 +60,6 @@ const profile = () => {
             "dateOfBirth",
             "location",
             "email",
-            "emailVerified",
         ];
         let completedFields = 0;
 
@@ -156,22 +158,26 @@ const profile = () => {
 
     //to check for verified email if user has signed up with email and somehow skipped email verification at sign up
     const VerifyEmail = ({ user }) => {
-        <>
-            {user?.password && !user?.emailVerified ? (
-                <div className="border border-slate-200 rounded-lg p-4 mb-4">
-                    <div className="text-lg mb-2">Please verify email</div>
-                    <div className="flex justify-between flex-col">
-                        <div
-                            onClick={() => {
-                                handleSendEmail(user.email);
-                            }}
-                        >
-                            Click to receive verification email
+        return (
+            <>
+                {user.hasPassword && !user.emailVerified ? (
+                    <div className="border border-slate-200 rounded-lg p-4 mb-4">
+                        <div className="text-lg mb-2">Please verify email</div>
+                        <div className="flex justify-between flex-col">
+                            <Button
+                                className="mt-3"
+                                variant="outline"
+                                onClick={() => {
+                                    handleSendEmail({ email: user.email });
+                                }}
+                            >
+                                Click to receive verification email
+                            </Button>
                         </div>
                     </div>
-                </div>
-            ) : null}
-        </>;
+                ) : null}
+            </>
+        );
     };
 
     //to check for profile completion if using google to sign in
@@ -271,7 +277,8 @@ const profile = () => {
                         <h2 className="text-2xl font-bold mb-1">Tenant</h2>
                         <div className="flex flex-col">
                             {/* will prob replace these divs with Links later */}
-                            <div
+                            <Link
+                                href="/host/create-listing/info"
                                 className={cn(
                                     "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
                                     "flex items-center gap-2"
@@ -279,8 +286,10 @@ const profile = () => {
                             >
                                 <PiHouse className="text-lg" />
                                 List a sublet
-                            </div>
-                            <div
+                            </Link>
+                            {/* This button will likely be going somewhere else but goes to sublet page for development */}
+                            <Link
+                                href={"/host/sublets"}
                                 className={cn(
                                     "text-base hover:bg-slate-100 hover:rounded-sm py-2 px-2 transition-all",
                                     "flex items-center gap-2"
@@ -288,7 +297,7 @@ const profile = () => {
                             >
                                 <GoArrowSwitch className="text-lg" />
                                 Switch to hosting
-                            </div>
+                            </Link>
                         </div>
                     </div>
                 </div>

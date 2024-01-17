@@ -57,6 +57,7 @@ const profile = () => {
             "dateOfBirth",
             "location",
             "email",
+            "emailVerified",
         ];
         let completedFields = 0;
 
@@ -119,6 +120,61 @@ const profile = () => {
         );
     }
 
+    const handleSendEmail = async ({ email }) => {
+        try {
+            const response = await fetch("/api/emails/send", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
+            });
+            const data = await response.json();
+            if (response.ok) {
+                //const user = jwtDecode(data.token).user;
+                localStorage.setItem("email", user.email);
+
+                //saveUser(user, data.token);
+                router.push("/auth/signup/verification");
+            } else {
+                console.error("Failed to send email:", data.error);
+                toast({
+                    variant: "destructive",
+                    title: "Email failed to send",
+                    description: data.error,
+                });
+            }
+        } catch (error) {
+            console.error("Error in sending email:", error);
+            toast({
+                variant: "destructive",
+                title: "Error in sending email",
+                description: error.toString(),
+            });
+        }
+    };
+
+    //to check for verified email if user has signed up with email and somehow skipped email verification at sign up
+    const VerifyEmail = ({ user }) => {
+        <>
+            {user?.password && !user?.emailVerified ? (
+                <div className="border border-slate-200 rounded-lg p-4 mb-4">
+                    <div className="text-lg mb-2">Please verify email</div>
+                    <div className="flex justify-between flex-col">
+                        <div
+                            onClick={() => {
+                                handleSendEmail(user.email);
+                            }}
+                        >
+                            Click to receive verification email
+                        </div>
+                    </div>
+                </div>
+            ) : null}
+        </>;
+    };
+
+    //to check for profile completion if using google to sign in
     const ProfileCompletion = ({ user }) => {
         const completionPercentage = calculateProfileCompletion(user);
 
@@ -181,6 +237,7 @@ const profile = () => {
 
                 {/* content */}
                 <div className="w-full flex flex-col gap-1">
+                    <VerifyEmail user={user} />
                     <ProfileCompletion user={user} />
                     {/* account links */}
                     <div className="flex flex-col border-y border-slate-200 py-2">

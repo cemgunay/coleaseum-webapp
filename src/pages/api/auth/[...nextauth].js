@@ -7,6 +7,7 @@ import clientPromise from "@/utils/mongodbClient";
 import User from "@/models/User";
 import connectMongo from "@/utils/connectMongo";
 import isGoogleAccountLinked from "@/utils/isGoogleAccountLinked";
+import createTempAccount from "@/utils/createTempAccount";
 
 export const authOptions = {
     adapter: MongoDBAdapter(clientPromise),
@@ -86,11 +87,15 @@ export const authOptions = {
                         account.providerAccountId
                     );
 
-                    //redirect user back to sign in with error if google account is not linked otherwise sign in
+                    //if account is not linked check if user is logged in and if so link accounts if not send to error page. Otherwise just sign them in.
                     if (googleAccountLinked) {
                         return true;
                     } else {
                         return `/auth/signin?error=AccountNotLinked`;
+
+                        //This is for acccount linking:
+                        //await createTempAccount(account);
+                        //return `/api/link-google-account?user=${user.id}?account=${account.providerAccountId}`;
                     }
                 } else {
                     //create user and account

@@ -11,14 +11,9 @@ const AccountSettings = () => {
 
     const { user: contextUser, status } = useAuth();
 
-    console.log(contextUser);
-
     //handle social sign in
-    const handleSocialClick = (action) => {
-        signIn(
-            action,
-            { callbackUrl: "/profile" },
-        );
+    const handleSocialClick = async (action) => {
+        signIn(action, { callbackUrl: "/profile" });
     };
 
     const Loading = () => {

@@ -15,7 +15,7 @@ import { fetchWithTimeout } from "@/utils/utils";
 
 // moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
 
-//Getting listing details on server side
+// Getting listing details on server side
 export async function getServerSideProps(context) {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
     if (!apiUrl) {
@@ -34,7 +34,7 @@ export async function getServerSideProps(context) {
 
     // Handle fetch failure
     if (response.error) {
-        console.error("Fetch failed: ", response.message);
+        console.error("Fetch failed: ", response.error);
         return {
             notFound: true,
         };

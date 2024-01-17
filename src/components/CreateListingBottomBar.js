@@ -5,10 +5,7 @@ const ProgressBar = ({ currentStep, totalSteps }) => {
     const progress = (currentStep / totalSteps) * 100;
     return (
         <div className="w-full bg-gray-200  h-2 dark:bg-gray-700">
-            <div
-                className="bg-black h-2"
-                style={{ width: `${progress}%` }}
-            ></div>
+            <div className="bg-black h-2" style={{ width: `${progress}%` }}></div>
         </div>
     );
 };
@@ -29,7 +26,7 @@ const CreateListingBottomBar = ({
         <div className="flex justify-between mx-8">
             <Button
                 variant="outline"
-                className="text-sm text-slate-600 underline border-0 px-0 hover:bg-white"
+                className="text-sm text-slate-600 border hover:bg-white"
                 onClick={onBack}
                 disabled={pushing}
             >
@@ -40,11 +37,7 @@ const CreateListingBottomBar = ({
                 onClick={onNext}
                 disabled={!canGoNext || pushing}
             >
-                {pushing ? (
-                    <CircularProgress size={24} color="inherit" />
-                ) : (
-                    "Next"
-                )}
+                {pushing ? <CircularProgress size={24} color="inherit" /> : "Next"}
             </Button>
         </div>
     </div>

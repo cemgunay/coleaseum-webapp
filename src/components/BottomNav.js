@@ -7,8 +7,8 @@ const BottomNav = () => {
     const router = useRouter();
 
     // function to select nav link styles based on router path
-    const _navStylesHelper = (route) => {
-        if (router.asPath === route) {
+    const _navStylesHelper = (routes) => {
+        if (routes.includes(router.asPath)) {
             return "text-[#61C0BF] text-lg flex flex-col justify-center w-full items-center";
         } else {
             return "text-gray-400 text-lg flex flex-col justify-center w-full items-center";
@@ -24,15 +24,15 @@ const BottomNav = () => {
                     <FaMagnifyingGlass className="text-xl" />
                     <span>Explore</span>
                 </Link>
-                <Link href="/sublets" className={_navStylesHelper("/sublets")}>
+                <Link href="/sublets" className={_navStylesHelper(["/sublets", "/host/sublets"])}>
                     <FaHouse className="text-xl" />
                     <span>Sublets</span>
                 </Link>
-                <Link href="/inbox" className={_navStylesHelper("/inbox")}>
+                <Link href="/inbox" className={_navStylesHelper(["/inbox"])}>
                     <FaInbox className="text-xl" />
                     <span>Inbox</span>
                 </Link>
-                <Link href="/profile" className={_navStylesHelper("/profile")}>
+                <Link href="/profile" className={_navStylesHelper(["/profile"])}>
                     <FaUser className="text-xl" />
                     <span>Profile</span>
                 </Link>

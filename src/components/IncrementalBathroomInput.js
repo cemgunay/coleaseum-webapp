@@ -43,14 +43,14 @@ const IncrementalBathroomInput = ({ bathrooms, dispatch, setBathrooms }) => {
         <div className="flex justify-center items-center gap-4">
             <PiMinusCircleThin
                 onClick={handleDecrement}
-                className="text-2xl text-color-primary hover:cursor-pointer"
+                className="text-4xl text-color-primary hover:cursor-pointer"
             />
-            <div className="select-none w-6 text-center">
+            <div className="select-none w-6 text-center text-xl">
                 {currentBathrooms.toLocaleString()}
             </div>
             <PiPlusCircleThin
                 onClick={handleIncrement}
-                className="text-2xl text-color-primary hover:cursor-pointer"
+                className="text-4xl text-color-primary hover:cursor-pointer"
             />
         </div>
     );

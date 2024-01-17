@@ -44,6 +44,7 @@ const initialListingDetailsState = {
     title: "",
     description: "",
     published: false,
+    draft: false,
     price: 100,
     priceChanged: false,
     moveInDate: null,

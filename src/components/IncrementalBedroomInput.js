@@ -1,12 +1,7 @@
 import React from "react";
 import { PiPlusCircleThin, PiMinusCircleThin } from "react-icons/pi";
 
-const IncrementalBedroomInput = ({
-    bedrooms,
-    numberOfBedrooms,
-    dispatch,
-    setBedrooms,
-}) => {
+const IncrementalBedroomInput = ({ bedrooms, numberOfBedrooms, dispatch, setBedrooms }) => {
     // decrement the number of bedrooms by 1
     const handleDecrement = () => {
         if (numberOfBedrooms > 0) {
@@ -38,10 +33,7 @@ const IncrementalBedroomInput = ({
         } else {
             setBedrooms((prevState) => ({
                 ...prevState,
-                bedrooms: [
-                    ...prevState.bedrooms,
-                    { bedType: [], ensuite: false },
-                ],
+                bedrooms: [...prevState.bedrooms, { bedType: [], ensuite: false }],
             }));
         }
     };
@@ -52,7 +44,7 @@ const IncrementalBedroomInput = ({
                 onClick={handleDecrement}
                 className="text-4xl text-color-primary hover:cursor-pointer"
             />
-            <div className="select-none w-6 text-center">
+            <div className="select-none w-6 text-xl text-center">
                 {numberOfBedrooms.toLocaleString()}
             </div>
             <PiPlusCircleThin

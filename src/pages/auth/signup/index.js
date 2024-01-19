@@ -11,6 +11,9 @@ import { cn } from "@/utils/utils";
 import DatePickerBirthday from "@/components/DatePickerBirthday";
 import { useAuth } from "@/hooks/useAuth";
 import Skeleton from "@/components/Skeleton";
+import { BsGoogle } from "react-icons/bs";
+import { signIn } from "next-auth/react";
+import { IoIosArrowBack } from "react-icons/io";
 
 // function to validate email
 const validateEmail = (email) => {
@@ -81,6 +84,7 @@ const SignUp = () => {
         email: "",
         password: "",
         confirmPassword: "",
+        initialEmail: "",
     });
     const [errors, setErrors] = useState({});
     const [touched, setTouched] = useState({
@@ -91,34 +95,54 @@ const SignUp = () => {
         email: false,
         password: false,
         confirmPassword: false,
+        initialEmail: false,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const { toast } = useToast();
+    const [stage, setStage] = useState("initial");
 
     // handle form input changes
     const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+        // setFormData({ ...formData, [e.target.name]: e.target.value });
+        setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     };
 
-    // handle form submission
-    const handleSubmit = async (e) => {
+    // handle initial form submission
+    const handleInitialSubmit = async (e) => {
+        e.preventDefault();
+
+        // validate form
+        const newErrors = {
+            initialEmail: validateEmail(formData.initialEmail),
+        };
+        setErrors(newErrors);
+
+        const isValid = Object.values(newErrors).every((error) => error === null);
+        if (isValid) {
+            // proceed to main form
+            setStage("main");
+
+            // remove error for initialEmail (just to be sure main form will submit properly)
+            setErrors({ ...errors, initialEmail: null });
+
+            // set email in formData to initialEmail
+            setFormData({ ...formData, email: formData.initialEmail });
+        }
+    };
+
+    // handle main form submission
+    const handleMainSubmit = async (e) => {
         e.preventDefault();
 
         // validate form
         const newErrors = {
             email: validateEmail(formData.email),
             password: validatePassword(formData.password),
-            confirmPassword: validateConfirmPassword(
-                formData.confirmPassword,
-                formData.password
-            ),
+            confirmPassword: validateConfirmPassword(formData.confirmPassword, formData.password),
             firstName: validateRequired(formData.firstName, "First name"),
             lastName: validateRequired(formData.lastName, "Last name"),
             location: validateRequired(formData.location, "Location"),
-            dateOfBirth: validateRequired(
-                formData.dateOfBirth,
-                "Date of birth"
-            ),
+            dateOfBirth: validateRequired(formData.dateOfBirth, "Date of birth"),
             // can add more if we need
         };
         setErrors(newErrors);
@@ -130,9 +154,7 @@ const SignUp = () => {
         }
         setTouched(allTouched);
 
-        const isValid = Object.values(newErrors).every(
-            (error) => error === null
-        );
+        const isValid = Object.values(newErrors).every((error) => error === null);
         if (isValid) {
             // proceed with form submission
             try {
@@ -167,13 +189,16 @@ const SignUp = () => {
             } catch (error) {
                 console.error("Signup failed", error);
                 setIsSubmitting(false);
-                throw new Error(
-                    `Signup failed, error not caught by API route:\n${error}`
-                );
+                throw new Error(`Signup failed, error not caught by API route:\n${error}`);
             } finally {
                 setIsSubmitting(false);
             }
         }
+    };
+
+    //handle social sign in
+    const handleSocialClick = (action) => {
+        signIn(action, { callbackUrl: "/profile" });
     };
 
     // function to validate when user leaves an input field
@@ -200,6 +225,8 @@ const SignUp = () => {
                 return validateRequired(value, "Location");
             case "dateOfBirth":
                 return validateRequired(value, "Date of birth");
+            case "initialEmail":
+                return validateEmail(value);
             default:
                 return null;
         }
@@ -237,127 +264,182 @@ const SignUp = () => {
                 <h1 className="font-bold text-3xl">Sign Up</h1>
 
                 {/* form */}
-                <form
-                    onSubmit={handleSubmit}
-                    className="flex flex-col gap-3 w-full"
-                >
-                    {/* date of birth input */}
-                    <div className="flex flex-col">
-                        <label className="text-base font-medium text-slate-900 mb-1 ml-0">
-                            Date of Birth
-                        </label>
-                        <DatePickerBirthday
-                            formData={formData}
-                            setFormData={setFormData}
-                            maxDate={new Date()}
-                        />
-                    </div>
+                {stage === "initial" ? (
+                    // Initial sign up form
+                    <>
+                        <form onSubmit={handleInitialSubmit} className="flex flex-col gap-3 w-full">
+                            {/* email input */}
+                            <AuthInput
+                                title="Email"
+                                type="email"
+                                name="initialEmail"
+                                placeholder="john@example.com"
+                                value={formData.initialEmail}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                                error={errors.initialEmail}
+                                touched={touched.initialEmail}
+                            />
 
-                    {/* first name input */}
-                    <AuthInput
-                        title="First Name"
-                        type="text"
-                        name="firstName"
-                        placeholder="John"
-                        value={formData.firstName}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        error={errors.firstName}
-                        touched={touched.firstName}
-                    />
+                            {/* submit button */}
+                            <Button type="submit" disabled={isSubmitting}>
+                                Continue&nbsp;&nbsp;&rarr;
+                            </Button>
+                        </form>
 
-                    {/* last name input */}
-                    <AuthInput
-                        title="Last Name"
-                        type="text"
-                        name="lastName"
-                        placeholder="Doe"
-                        value={formData.lastName}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        error={errors.lastName}
-                        touched={touched.lastName}
-                    />
+                        {/* Line separator with text */}
+                        <div className="relative w-full text-sm">
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-full border-t border-gray-300" />
+                            </div>
+                            <div className="relative flex justify-center">
+                                <span className="bg-white px-2 text-gray-500">Or</span>
+                            </div>
+                        </div>
 
-                    {/* location input */}
-                    <div className="flex flex-col">
-                        <label className="text-base font-medium text-slate-900 mb-1 ml-0">
-                            Location
-                        </label>
-                        <Autocomplete
-                            apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-                            onPlaceSelected={(place) => {
-                                if (onPlaceSelectedRef.current) {
-                                    onPlaceSelectedRef.current(place);
-                                    setErrors({
-                                        ...errors,
-                                        location: validate("location", place),
-                                    });
+                        <div className="flex gap-2 w-full">
+                            {/* Social Buttons */}
+                            <Button
+                                className={
+                                    "inline-flex items-center gap-2 w-full justify-center rounded-md bg-white px-4 py-2 text-gray-500 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:outline-offset-0"
                                 }
-                            }}
-                            className={cn(
-                                "border rounded-md w-full h-11 px-4 py-2",
-                                errors.location && touched.location
-                                    ? "border-red-500"
-                                    : "border-slate-300"
-                            )}
-                            options={{
-                                types: ["(cities)"], // restrict search to cities only
-                            }}
+                                onClick={() => handleSocialClick("google")}
+                            >
+                                <BsGoogle />
+                                Sign Up with Google
+                            </Button>
+                            {/* Add more social buttons as needed */}
+                        </div>
+                    </>
+                ) : (
+                    // Main sign up form
+                    <form onSubmit={handleMainSubmit} className="flex flex-col gap-3 w-full">
+                        {/* Back button */}
+                        <div
+                            className="-ml-2 flex items-center gap-1"
+                            onClick={() => setStage("initial")}
+                        >
+                            <IoIosArrowBack className="text-2xl" />
+                            <p className="mb-0.5">Back</p>
+                        </div>
+
+                        {/* date of birth input */}
+                        <div className="flex flex-col">
+                            <label className="text-base font-medium text-slate-900 mb-1 ml-0">
+                                Date of Birth
+                            </label>
+                            <DatePickerBirthday
+                                formData={formData}
+                                setFormData={setFormData}
+                                maxDate={new Date()}
+                            />
+                        </div>
+
+                        {/* first name input */}
+                        <AuthInput
+                            title="First Name"
+                            type="text"
+                            name="firstName"
+                            placeholder="John"
+                            value={formData.firstName}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            error={errors.firstName}
+                            touched={touched.firstName}
                         />
-                        {errors.location && touched.location && (
-                            <p className="text-sm ml-3 mt-1 text-red-500">
-                                {errors.location}
-                            </p>
-                        )}
-                    </div>
 
-                    {/* email input */}
-                    <AuthInput
-                        title="Email"
-                        type="email"
-                        name="email"
-                        placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        error={errors.email}
-                        touched={touched.email}
-                    />
+                        {/* last name input */}
+                        <AuthInput
+                            title="Last Name"
+                            type="text"
+                            name="lastName"
+                            placeholder="Doe"
+                            value={formData.lastName}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            error={errors.lastName}
+                            touched={touched.lastName}
+                        />
 
-                    {/* password input */}
-                    <AuthInput
-                        title="Password"
-                        type="password"
-                        name="password"
-                        value={formData.password}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        error={errors.password}
-                        touched={touched.password}
-                    />
+                        {/* location input */}
+                        <div className="flex flex-col">
+                            <label className="text-base font-medium text-slate-900 mb-1 ml-0">
+                                Location
+                            </label>
+                            <Autocomplete
+                                apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+                                onPlaceSelected={(place) => {
+                                    if (onPlaceSelectedRef.current) {
+                                        onPlaceSelectedRef.current(place);
+                                        setErrors({
+                                            ...errors,
+                                            location: validate("location", place),
+                                        });
+                                    }
+                                }}
+                                className={cn(
+                                    "border rounded-md w-full h-11 px-4 py-2",
+                                    errors.location && touched.location
+                                        ? "border-red-500"
+                                        : "border-slate-300"
+                                )}
+                                options={{
+                                    types: ["(cities)"], // restrict search to cities only
+                                }}
+                            />
+                            {errors.location && touched.location && (
+                                <p className="text-sm ml-3 mt-1 text-red-500">{errors.location}</p>
+                            )}
+                        </div>
 
-                    {/* confirm password input */}
-                    <AuthInput
-                        title="Confirm Password"
-                        type="password"
-                        name="confirmPassword"
-                        value={formData.confirmPassword}
-                        onChange={handleChange}
-                        onBlur={handleBlur}
-                        error={errors.confirmPassword}
-                        touched={touched.confirmPassword}
-                    />
+                        {/* email input */}
+                        <AuthInput
+                            title="Email"
+                            type="email"
+                            name="email"
+                            placeholder="john@example.com"
+                            value={formData.email}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            error={errors.email}
+                            touched={touched.email}
+                        />
 
-                    {/* submit button */}
-                    <Button type="submit" disabled={isSubmitting}>
-                        {isSubmitting ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            "Sign Up"
-                        )}
-                    </Button>
-                </form>
+                        {/* password input */}
+                        <AuthInput
+                            title="Password"
+                            type="password"
+                            name="password"
+                            value={formData.password}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            error={errors.password}
+                            touched={touched.password}
+                        />
+
+                        {/* confirm password input */}
+                        <AuthInput
+                            title="Confirm Password"
+                            type="password"
+                            name="confirmPassword"
+                            value={formData.confirmPassword}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                            error={errors.confirmPassword}
+                            touched={touched.confirmPassword}
+                        />
+
+                        {/* submit button */}
+                        <Button type="submit" disabled={isSubmitting}>
+                            {isSubmitting ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : (
+                                "Sign Up"
+                            )}
+                        </Button>
+                    </form>
+                )}
+
                 <Link
                     href="/auth/signin"
                     className="self-end mr-2 underline cursor-pointer text-[#61C0BF]"

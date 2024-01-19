@@ -33,9 +33,7 @@ const SignIn = () => {
 
     useEffect(() => {
         if (error === "AccountNotLinked") {
-            setApiError(
-                "Please sign in with your original method to link your accounts."
-            );
+            setApiError("Please sign in with your original method to link your accounts.");
         }
     }, [error]);
 
@@ -139,16 +137,8 @@ const SignIn = () => {
                     />
 
                     {/* submit button */}
-                    <Button
-                        className={"w-full"}
-                        disabled={isSubmitting}
-                        type="submit"
-                    >
-                        {isSubmitting ? (
-                            <CircularProgress size={24} color="inherit" />
-                        ) : (
-                            "Sign In"
-                        )}
+                    <Button className={"w-full"} disabled={isSubmitting} type="submit">
+                        {isSubmitting ? <CircularProgress size={24} color="inherit" /> : "Sign In"}
                     </Button>
                 </form>
 
@@ -158,9 +148,7 @@ const SignIn = () => {
                         <div className="w-full border-t border-gray-300" />
                     </div>
                     <div className="relative flex justify-center">
-                        <span className="bg-white px-2 text-gray-500">
-                            Or continue with
-                        </span>
+                        <span className="bg-white px-2 text-gray-500">Or</span>
                     </div>
                 </div>
 
@@ -173,7 +161,7 @@ const SignIn = () => {
                         onClick={() => handleSocialClick("google")}
                     >
                         <BsGoogle />
-                        Google
+                        Sign In with Google
                     </Button>
                     {/* Add more social buttons as needed */}
                 </div>

@@ -320,7 +320,7 @@ const Listing = ({ listing }) => {
                         // user is unverified or has a rejected request in last 12 hours, show greyed out button
                         return (
                             <div>
-                                <p className="text-xs text-slate-500 text-color-error">
+                                <p className="text-xs text-color-error">
                                     {!isVerified
                                         ? "Please get verified to put in a request."
                                         : "Please wait 12 hours since your last rejected request."}

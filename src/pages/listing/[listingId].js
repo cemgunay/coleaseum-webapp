@@ -224,7 +224,7 @@ const Listing = ({ listing }) => {
                 listingId: listing._id,
                 tenantId: listing.userId,
                 subTenantId: contextUser.id,
-                price: 100,
+                price: listing.price,
             }),
         });
 

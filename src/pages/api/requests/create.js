@@ -12,7 +12,6 @@ export default async function handler(req, res) {
 
                 // get listing/user/price info from req body
                 const { listingId, tenantId, subTenantId, price } = req.body;
-                console.log(req.body);
 
                 // create new request
                 const newRequest = new Request({

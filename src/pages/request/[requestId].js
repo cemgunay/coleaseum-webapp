@@ -10,6 +10,7 @@ import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/cons
 import { MdDeleteForever } from "react-icons/md";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
+import BottomBar from "@/components/BottomBar";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
@@ -199,10 +200,10 @@ const Request = ({ request, listing, activeRequests }) => {
 
     // derived state for request info
     const numMonths = useMemo(() => {
-        const startDate = new Date(request.startDate);
-        const endDate = new Date(request.endDate);
+        const startDate = new Date(listing.moveInDate);
+        const endDate = new Date(listing.moveOutDate);
         return differenceInMonths(endDate, startDate);
-    }, [request.startDate, request.endDate]);
+    }, [listing.moveInDate, listing.moveOutDate]);
 
     const atic = useMemo(() => {
         return priceOffer * ATIC_MULTIPLIER;
@@ -276,7 +277,7 @@ const Request = ({ request, listing, activeRequests }) => {
                         className="py-4 border-b-[0.1rem] border-gray-300 hover:cursor-pointer"
                         onClick={() => router.push(`/listing/${listing._id}`)}
                     >
-                        <div className="flex justify-between items-center">
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                             <h3 className="text-2xl font-bold">{listing.title}</h3>
                             {ACTIVE_STATUSES.includes(request.status) && (
                                 <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
@@ -284,12 +285,13 @@ const Request = ({ request, listing, activeRequests }) => {
                                     {highestActiveRequest
                                         ? formatPrice(highestActiveRequest.price, false)
                                         : "N/A"}{" "}
-                                    {isCurrentRequestHighest ? "(yours)" : ""}
+                                    {isCurrentRequestHighest ? "(yours)" : "(not yours)"}
                                 </div>
                             )}
                         </div>
                         <address className="text-lg">{formattedAddress}</address>
                         <p className="mt-2 text-xl">{formattedRoomInfo}</p>
+                        <p className="mt-2 text-lg text-center font-semibold">{`$${listing.price} Listing Price`}</p>
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <h3 className="text-2xl font-bold mb-2">Price Offer</h3>
@@ -307,13 +309,13 @@ const Request = ({ request, listing, activeRequests }) => {
                         <div className="flex items-center gap-8">
                             <div className="flex flex-col">
                                 <h4 className="font-semibold">Move In:</h4>
-                                {`${format(new Date(request.startDate), "MMM")}`}{" "}
-                                {`${format(new Date(request.startDate), "do, yyyy")}`}
+                                {`${format(new Date(listing.moveInDate), "MMM")}`}{" "}
+                                {`${format(new Date(listing.moveInDate), "do, yyyy")}`}
                             </div>
                             <div className="flex flex-col">
                                 <h4 className="font-semibold">Move Out:</h4>
-                                {`${format(new Date(request.endDate), "MMM")}`}{" "}
-                                {`${format(new Date(request.endDate), "do, yyyy")}`}
+                                {`${format(new Date(listing.moveOutDate), "MMM")}`}{" "}
+                                {`${format(new Date(listing.moveOutDate), "do, yyyy")}`}
                             </div>
                         </div>
                         <div className="flex flex-col">
@@ -341,20 +343,19 @@ const Request = ({ request, listing, activeRequests }) => {
                     </div>
                 </div>
                 {/* sticky button */}
-                <footer className="fixed bottom-0 z-50 w-full">
-                    <div className="flex items-center justify-around py-5 px-8 rounded-t-lg bg-white shadow-[0px_0px_5px_0px]">
-                        <Button
-                            className="bg-color-primary w-full"
-                            // button disabled if request is not active
-                            disabled={
-                                PAST_STATUSES.includes(request.status) ||
-                                CONFIRMED_STATUSES.includes(request.status)
-                            }
-                        >
-                            Submit Request
-                        </Button>
-                    </div>
-                </footer>
+                <BottomBar>
+                    <Button
+                        className="bg-color-primary w-full mx-8"
+                        // button disabled if request is not active
+                        disabled={
+                            PAST_STATUSES.includes(request.status) ||
+                            CONFIRMED_STATUSES.includes(request.status) ||
+                            priceOffer === request.price // haven't made any changes yet
+                        }
+                    >
+                        Submit/Update Request
+                    </Button>
+                </BottomBar>
             </div>
         </>
     );

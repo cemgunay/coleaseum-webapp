@@ -11,6 +11,7 @@ import { MdDeleteForever } from "react-icons/md";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
 import BottomBar from "@/components/BottomBar";
+import CircularProgress from "@mui/material/CircularProgress";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
@@ -89,6 +90,7 @@ const Request = ({ request, listing, activeRequests }) => {
     // state
     const [priceOffer, setPriceOffer] = useState(request.price);
     const [showModal, setShowModal] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     // for toast notifications
     const { toast } = useToast();
@@ -231,6 +233,37 @@ const Request = ({ request, listing, activeRequests }) => {
         );
     };
 
+    // function to update request
+    const updateRequest = async () => {
+        setLoading(true);
+
+        // update request
+        const response = await fetch("/api/requests/update", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                requestId: request._id,
+                listingId: listing._id,
+                newPrice: priceOffer,
+                currentHighestBid: highestActiveRequest.price,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to update request :(");
+        }
+
+        const updatedRequest = await response.json();
+        console.log("updated request: ", updatedRequest);
+
+        setLoading(false);
+
+        // refresh request page
+        router.reload();
+    };
+
     return (
         <>
             {/* Back button */}
@@ -272,7 +305,7 @@ const Request = ({ request, listing, activeRequests }) => {
                 </div>
 
                 {/* Request info */}
-                <div className="flex flex-col mx-8 pt-2">
+                <div className="flex flex-col mx-8 pt-2 mb-16">
                     <div
                         className="py-4 border-b-[0.1rem] border-gray-300 hover:cursor-pointer"
                         onClick={() => router.push(`/listing/${listing._id}`)}
@@ -344,17 +377,29 @@ const Request = ({ request, listing, activeRequests }) => {
                 </div>
                 {/* sticky button */}
                 <BottomBar>
-                    <Button
-                        className="bg-color-primary w-full mx-8"
-                        // button disabled if request is not active
-                        disabled={
-                            PAST_STATUSES.includes(request.status) ||
-                            CONFIRMED_STATUSES.includes(request.status) ||
-                            priceOffer === request.price // haven't made any changes yet
-                        }
-                    >
-                        Submit/Update Request
-                    </Button>
+                    <div className="flex flex-col gap-2 px-8">
+                        {ACTIVE_STATUSES.includes(request.status) && (
+                            <p className="text-xs text-center text-slate-500">
+                                Request is already created. Change price to your liking and click
+                                below to update it.
+                            </p>
+                        )}
+                        <Button
+                            className="bg-color-primary w-full"
+                            // button disabled if request is not active
+                            disabled={
+                                !ACTIVE_STATUSES.includes(request.status) ||
+                                priceOffer === request.price // haven't made any changes yet
+                            }
+                            onClick={updateRequest}
+                        >
+                            {loading ? (
+                                <CircularProgress size={24} color="inherit" />
+                            ) : (
+                                "Update Request"
+                            )}
+                        </Button>
+                    </div>
                 </BottomBar>
             </div>
         </>

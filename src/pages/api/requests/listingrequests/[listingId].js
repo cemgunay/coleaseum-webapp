@@ -18,7 +18,7 @@ export default async function handler(req, res) {
         const { listingId } = req.query;
 
         // get all requests
-        const requests = await Request.find({ listingId })
+        const requests = await Request.find({ listingId, showSubTenant: true })
             .populate("tenantDocuments")
             .populate("subtenantDocuments");
 

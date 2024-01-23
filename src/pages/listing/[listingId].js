@@ -256,7 +256,7 @@ const Listing = ({ listing }) => {
                             Sign In
                         </Link>
                         <Link
-                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
+                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
                             href="/auth/signup"
                         >
                             Sign Up
@@ -273,7 +273,7 @@ const Listing = ({ listing }) => {
                     <div className="flex flex-col gap-3 items-center">
                         <p className="text-xs text-slate-500">This is your listing.</p>
                         <Link
-                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
+                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
                             href={`/host/listing/${listing._id}`}
                         >
                             View Host Page
@@ -297,7 +297,7 @@ const Listing = ({ listing }) => {
                                 You've already put in a request for this listing.
                             </p>
                             <Link
-                                className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
+                                className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
                                 href={`/request/${userPendingRequest._id}`}
                             >
                                 Edit Request
@@ -327,7 +327,7 @@ const Listing = ({ listing }) => {
                                 </p>
                                 <button
                                     disabled
-                                    className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
+                                    className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
                                 >
                                     Put in a Request
                                 </button>
@@ -337,7 +337,7 @@ const Listing = ({ listing }) => {
                         // user is verified and has no rejected requests in last 12 hours, show request button
                         return (
                             <button
-                                className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-black text-white cursor-pointer"
+                                className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
                                 onClick={createNewRequestAndRedirect}
                             >
                                 Put in a Request

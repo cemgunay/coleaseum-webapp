@@ -353,7 +353,6 @@ const HostListing = ({ listing, requests, user }) => {
                         )}
                     </div>
                 </div>
-                <BottomBar />
             </div>
         </>
     );

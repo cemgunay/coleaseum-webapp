@@ -4,24 +4,10 @@ import { Button } from "@/components/ui/button";
 import { useListingForm } from "@/hooks/useListingForm";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-
-import { parseISO, startOfDay } from "date-fns";
+import { startOfDay } from "date-fns";
 import DatePickerMovingDates from "@/components/DatePickerMovingDates";
 import DatePickerViewingDates from "@/components/DatePickerViewingDates";
-
-//function to validate that the date provided is a date object and if not parse it
-function getValidDate(dateInput) {
-    if (typeof dateInput === "string") {
-        // Parse the string to a Date object
-        return parseISO(dateInput);
-    } else if (dateInput instanceof Date) {
-        // It's already a Date object
-        return dateInput;
-    } else {
-        // Default case if dateInput is neither a string nor a Date object
-        return new Date();
-    }
-}
+import getValidDate from "@/utils/getValidDate";
 
 const Dates = () => {
     //initialize router
@@ -33,6 +19,7 @@ const Dates = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
 
     //to determine if we can proceed to next page
@@ -127,6 +114,7 @@ const Dates = () => {
 
     //go back
     const handleBack = () => {
+        setUserBack(true)
         router.push(`/host/create-listing/${listingId}/price`);
     };
 

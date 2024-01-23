@@ -25,8 +25,13 @@ const Images = () => {
     const router = useRouter();
 
     //get context from listing form
-    const { listingId, combinedListingFormState, combinedListingFormDispatch, pushToDatabase } =
-        useListingForm();
+    const {
+        listingId,
+        combinedListingFormState,
+        combinedListingFormDispatch,
+        pushToDatabase,
+        setUserBack
+    } = useListingForm();
 
     //initialize files array
     const [files, setFiles] = useState([]);
@@ -305,6 +310,7 @@ const Images = () => {
 
     //handleback
     const handleBack = () => {
+        setUserBack(true)
         router.push(`/host/create-listing/${listingId}/amenities`);
     };
 

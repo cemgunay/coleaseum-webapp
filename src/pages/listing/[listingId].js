@@ -10,7 +10,7 @@ import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
-import { usePusher } from "@/context/PusherContext";
+import { usePusher } from "@/hooks/usePusher";
 import { fetchWithTimeout } from "@/utils/utils";
 
 // moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan

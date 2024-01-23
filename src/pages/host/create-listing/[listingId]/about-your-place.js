@@ -26,6 +26,7 @@ const AboutYourPlace = () => {
         combinedListingFormState,
         combinedListingFormDispatch,
         pushToDatabase,
+        setUserBack
     } = useListingForm();
 
     //name our data variable that we will use
@@ -78,6 +79,7 @@ const AboutYourPlace = () => {
 
     // go back to manage-my-listings (where you see all listings)
     const handleBack = () => {
+        setUserBack(true)
         router.push("/host/create-listing/overview");
     };
 

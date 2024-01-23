@@ -3,24 +3,11 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import AuthInput from "../AuthInput";
 import EditUtilities from "./EditUtilities";
-import { format, parseISO, startOfDay } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import DatePickerMovingDates from "../DatePickerMovingDates";
 import DatePickerViewingDates from "../DatePickerViewingDates";
 import _ from "lodash";
-
-//function to validate that the date provided is a date object and if not parse it
-function getValidDate(dateInput) {
-    if (typeof dateInput === "string") {
-        // Parse the string to a Date object
-        return parseISO(dateInput);
-    } else if (dateInput instanceof Date) {
-        // It's already a Date object
-        return dateInput;
-    } else {
-        // Default case if dateInput is neither a string nor a Date object
-        return new Date();
-    }
-}
+import getValidDate from "@/utils/getValidDate";
 
 //Validation function for price input.
 const validatePrice = (value, name) => {

@@ -11,9 +11,9 @@ import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
 import { useListingForm } from "@/hooks/useListingForm";
+import useUser from "@/hooks/useUser";
 
 const Preview = () => {
-
     //initialize router
     const router = useRouter();
 
@@ -61,24 +61,9 @@ const Preview = () => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showGrid, setShowGrid] = useState(false);
     const [showModalCarousel, setShowModalCarousel] = useState(false);
-    const [user, setUser] = useState(null);
 
-    useEffect(() => {
-        // fetch user
-        const fetchUser = async () => {
-            console.log(listing);
-            const response = await fetch(`/api/users/${listing?.userId}`);
-            if (!response.ok) {
-                throw new Error("Failed to fetch user :(");
-            }
-            const data = await response.json();
-            setUser(data);
-        };
-
-        if (listing.userId) {
-            fetchUser();
-        }
-    }, [listing]);
+    // user object from db
+    const { user, isLoading: loadingUser, error } = useUser(listing?.userId);
 
     // still not sure if this state is needed in new version yet
     // might need it for the BottomBar component
@@ -219,7 +204,11 @@ const Preview = () => {
                                 Entire suite subletted by
                             </div>
                             <span className="font-bold flex-grow flex-shrink">
-                                {!user ? <LoadingUser /> : user?.firstName}
+                                {loadingUser ? (
+                                    <LoadingUser />
+                                ) : (
+                                    user?.firstName
+                                )}
                             </span>
                         </div>
                         <div className="mt-2">

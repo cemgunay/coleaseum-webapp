@@ -16,10 +16,14 @@ import Skeleton from "@/components/Skeleton";
 
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
+import { useRouter } from "next/router";
 
 const ManageListings = () => {
     //get context user from hook
-    const { user: contextUser } = useAuth();
+    const { user } = useAuth();
+
+    const router = useRouter();
+    const currentPath = router.pathname;
 
     // State Variables
     const [isLoading, setIsLoading] = useState(true);
@@ -61,10 +65,10 @@ const ManageListings = () => {
             }
         }
 
-        if (contextUser?.id) {
-            fetchData(contextUser.id);
+        if (user?.id) {
+            fetchData(user.id);
         }
-    }, [contextUser]);
+    }, [user]);
 
     // Handlers
 
@@ -191,7 +195,7 @@ const ManageListings = () => {
         if (title === "Completed Listings") {
             url = `/host/manage-listings/${listing.id}/edit`; //go to edit page for that listing
         } else if (title === "In Progress Listings") {
-            url = determineRoute(listing); //get the correct route using util function
+            url = determineRoute(listing, currentPath); //get the correct route using util function
         } else if (title === "Booked Listings") {
             url = `/host/${listing.id}`; //go to that listing
         }

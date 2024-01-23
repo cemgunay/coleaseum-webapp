@@ -16,6 +16,7 @@ const Publish = () => {
         combinedListingFormDispatch,
         listingId,
         pushToDatabase,
+        setUserBack,
     } = useListingForm();
 
     //shorthand state for if user agrees to conditions
@@ -57,6 +58,7 @@ const Publish = () => {
 
     //go back
     const handleBack = () => {
+        setUserBack(true);
         router.push(`/host/create-listing/${listingId}/dates`);
     };
 

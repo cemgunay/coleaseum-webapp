@@ -14,13 +14,8 @@ const CreateListingLayout = ({
     onNext,
     canGoNext,
 }) => {
-
     //get context from listing form
-    const {
-        listingId,
-        isLoading,
-        pushing,
-    } = useListingForm();
+    const { listingId, isLoading, pushing } = useListingForm();
 
     //initialize router
     const router = useRouter();
@@ -46,7 +41,8 @@ const CreateListingLayout = ({
             {/* dont render the child component until data has been loaded from DB and listing ID set from query */}
 
             <main className="flex-grow py-24">
-                {componentSpecificIsLoading || isLoading || !listingId ? (
+                {(componentSpecificIsLoading || isLoading || !listingId) &&
+                !pushing ? (
                     <Loading />
                 ) : (
                     children

@@ -6,11 +6,15 @@ import { useAuth } from "@/hooks/useAuth";
 import GuestPage from "@/components/GuestPage";
 import ListingItemWithRequests from "@/components/ListingItemWithRequests";
 import ListingItemForSublets from "@/components/ListingItemForSublets";
-import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
+import {
+    ACTIVE_STATUSES,
+    PAST_STATUSES,
+    CONFIRMED_STATUSES,
+} from "@/utils/constants";
 
 const Sublets = () => {
     // get user object from context
-    const { user, loading } = useAuth();
+    const { user, status } = useAuth();
 
     // state
     const [activeTab, setActiveTab] = useState("active");
@@ -27,7 +31,9 @@ const Sublets = () => {
 
             // fetch listings and requests
             const responseListings = await fetch(`/api/listings`);
-            const responseRequests = await fetch(`/api/requests/user-requests/${user.id}`);
+            const responseRequests = await fetch(
+                `/api/requests/user-requests/${user.id}`
+            );
 
             // error handling
             if (!responseListings.ok) {
@@ -43,7 +49,9 @@ const Sublets = () => {
             const receivedRequests = await responseRequests.json();
 
             setListings(
-                receivedListings.sort((p1, p2) => new Date(p2.createdAt) - new Date(p1.createdAt))
+                receivedListings.sort(
+                    (p1, p2) => new Date(p2.createdAt) - new Date(p1.createdAt)
+                )
             );
             setRequests(receivedRequests);
             setFetching(false);
@@ -74,13 +82,19 @@ const Sublets = () => {
     // memoized filtered listings
     // here we filter the listings array to get the listings with the IDs we got above, for each type of request
     const activeListings = useMemo(() => {
-        return listings.filter((listing) => activeRequestListingIds.includes(listing._id));
+        return listings.filter((listing) =>
+            activeRequestListingIds.includes(listing._id)
+        );
     }, [listings]);
     const pastListings = useMemo(() => {
-        return listings.filter((listing) => pastRequestListingIds.includes(listing._id));
+        return listings.filter((listing) =>
+            pastRequestListingIds.includes(listing._id)
+        );
     }, [listings]);
     const confirmedListings = useMemo(() => {
-        return listings.filter((listing) => confirmedRequestListingIds.includes(listing._id));
+        return listings.filter((listing) =>
+            confirmedRequestListingIds.includes(listing._id)
+        );
     }, [listings]);
 
     // useEffect to update displayListings when activeTab changes
@@ -123,13 +137,15 @@ const Sublets = () => {
     // unused for now but will implement soon
     const handleDeleteListing = async (listingId) => {
         // update listings state
-        const updatedListings = listings.filter((listing) => listing.id !== listingId);
+        const updatedListings = listings.filter(
+            (listing) => listing.id !== listingId
+        );
         setListings(updatedListings);
     };
 
     // this is to ensure we don't get any flashing of the Guest page or the "# of listings" text
     // only care about the "fetching" prop if user is signed in, otherwise won't be fetching anything
-    if (loading || (user && fetching)) {
+    if (status === "loading" || (user && fetching)) {
         return (
             <>
                 <div className="flex flex-col items-center justify-start min-h-screen mx-8 pt-10 pb-32">
@@ -152,8 +168,9 @@ const Sublets = () => {
                 {listings.length && !fetching ? (
                     <>
                         <p className="self-start mb-1 text-gray-700 text-sm">
-                            {displayListings.length} listing{displayListings.length !== 1 && "s"}{" "}
-                            with {activeTab} requests
+                            {displayListings.length} listing
+                            {displayListings.length !== 1 && "s"} with{" "}
+                            {activeTab} requests
                         </p>
                         <div className="grid grid-cols-1 gap-10 mt-2">
                             {displayListings.map((listing) => {
@@ -161,22 +178,30 @@ const Sublets = () => {
                                     case "past":
                                         const pastRequests = requests.filter(
                                             (request) =>
-                                                PAST_STATUSES.includes(request.status) &&
-                                                request.listingId === listing._id
+                                                PAST_STATUSES.includes(
+                                                    request.status
+                                                ) &&
+                                                request.listingId ===
+                                                    listing._id
                                         );
                                         return (
                                             <ListingItemWithRequests
                                                 key={listing._id}
                                                 listing={listing}
                                                 requests={pastRequests}
-                                                deleteListing={handleDeleteListing}
+                                                deleteListing={
+                                                    handleDeleteListing
+                                                }
                                             />
                                         );
                                     case "active":
                                         const activeRequests = requests.filter(
                                             (request) =>
-                                                ACTIVE_STATUSES.includes(request.status) &&
-                                                request.listingId === listing._id
+                                                ACTIVE_STATUSES.includes(
+                                                    request.status
+                                                ) &&
+                                                request.listingId ===
+                                                    listing._id
                                         ); // should only be one request here
                                         return (
                                             <ListingItemForSublets
@@ -187,11 +212,15 @@ const Sublets = () => {
                                             />
                                         );
                                     case "confirmed":
-                                        const confirmedRequests = requests.filter(
-                                            (request) =>
-                                                CONFIRMED_STATUSES.includes(request.status) &&
-                                                request.listingId === listing._id
-                                        ); // should only be one request here
+                                        const confirmedRequests =
+                                            requests.filter(
+                                                (request) =>
+                                                    CONFIRMED_STATUSES.includes(
+                                                        request.status
+                                                    ) &&
+                                                    request.listingId ===
+                                                        listing._id
+                                            ); // should only be one request here
                                         return (
                                             <ListingItemForSublets
                                                 key={listing._id}

@@ -77,20 +77,40 @@ const hasErrors = (errors) => {
     return Object.values(errors).some((error) => error);
 };
 
-const EditLocation = ({ listing, dispatch, pushToDatabase, pushing, isLoaded, loadError }) => {
+const EditLocation = ({
+    listing,
+    dispatch,
+    pushToDatabase,
+    pushing,
+    isLoaded,
+    loadError,
+}) => {
     //editing state variable
     const [isEditing, setIsEditing] = useState(false);
-    const [editedLocation, setEditedLocation] = useState(listing.location);
+    const [editedLocation, setEditedLocation] = useState(null);
+
+    // Update editedLocation when listing changes and has the necessary data
+    useEffect(() => {
+        if (listing && listing.location) {
+            setEditedLocation(listing.location);
+        }
+    }, [listing]);
 
     // format address string from location info
-    const { address1, city, stateprovince } = editedLocation;
-    const formattedAddressForDisplay = `${address1}, ${city}, ${stateprovince}`;
     const formattedAddress = useMemo(() => {
-        // Handle optional unitnumber
-        const unit = editedLocation.unitnumber
-            ? `${editedLocation.unitnumber}, `
-            : "";
-        return `${unit}${editedLocation.address1}, ${editedLocation.city}, ${editedLocation.stateprovince} ${editedLocation.postalcode}, ${editedLocation.countryregion}`;
+        if (!editedLocation) {
+            return "";
+        }
+        const {
+            address1,
+            city,
+            stateprovince,
+            unitnumber,
+            postalcode,
+            countryregion,
+        } = editedLocation;
+        const unit = unitnumber ? `${unitnumber}, ` : "";
+        return `${unit}${address1}, ${city}, ${stateprovince} ${postalcode}, ${countryregion}`;
     }, [editedLocation]);
 
     // for help with checking users address and returning suggested address
@@ -334,22 +354,28 @@ const EditLocation = ({ listing, dispatch, pushToDatabase, pushing, isLoaded, lo
     };
 
     const Loading = () => {
-        return <div>
-            <Skeleton className={"w-full h-6"}/>
-        </div>
-    }
+        return (
+            <div>
+                <Skeleton className={"w-full h-6"} />
+            </div>
+        );
+    };
 
     const LoadError = () => {
-        return <div>Error loading google maps... please try again later</div>
+        return <div>Error loading google maps... please try again later</div>;
+    };
+
+    if (!isLoaded || !editedLocation) {
+        return <Loading />;
     }
 
-    if (!isLoaded) {
-        return <Loading />
+    if (loadError) {
+        return <LoadError />;
     }
 
-    if(loadError) {
-        return <LoadError />
-    }
+    // Now you can destructure since editedLocation is guaranteed to be not null
+    const { address1, city, stateprovince } = editedLocation;
+    const formattedAddressForDisplay = `${address1}, ${city}, ${stateprovince}`;
 
     return (
         <div className="flex flex-col gap-4 w-full">

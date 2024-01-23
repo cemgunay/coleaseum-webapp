@@ -16,11 +16,27 @@ const UserSchema = new Schema(
             require: true,
             unique: true,
         },
+        emailVerified: {
+            type: Boolean,
+            default: false,
+        },
+        emailVerificationToken: {
+            type: String,
+            unique: true,
+        },
         password: {
             type: String,
             required: true,
             min: 6,
         },
+        resetPasswordToken: {
+            type: String,
+            unique: true,
+        },
+        resetPasswordTokenExpiry: {
+            type: Date,
+        },
+        accounts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Account" }],
         phoneNumber: {
             type: String,
         },
@@ -80,10 +96,6 @@ const UserSchema = new Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Request",
             default: null,
-        },
-        emailVerified: {
-            type: Boolean,
-            default: false,
         },
         passwordChangeRequired: {
             type: Boolean,

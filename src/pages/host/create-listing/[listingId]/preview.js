@@ -63,7 +63,7 @@ const Preview = () => {
     const [showModalCarousel, setShowModalCarousel] = useState(false);
 
     // user object from db
-    const { user, isLoading: loadingUser, error } = useUser(listing?.userId);
+    const { user, isLoading: loadingUser, error } = useUser(listing?.userId, null);
 
     // still not sure if this state is needed in new version yet
     // might need it for the BottomBar component

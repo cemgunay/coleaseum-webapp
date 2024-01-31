@@ -6,4 +6,4 @@ export default withAuth({
         signIn: "/auth/signin",
     },
 });
-export const config = { matcher: ["/host/:path*"] };
+export const config = { matcher: ["/host/:path*", "/inbox"] };

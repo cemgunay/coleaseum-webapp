@@ -12,6 +12,8 @@ import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
 import { usePusher } from "@/hooks/usePusher";
 import { fetchWithTimeout } from "@/utils/utils";
+import Link from "next/link";
+import ContactHostDrawer from "@/components/ContactHostDrawer";
 
 // moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
 
@@ -103,6 +105,8 @@ const Listing = ({ listing }) => {
     const [highestRequest, setHighestRequest] = useState(null);
     const [numberOfRequests, setNumberOfRequests] = useState(null);
     const [user, setUser] = useState(null);
+    const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
+    const [message, setMessage] = useState(null)
 
     //useEffect to update requests and user on client side
     useEffect(() => {
@@ -207,6 +211,14 @@ const Listing = ({ listing }) => {
 
     return (
         <>
+            <ContactHostDrawer
+                isOpen={isContactDrawerOpen}
+                onClose={() => setIsContactDrawerOpen(false)}
+                host={user}
+                message={message}
+                setMessage={setMessage}
+                listingId={listing._id}
+            />
             {/* Back button */}
             {!showGrid && !showModalCarousel && (
                 <div
@@ -298,6 +310,14 @@ const Listing = ({ listing }) => {
                                 {!user ? <LoadingUser /> : user?.firstName}
                             </span>
                         </div>
+                        {user && (
+                            <div
+                                className="text-sm text-color-primary"
+                                onClick={() => setIsContactDrawerOpen(true)}
+                            >
+                                Contact Host
+                            </div>
+                        )}
                         <div className="mt-2">
                             <p>{formattedRoomInfo}</p>
                         </div>

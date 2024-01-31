@@ -1,16 +1,23 @@
 import useSWR from "swr";
 import fetcher from "@/utils/fetcher";
 import { useMemo } from "react";
+import { useAuth } from "./useAuth";
 
-function useUser(userId, status) {
-    const shouldFetch = status ? status === "authenticated" : !!userId;
+//function to get current users full details
+function useUser(userId, email) {
+    const { status } = useAuth();
+    const shouldFetch = status === "authenticated" && (!!userId || !!email);
+
+    const fetchUrl = userId
+        ? `/api/users/${userId}`
+        : `/api/users/email/${email}`;
 
     const { data, error, isLoading } = useSWR(
-        shouldFetch ? `/api/users/${userId}` : null,
+        shouldFetch ? fetchUrl : null,
         fetcher
     );
 
-    // Create a derived state for the updated user
+    // Derived state for the updated user
     const updatedUser = useMemo(() => {
         if (data && !data.firstName && !data.lastName && data.name) {
             const nameParts = data.name.split(" ");

@@ -9,17 +9,12 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 export const sendResetPasswordEmail = async (email) => {
     await connectMongo();
 
-    console.log("Resetting password for " + email);
-
     // Check if the user exists
     const user = await User.findOne({ email: email });
 
     if (!user) {
         throw new Error("User not found");
     }
-
-    console.log(email)
-    console.log(user)
 
     const resetPasswordToken = crypto.randomBytes(32).toString("base64url");
     const today = new Date();

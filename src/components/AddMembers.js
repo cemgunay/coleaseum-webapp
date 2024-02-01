@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
 import { Controller, useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { Button } from "./ui/button";
@@ -14,7 +13,6 @@ const AddMembers = ({ isOpen, onClose, users = [], conversationId, user }) => {
     const {
         handleSubmit,
         control,
-        watch,
         formState: { errors },
         trigger,
     } = useForm({

@@ -204,17 +204,30 @@ export default async function handler(req, res) {
                 return res.status(403).json({ error: "Access denied" });
             }
 
+            // Convert existing user IDs to strings for comparison
+            const currentMemberIds = conversation.users.map((id) =>
+                id.toString()
+            );
+            const newUniqueMembers = newMembers.filter(
+                (member) => !currentMemberIds.includes(member)
+            );
+
+            // Update the conversation's isGroup status based on the new member count
+            const isGroupAfterAdding =
+                currentMemberIds.length + newUniqueMembers.length > 2;
+            conversation.isGroup = isGroupAfterAdding;
+
             // Add new members
-            if (newMembers && newMembers.length > 0) {
-                const memberObjectIds = newMembers.map(
+            if (newUniqueMembers.length > 0) {
+                const memberObjectIds = newUniqueMembers.map(
                     (member) => new mongoose.Types.ObjectId(member)
                 );
                 conversation.users.push(...memberObjectIds);
-                conversation.userIds.push(...memberObjectIds);
-                // add default roles for new members
-                newMembers.forEach((member) => {
+                conversation.userIds.push(...memberObjectIds); // Assuming userIds should be updated similarly
+                // Add default roles for new members
+                newUniqueMembers.forEach((member) => {
                     conversation.userRoles.push({
-                        userId: member,
+                        userId: new mongoose.Types.ObjectId(member),
                         role: "subtenant",
                     });
                 });

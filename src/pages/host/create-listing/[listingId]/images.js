@@ -19,7 +19,7 @@ import {
 
 const Images = () => {
     //cloudinary
-    const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME;
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
     //initialize router
     const router = useRouter();

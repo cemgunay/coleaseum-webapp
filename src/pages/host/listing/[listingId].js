@@ -28,7 +28,11 @@ export async function getServerSideProps(context) {
 
     // get listing from DB
     const { listingId } = context.params;
-    const response = await fetchWithTimeout(`${apiUrl}/api/listings/${listingId}`, {}, 5000);
+    const response = await fetchWithTimeout(
+        `${apiUrl}/api/listings/${listingId}`,
+        {},
+        5000
+    );
 
     // error handling
     if (response.error) {
@@ -71,7 +75,8 @@ export async function getServerSideProps(context) {
         if (requestsResponse.error || !requestsResponse.ok) {
             console.error(
                 "Failed to fetch requests for this listing: ",
-                requestsResponse.error || `HTTP Error: ${requestsResponse.status}`
+                requestsResponse.error ||
+                    `HTTP Error: ${requestsResponse.status}`
             );
         } else if (userResponse.error || !userResponse.ok) {
             console.error(
@@ -86,7 +91,9 @@ export async function getServerSideProps(context) {
     } else {
         // if we don't have a listing object or that listing object has no userId, something's wrong
         // will trigger an error to show the 500 page
-        throw new Error("Something went wrong with the server side listing fetch");
+        throw new Error(
+            "Something went wrong with the server side listing fetch"
+        );
     }
 }
 
@@ -111,14 +118,16 @@ const HostListing = ({ listing, requests, user }) => {
         }
 
         const formattedAddress = `${listing.location.address1}, ${listing.location.city}, ${listing.location.stateprovince}`;
-        const numBeds = listing.basics.bedrooms.map((bedroom) => bedroom.bedType).length;
+        const numBeds = listing.basics.bedrooms.map(
+            (bedroom) => bedroom.bedType
+        ).length;
         const numBedrooms = listing.basics.bedrooms.length;
         const numBathrooms = listing.basics.bathrooms;
         const formattedRoomInfo = `${numBeds} bed${
             numBeds === 1 ? "" : "s"
-        } • ${numBedrooms} bedroom${numBedrooms === 1 ? "" : "s"} • ${numBathrooms} bathroom${
-            numBathrooms === 1 ? "" : "s"
-        }`;
+        } • ${numBedrooms} bedroom${
+            numBedrooms === 1 ? "" : "s"
+        } • ${numBathrooms} bathroom${numBathrooms === 1 ? "" : "s"}`;
         const images = listing.images.map(({ url }) => url);
 
         return {
@@ -163,7 +172,9 @@ const HostListing = ({ listing, requests, user }) => {
 
         // set highest active request price
         if (activeRequests.length > 0) {
-            const activeRequestPrices = activeRequests.map((req) => req.price || 0);
+            const activeRequestPrices = activeRequests.map(
+                (req) => req.price || 0
+            );
             setHighestRequestPrice(Math.max(...activeRequestPrices));
         }
     }, [listing]);
@@ -172,19 +183,24 @@ const HostListing = ({ listing, requests, user }) => {
     useEffect(() => {
         if (pusher) {
             // Subscribe to the channel
-            const channel = pusher.subscribe("bids-channel");
+            const channel = pusher.subscribe(listing._id);
 
-            // Bind to bid update events
-            channel.bind("bid-updated", (data) => {
+            // Bind to bid create events
+            channel.bind("request:new", (data) => {
                 if (data.listingId === listing._id) {
-                    setHighestRequestPrice(data.newHighestBid);
+                    setNumPendingRequests(
+                        (prevNumberOfRequests) => prevNumberOfRequests + 1
+                    );
+                    if (data.price > highestPendingRequest) {
+                        setHighestPendingRequest(data.price);
+                    }
                 }
             });
 
-            // Bind to bid create events
-            channel.bind("bid-created", (data) => {
+            // Bind to bid update events
+            channel.bind("request:update", (data) => {
                 if (data.listingId === listing._id) {
-                    setNumberOfRequests((prevNumberOfRequests) => prevNumberOfRequests + 1);
+                    setHighestPendingRequest(data.newHighestBid);
                 }
             });
 
@@ -233,7 +249,10 @@ const HostListing = ({ listing, requests, user }) => {
         <>
             {/* Back button */}
             {!showGrid && !showModalCarousel && (
-                <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
+                <div
+                    className="absolute top-0 left-0 w-fit z-[100] p-4"
+                    onClick={router.back}
+                >
                     <FaCircleChevronLeft className="text-2xl text-gray-800" />
                 </div>
             )}
@@ -242,7 +261,9 @@ const HostListing = ({ listing, requests, user }) => {
             {listingActiveTab === "active" || listingActiveTab === "past" ? (
                 <div
                     className="absolute flex items-center justify-center top-0 right-0 z-[100] m-3 rounded-full bg-color-primary w-8 h-8 hover:cursor-pointer"
-                    onClick={() => router.push(`/host/manage-listings/${listing._id}/edit`)}
+                    onClick={() =>
+                        router.push(`/host/manage-listings/${listing._id}/edit`)
+                    }
                 >
                     <GrEdit className="text-base text-gray-100" />
                 </div>
@@ -292,10 +313,14 @@ const HostListing = ({ listing, requests, user }) => {
                 <div className="flex flex-col mx-8">
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <div className="flex justify-between">
-                            <h3 className="text-2xl font-bold">{listing.title}</h3>
+                            <h3 className="text-2xl font-bold">
+                                {listing.title}
+                            </h3>
                             <p>{listing.days_left}</p>
                         </div>
-                        <address className="text-lg">{formattedAddress}</address>
+                        <address className="text-lg">
+                            {formattedAddress}
+                        </address>
                         {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
                             {!highestRequestPrice ? (
@@ -319,7 +344,9 @@ const HostListing = ({ listing, requests, user }) => {
                     {/* Dynamically load username */}
                     <div className="py-4 border-b-[0.1rem] border-gray-300 text-xl">
                         <div className="flex flex-wrap items-center gap-1">
-                            <div className="min-w-0">Entire suite subletted by</div>
+                            <div className="min-w-0">
+                                Entire suite subletted by
+                            </div>
                             <span className="font-bold flex-grow flex-shrink">
                                 {!user ? <LoadingUser /> : user?.firstName}
                             </span>

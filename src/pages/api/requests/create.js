@@ -26,8 +26,9 @@ export default async function handler(req, res) {
 
                 // trigger a pusher event
                 console.log("triggered create");
-                pusher.trigger("requests-channel", "request-created", {
+                pusher.trigger(listingId, "request:new", {
                     listingId: listingId,
+                    price: price
                 });
 
                 // send back newly created request

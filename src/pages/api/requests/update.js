@@ -25,8 +25,9 @@ export default async function handler(req, res) {
 
                 // trigger a pusher event (if new bid is higher than current highest bid)
                 // if currentHighestBid doesn't exist, set it to 0
+                console.log("triggered update");
                 if (newPrice > currentHighestBid ?? 0) {
-                    pusher.trigger("bids-channel", "bid-updated", {
+                    pusher.trigger(listingId, "request:update", {
                         listingId: listingId,
                         newHighestBid: newPrice,
                     });

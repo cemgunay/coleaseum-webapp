@@ -12,6 +12,7 @@ const RequestStatus = Object.freeze({
     PENDING: "pending",
     REJECTED: "rejected",
     ACCEPTED: "accepted",
+    TEMP: "temp",
 });
 
 const RequestSchema = new Schema(
@@ -34,11 +35,11 @@ const RequestSchema = new Schema(
         },
         startDate: {
             type: Date,
-            required: false,
+            required: true,
         },
         endDate: {
             type: Date,
-            required: false,
+            required: true,
         },
         viewingDate: {
             type: Date,

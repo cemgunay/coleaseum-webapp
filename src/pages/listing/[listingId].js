@@ -219,37 +219,8 @@ const Listing = ({ listing }) => {
     };
 
     // function to create new request and redirect to request page
-    const createNewRequestAndRedirect = async () => {
-        try {
-            setSubmitting(true);
-            // create new request
-            const response = await fetch("/api/requests/create", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    listingId: listing._id,
-                    tenantId: listing.userId,
-                    subTenantId: contextUser.id,
-                    price: listing.price,
-                }),
-            });
-
-            if (!response.ok) {
-                throw new Error("Failed to create new request :(");
-            }
-
-            const newRequest = await response.json();
-            console.log("new request: ", newRequest);
-
-            // redirect to request page
-            router.push(`/request/${newRequest._id}`);
-        } catch (error) {
-            throw new Error("Create request API call failed");
-        } finally {
-            setSubmitting(false);
-        }
+    const createNewRequest = () => {
+        router.push(`/listing/${listing._id}/create-request`);
     };
 
     // function to display bottom bar content
@@ -351,7 +322,7 @@ const Listing = ({ listing }) => {
                         return (
                             <button
                                 className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
-                                onClick={() => router.push(`/create-request/${listing._id}`)}
+                                onClick={createNewRequest}
                                 disabled={submitting}
                             >
                                 {submitting ? (

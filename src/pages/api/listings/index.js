@@ -3,6 +3,8 @@ import Listing from "@/models/Listing";
 import Booking from "@/models/Booking";
 import authenticate from "@/utils/authentication";
 
+
+
 // helper function to build the DB query from request query and filters
 const buildDBQuery = (reqQuery, filters) => {
     // create dbQuery to be edited by req query and filters
@@ -55,6 +57,18 @@ const buildDBQuery = (reqQuery, filters) => {
             dbQuery["utilities.wifi"] = wifi;
         }
     }
+
+    // Spatial query using coordinates
+    if (filters.coords) {
+        const { lat, lng } = filters.coords;
+        dbQuery["location.geo"] = {
+            $near: {
+                $geometry: { type: "Point", coordinates: [ lng, lat ] },
+                $maxDistance: filters.radius ? filters.radius*1000 : 10000, // Example: 10km from the coordinates
+            },
+        };
+    }
+    
 
     return dbQuery;
 };

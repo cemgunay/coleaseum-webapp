@@ -32,7 +32,7 @@ const profile = () => {
         user: initialUser,
         isLoading,
         error,
-    } = useUser(contextUser?.id, status);
+    } = useUser(contextUser?.id, null);
 
     // Create a derived state for the updated user
     const user = useMemo(() => {

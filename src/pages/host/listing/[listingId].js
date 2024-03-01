@@ -6,7 +6,7 @@ import ImageGrid from "@/components/ImageGrid";
 import ModalCarousel from "@/components/ModalCarousel";
 import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
-import { usePusher } from "@/context/PusherContext";
+import { usePusher } from "@/hooks/usePusher";
 import { fetchWithTimeout } from "@/utils/utils";
 import { formatPrice } from "@/utils/utils";
 import { format } from "date-fns";

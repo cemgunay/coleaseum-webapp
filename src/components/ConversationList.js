@@ -56,24 +56,17 @@ const ConversationList = ({ initialItems, users, host }) => {
 
         //when a conversation is updated from a new message being sent
         const updateHandler = (data) => {
-            const { conversation, userRole } = data;
-
-            if (
-                (host && userRole === "tenant") ||
-                (!host && userRole === "subtenant")
-            ) {
-                setItems((current) =>
-                    current.map((currentConversation) => {
-                        if (currentConversation._id === conversation._id) {
-                            return {
-                                ...currentConversation,
-                                messages: conversation.messages,
-                            };
-                        }
-                        return currentConversation;
-                    })
-                );
-            }
+            setItems((current) =>
+                current.map((currentConversation) => {
+                    if (currentConversation._id === data._id) {
+                        return {
+                            ...currentConversation,
+                            messages: data.messages,
+                        };
+                    }
+                    return currentConversation;
+                })
+            );
         };
 
         pusher.bind("conversation:new", newHandler);

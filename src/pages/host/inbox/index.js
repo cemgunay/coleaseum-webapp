@@ -41,7 +41,7 @@ const Index = () => {
 
     const Loading = () => {
         return (
-            <div className="fixed  top-1/2 left-1/2 text-color-primary">
+            <div className="fixed top-1/2 left-1/2 text-color-primary">
                 <CircularProgress size={24} color="inherit" />
             </div>
         );

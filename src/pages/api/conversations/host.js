@@ -243,7 +243,7 @@ export default async function handler(req, res) {
 
             // Notify members about the update
             conversation.users.forEach((userId) => {
-                pusher.trigger(userId.toString(), "conversation:updated", {
+                pusher.trigger(userId.toString(), "conversation:update", {
                     conversationId,
                     newMembers,
                     newListingId,

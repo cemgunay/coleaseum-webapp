@@ -5,7 +5,7 @@ const ListingList = ({ listings }) => {
     return (
         <div className="grid grid-cols-1 gap-8 mt-2 mb-56">
             {listings.map((listing) => (
-                <ListingItem key={listing.id} listing={listing} />
+                <ListingItem key={listing._id} listing={listing} />
             ))}
         </div>
     );

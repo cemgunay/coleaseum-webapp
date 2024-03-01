@@ -41,9 +41,11 @@ export function ExploreSearchMenu({ isOpen, onClose, onFiltersChange }) {
     const { query } = router;
 
     const [startDate, setStartDate] = useState(
-        query.from ? new Date(query.from) : ""
+        query.startDate ? new Date(query.startDate) : ""
     );
-    const [endDate, setEndDate] = useState(query.to ? new Date(query.to) : "");
+    const [endDate, setEndDate] = useState(
+        query.endDate ? new Date(query.endDate) : ""
+    );
 
     const [selectedDates, setSelectedDates] = useState(
         startDate && endDate
@@ -79,11 +81,11 @@ export function ExploreSearchMenu({ isOpen, onClose, onFiltersChange }) {
         if (query.zoom) {
             setZoom(parseFloat(query.zoom));
         }
-        if (query.from) {
-            setStartDate(new Date(query.from));
+        if (query.startDate) {
+            setStartDate(new Date(query.startDate));
         }
-        if (query.to) {
-            setEndDate(new Date(query.to));
+        if (query.endDate) {
+            setEndDate(new Date(query.endDate));
         }
     }, [query]);
 
@@ -135,8 +137,8 @@ export function ExploreSearchMenu({ isOpen, onClose, onFiltersChange }) {
             coords: coords ? JSON.stringify(coords) : null, // Stringify coords for URL compatibility
             zoom: zoom,
             radius: getSearchRadius(zoom),
-            from: adjustedFrom ? adjustedFrom.toISOString() : "", // Convert to ISO string for consistency
-            to: adjustedTo ? adjustedTo.toISOString() : "",
+            startDate: adjustedFrom ? adjustedFrom.toISOString() : "", // Convert to ISO string for consistency
+            endDate: adjustedTo ? adjustedTo.toISOString() : "",
         });
 
         setOpenAccordionItem(null); // Close the accordion

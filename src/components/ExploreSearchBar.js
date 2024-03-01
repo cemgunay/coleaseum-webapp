@@ -1,6 +1,7 @@
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { FaMagnifyingGlass } from "react-icons/fa6";
 
 const ExploreSearchBar = ({ setOpenSearch }) => {
     const router = useRouter();
@@ -10,45 +11,46 @@ const ExploreSearchBar = ({ setOpenSearch }) => {
         query.location ? query.location : ""
     );
     const [startDate, setStartDate] = useState(
-        query.from
-            ? new Date(query.from)
-            : ""
+        query.startDate ? new Date(query.startDate) : ""
     );
     const [endDate, setEndDate] = useState(
-        query.to
-            ? new Date(query.to)
-            : ""
+        query.endDate ? new Date(query.endDate) : ""
     );
 
     useEffect(() => {
         if (query.location) {
             setLocation(query.location);
         }
-        if (query.from) {
-            setStartDate(new Date(query.from));
+        if (query.startDate) {
+            setStartDate(new Date(query.startDate));
         }
-        if (query.to) {
-            setEndDate(new Date(query.to));
+        if (query.endDate) {
+            setEndDate(new Date(query.endDate));
         }
     }, [query]);
 
     return (
-        <div className="w-5/6 border rounded-lg h-12 py-1 px-4">
-            <div
-                className="text-sm font-bold"
-                onClick={() => setOpenSearch(true)}
-            >
-                {location ? location : "Select location"}
-            </div>
-            <div className="text-xs font-light">
-                {startDate && endDate ? (
-                    <div>
-                        {format(new Date(startDate), "LLL dd, y")} -{" "}
-                        {format(new Date(endDate), "LLL dd, y")}
+        <div className="w-5/6 border rounded-lg h-12 py-1 pr-4 pl-3">
+            <div className="flex gap-2 items-center">
+                <FaMagnifyingGlass />
+                <div>
+                    <div
+                        className="text-sm font-bold"
+                        onClick={() => setOpenSearch(true)}
+                    >
+                        {location ? location : "Select location"}
                     </div>
-                ) : (
-                    "Select dates"
-                )}
+                    <div className="text-xs font-light">
+                        {startDate && endDate ? (
+                            <div>
+                                {format(new Date(startDate), "LLL dd, y")} -{" "}
+                                {format(new Date(endDate), "LLL dd, y")}
+                            </div>
+                        ) : (
+                            "Select dates"
+                        )}
+                    </div>
+                </div>
             </div>
         </div>
     );

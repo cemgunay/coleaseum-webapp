@@ -8,7 +8,7 @@ import {
     MarkerClusterer,
     SuperClusterAlgorithm,
 } from "@googlemaps/markerclusterer";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import useSWR from "swr";
 import fetcher from "@/utils/fetcher";
 import { useRouter } from "next/router";
@@ -16,6 +16,7 @@ import { LinearProgress } from "@mui/material";
 import { debounce } from "lodash";
 import Image from "next/image";
 import { IoClose } from "react-icons/io5";
+import Skeleton from "./Skeleton";
 
 function getSearchRadius(zoomLevel) {
     // Define constants for the function
@@ -61,7 +62,12 @@ function calculateBoundsRadius(northEast, center) {
     return haversineDistance(center, northEast);
 }
 
-export default function ExploreMap() {
+export default function ExploreMap({
+    isLoaded,
+    selectedMarkerIndex,
+    setSelectedMarkerIndex,
+    resetSelectedMarker,
+}) {
     const mapOptions = {
         disableDefaultUI: true,
     };
@@ -89,9 +95,6 @@ export default function ExploreMap() {
         }
     }, [query]);
 
-    const [selectedMarkerIndex, setSelectedMarkerIndex] = useState(null);
-    const resetSelectedMarker = () => setSelectedMarkerIndex(null);
-
     const updateMapState = (newCenter, newSearchRadius, zoomLevel) => {
         router.push(
             {
@@ -109,10 +112,10 @@ export default function ExploreMap() {
     };
 
     const Loading = () => {
-        return <div>loading</div>;
+        return <Skeleton className={"w-full h-full"} />;
     };
 
-    if (!coords || !zoom) {
+    if (!coords || !zoom || !isLoaded) {
         return <Loading />;
     }
 
@@ -201,20 +204,30 @@ const Markers = ({
     const { query } = router; // Access query params directly from the router
 
     // Use the query parameters as initial filters or defaults if not specified
-    const initialFilters = {
-        startDate: query.from || "2023-05-01",
-        endDate: query.to || "2024-10-14",
-        location: query.location || "",
-        coords: query.coords ? JSON.parse(query.coords) : null,
-        radius: query.radius || null,
-    };
+    const initialFilters = useMemo(
+        () => ({
+            startDate: query.startDate,
+            endDate: query.endDate,
+            location: query.location,
+            coords: query.coords && JSON.parse(query.coords),
+            radius: query.radius,
+            privacyType: query.privacyType,
+            priceMin: query.priceMin,
+            priceMax: query.priceMax,
+            bedrooms: query.bedrooms,
+            bathrooms: query.bathrooms
+        }),
+        [query]
+    );
 
-    const queryString = new URLSearchParams({
-        filters: JSON.stringify(initialFilters),
-    }).toString();
+    const queryString = useMemo(() => {
+        const filtersStr = encodeURIComponent(JSON.stringify(initialFilters));
+        return `filters=${filtersStr}`;
+    }, [query]);
+
     const { data: listings, isLoading } = useSWR(
-        `/api/listings?${queryString}`,
-        fetcher,
+        [`/api/listings?${queryString}`, "ExploreMap"],
+        ([url, component]) => fetcher(url, component),
         {
             keepPreviousData: true,
         }

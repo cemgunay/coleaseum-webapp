@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import ListingList from "./ListingList";
 import { useRouter } from "next/router";
 import useSWR from "swr";
@@ -11,7 +11,7 @@ export default function ListingsLayout({ snap, setSnap }) {
     return (
         <Drawer
             open={true}
-            dismissible={true} // Assuming you might want it dismissible
+            dismissible={false}
             snapPoints={[0.01, 0.3, 0.85]} // Ensure lowest snap point keeps drawer open
             activeSnapPoint={snap}
             setActiveSnapPoint={setSnap}
@@ -31,19 +31,27 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
     const { query } = router; // Access query params directly from the router
 
     // Use the query parameters as initial filters or defaults if not specified
-    const initialFilters = {
-        startDate: query.from || "2023-05-01",
-        endDate: query.to || "2024-10-14",
-        location: query.location || "",
-        coords: query.coords ? JSON.parse(query.coords) : null,
-        radius: query.radius || null,
-    };
+    const initialFilters = useMemo(
+        () => ({
+            startDate: query.startDate,
+            endDate: query.endDate,
+            location: query.location,
+            coords: query.coords && JSON.parse(query.coords),
+            radius: query.radius,
+            privacyType: query.privacyType,
+            priceMin: query.priceMin,
+            priceMax: query.priceMax,
+            bedrooms: query.bedrooms,
+            bathrooms: query.bathrooms
+        }),
+        [query]
+    );
 
     // Fetch data using SWR based on URL parameters
     const queryString = new URLSearchParams({
         filters: JSON.stringify(initialFilters),
     }).toString();
-    const { data, isLoading, error } = useSWR(
+    const { data, isLoading, isValidating, error } = useSWR(
         `/api/listings?${queryString}`,
         fetcher
     );
@@ -104,7 +112,7 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
 
     return (
         <>
-            {isLoading || !data ? (
+            {isLoading || !data || isValidating ? (
                 <LoadingComponent activeSnapPoint={activeSnapPoint} />
             ) : (
                 <div className="mt-2 mx-4 flex flex-col gap-2 items-center">
@@ -124,7 +132,7 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
                             </Button>
                         ) : null}
                     </div>
-                    <div className="h-screen overflow-y-auto">
+                    <div className="h-screen overflow-y-auto no-scrollbar">
                         <ListingList listings={listings} />
                     </div>
                 </div>

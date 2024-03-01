@@ -44,7 +44,6 @@ const ListingSchema = new Schema(
                 coordinates: {
                     type: [Number], // Array of [longitude, latitude]
                     required: true,
-                    index: "2dsphere", // Ensures indexing for geospatial queries
                 },
             },
         },

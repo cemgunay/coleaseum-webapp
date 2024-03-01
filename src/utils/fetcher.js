@@ -1,4 +1,6 @@
-const fetcher = async (url) => {
+const fetcher = async (url, componentName) => {
+    if (componentName) console.log(`Fetching data for ${componentName}`); // Log the component initiating the fetch
+
     try {
         const response = await fetch(url);
 

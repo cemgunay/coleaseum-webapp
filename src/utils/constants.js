@@ -4,6 +4,7 @@ export const ACTIVE_STATUSES = [
     "pendingTenantUpload",
     "pendingSubTenantUpload",
     "pendingFinalAccept",
+    "pending",
 ];
 
 export const PAST_STATUSES = ["rejected"];
@@ -16,3 +17,6 @@ export const MIN_FILE_SIZE = 50 * 1024; // 50 KB
 export const ALLOWED_FILE_TYPES = [".jpeg", ".png"];
 export const MAX_FILES = 10;
 export const UPLOAD_TIMEOUT = 10000; // 10 seconds
+
+// number of hours after rejected request that a user can submit a new request
+export const REJECTED_REQUEST_BUFFER_HOURS = 12;

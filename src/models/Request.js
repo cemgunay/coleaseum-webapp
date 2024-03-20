@@ -8,7 +8,10 @@ const RequestStatus = Object.freeze({
     PENDINGSUBTENANTUPLOAD: "pendingSubTenantUpload",
     PENDINGFINALACCEPT: "pendingFinalAccept",
     CONFIRMED: "confirmed",
+
+    PENDING: "pending",
     REJECTED: "rejected",
+    ACCEPTED: "accepted",
 });
 
 const RequestSchema = new Schema(
@@ -31,11 +34,11 @@ const RequestSchema = new Schema(
         },
         startDate: {
             type: Date,
-            required: true,
+            required: false,
         },
         endDate: {
             type: Date,
-            required: true,
+            required: false,
         },
         viewingDate: {
             type: Date,
@@ -64,12 +67,8 @@ const RequestSchema = new Schema(
             type: Boolean,
             default: true,
         },
-        tenantDocuments: [
-            { type: mongoose.Schema.Types.ObjectId, ref: "Document" },
-        ],
-        subtenantDocuments: [
-            { type: mongoose.Schema.Types.ObjectId, ref: "Document" },
-        ],
+        tenantDocuments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
+        subtenantDocuments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
         tenantFinalAccept: {
             type: Boolean,
             default: false,
@@ -85,7 +84,6 @@ const RequestSchema = new Schema(
     { timestamps: true }
 );
 
-const RequestModel =
-    mongoose.models.Request || mongoose.model("Request", RequestSchema);
+const RequestModel = mongoose.models.Request || mongoose.model("Request", RequestSchema);
 
 export default RequestModel;

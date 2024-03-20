@@ -6,17 +6,15 @@ import Carousel from "@/components/Carousel";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
 import { format, differenceInMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
-import { MdDeleteForever } from "react-icons/md";
-import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
 import BottomBar from "@/components/BottomBar";
 import CircularProgress from "@mui/material/CircularProgress";
+import { useAuth } from "@/hooks/useAuth";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
 
-// get request details on server side
+// get listing details on server side
 export async function getServerSideProps(context) {
     // make sure we have an API URL
     const apiUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -26,9 +24,9 @@ export async function getServerSideProps(context) {
         };
     }
 
-    // get request from DB
-    const { requestId } = context.params;
-    const response = await fetchWithTimeout(`${apiUrl}/api/requests/${requestId}`, {}, 5000);
+    // get listing from DB
+    const { listingId } = context.params;
+    const response = await fetchWithTimeout(`${apiUrl}/api/listings/${listingId}`, {}, 5000);
 
     // error handling
     if (response.error) {
@@ -45,129 +43,49 @@ export async function getServerSideProps(context) {
         }
     }
 
-    const request = await response.json();
+    const listing = await response.json();
 
-    // if request fetch was successful, fetch the associated listing and its active requests
-    if (request && request.listingId) {
-        // get listing from DB
-        const listingResponse = await fetchWithTimeout(
-            `${apiUrl}/api/listings/${request.listingId}`,
-            {},
-            5000
+    // fetch the associated active requests
+    const activeRequestsResponse = await fetchWithTimeout(
+        `${apiUrl}/api/requests/listingactiverequests/${listingId}`,
+        {},
+        5000
+    );
+
+    // error handling
+    if (activeRequestsResponse.error || !activeRequestsResponse.ok) {
+        console.error(
+            "Failed to fetch active requests for the listing associated with this request: ",
+            activeRequestsResponse.error || `HTTP Error: ${activeRequestsResponse.status}`
         );
-
-        // get active requests for listing from DB
-        const activeRequestsResponse = await fetchWithTimeout(
-            `${apiUrl}/api/requests/listingactiverequests/${request.listingId}`,
-            {},
-            5000
-        );
-
-        // error handling
-        if (listingResponse.error || !listingResponse.ok) {
-            console.error(
-                "Failed to fetch listing for this request: ",
-                listingResponse.error || `HTTP Error: ${listingResponse.status}`
-            );
-        } else if (activeRequestsResponse.error || !activeRequestsResponse.ok) {
-            console.error(
-                "Failed to fetch active requests for the listing associated with this request: ",
-                activeRequestsResponse.error || `HTTP Error: ${activeRequestsResponse.status}`
-            );
-        } else {
-            const listing = await listingResponse.json();
-            const activeRequests = await activeRequestsResponse.json();
-            return { props: { request, listing, activeRequests } };
-        }
+    } else {
+        const activeRequests = await activeRequestsResponse.json();
+        return { props: { listing, activeRequests } };
     }
 
     // something's up if we reach here, means we didn't successfully fetch the listing
 }
 
-const Request = ({ request, listing, activeRequests }) => {
+const CreateRequest = ({ listing, activeRequests }) => {
     const router = useRouter();
 
     // state
-    const [priceOffer, setPriceOffer] = useState(request.price);
-    const [showModal, setShowModal] = useState(false);
-    const [loading, setLoading] = useState(false);
+    const [priceOffer, setPriceOffer] = useState(listing.price);
+    const [submitting, setSubmitting] = useState(false);
 
     // for toast notifications
     const { toast } = useToast();
 
-    // handler functions for modal + deletion events
-    // could have set the state right in the JSX but I think this is more readable
-    // also if we ever wanna add like click event tracking or smth it'll be easier to add
-    const handleOpenModal = () => {
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-    };
-
-    const startDeleteProcess = (e) => {
-        e.stopPropagation();
-        handleOpenModal();
-    };
-
-    const handleConfirmDelete = () => {
-        handleDeleteRequest();
-        handleCloseModal();
-    };
-
-    const handleCancelDelete = () => {
-        handleCloseModal();
-    };
-
-    // handle delete request
-    const handleDeleteRequest = async () => {
-        try {
-            // API call to soft delete the request
-            // hardcoding request._id here instead of taking it as an arg to this function bc
-            // deletion on this page can only ever delete this page's request
-            const response = await fetch(`/api/requests/${request._id}/delete`, {
-                method: "PATCH",
-            });
-
-            // error handling
-            if (!response.ok) {
-                console.log(response);
-                throw new Error("Failed to delete request");
-            }
-
-            // // console log the deleted request
-            // const deletedRequest = await response.json();
-            // console.log(deletedRequest);
-
-            // toast notification
-            toast({
-                variant: "default",
-                title: "Deleted!",
-                description: "RIP to that request ☠️",
-            });
-
-            // push user back to previous page
-            router.back();
-        } catch (error) {
-            console.log(`Error deleting request: ${error}`);
-            toast({
-                variant: "destructive",
-                title: "Failed to delete request :(",
-                description: error,
-            });
-        }
-    };
+    // get user context
+    const { user: contextUser } = useAuth();
 
     // highest active request calculation
-    const { highestActiveRequest, isCurrentRequestHighest } = useMemo(() => {
+    const { highestActiveRequest } = useMemo(() => {
         const sortedActiveRequests = [...activeRequests].sort((a, b) => b.price - a.price);
         const highestActiveRequest = sortedActiveRequests[0];
-        const isCurrentRequestHighest =
-            highestActiveRequest && highestActiveRequest._id === request._id;
 
-        return { highestActiveRequest, isCurrentRequestHighest };
-    }, [request, activeRequests]);
+        return { highestActiveRequest };
+    }, [activeRequests]);
 
     // derived state for listing info
     const { formattedAddress, formattedRoomInfo, listingImages } = useMemo(() => {
@@ -223,45 +141,48 @@ const Request = ({ request, listing, activeRequests }) => {
         return priceOffer * numMonths * 0.5 + Number(atic);
     }, [priceOffer, numMonths, atic]);
 
-    // function to generate tailwind classes for title depending on request status
-    const titleClass = (status) => {
-        return cn(
-            "w-full h-8 text-slate-100 font-medium flex justify-center items-center",
-            PAST_STATUSES.includes(status) && "bg-color-error",
-            ACTIVE_STATUSES.includes(status) && "bg-color-warning",
-            CONFIRMED_STATUSES.includes(status) && "bg-color-pass"
-        );
-    };
+    // function to create new request and redirect to request page
+    const createNewRequestAndRedirect = async () => {
+        try {
+            setSubmitting(true);
+            // create new request
+            const response = await fetch("/api/requests/create", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    listingId: listing._id,
+                    tenantId: listing.userId,
+                    subTenantId: contextUser.id,
+                    price: priceOffer,
+                }),
+            });
 
-    // function to update request
-    const updateRequest = async () => {
-        setLoading(true);
+            if (!response.ok) {
+                toast({
+                    variant: "destructive",
+                    title: "Failed to create request :(",
+                    description: response.error,
+                });
+                throw new Error("Failed to create request :(");
+            }
 
-        // update request
-        const response = await fetch("/api/requests/update", {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                requestId: request._id,
-                listingId: listing._id,
-                newPrice: priceOffer,
-                currentHighestBid: highestActiveRequest.price,
-            }),
-        });
+            const newRequest = await response.json();
+            console.log("new request: ", newRequest);
 
-        if (!response.ok) {
-            throw new Error("Failed to update request :(");
+            // redirect to request page
+            router.push(`/request/${newRequest._id}`);
+        } catch (error) {
+            toast({
+                variant: "destructive",
+                title: "API Error :(",
+                description: error,
+            });
+            throw new Error("API Error :(");
+        } finally {
+            setSubmitting(false);
         }
-
-        const updatedRequest = await response.json();
-        console.log("updated request: ", updatedRequest);
-
-        setLoading(false);
-
-        // refresh request page
-        router.reload();
     };
 
     return (
@@ -271,28 +192,12 @@ const Request = ({ request, listing, activeRequests }) => {
                 <FaCircleChevronLeft className="text-2xl text-gray-800" />
             </button>
 
-            {/* Delete button */}
-            <button
-                className="absolute top-11 right-4 w-fit z-[50] hover:cursor-pointer"
-                onClick={(e) => startDeleteProcess(e)}
-            >
-                <MdDeleteForever className="text-3xl text-gray-800 hover:text-color-error" />
-            </button>
-
-            {/* Delete modal */}
-            {showModal && (
-                <ConfirmDeleteDialog
-                    open={showModal}
-                    onClose={handleCloseModal}
-                    onConfirm={handleConfirmDelete}
-                    onCancel={handleCancelDelete}
-                />
-            )}
-
             {/* Main content */}
             <div className="flex flex-col text-black overflow-hidden pb-24">
                 {/* title */}
-                <div className={titleClass(request.status)}>REQUEST TO SUBLET</div>
+                <div className="w-full h-8 text-slate-100 bg-color-pass font-medium flex justify-center items-center">
+                    CREATING NEW REQUEST
+                </div>
 
                 {/* Main image carousel */}
                 <div className="w-full h-60">
@@ -312,15 +217,12 @@ const Request = ({ request, listing, activeRequests }) => {
                     >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
                             <h3 className="text-2xl font-bold">{listing.title}</h3>
-                            {ACTIVE_STATUSES.includes(request.status) && (
-                                <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
-                                    Highest offer:{" "}
-                                    {highestActiveRequest
-                                        ? formatPrice(highestActiveRequest.price, false)
-                                        : "N/A"}{" "}
-                                    {isCurrentRequestHighest ? "(yours)" : "(not yours)"}
-                                </div>
-                            )}
+                            <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
+                                Highest offer:{" "}
+                                {highestActiveRequest
+                                    ? formatPrice(highestActiveRequest.price, false)
+                                    : "N/A"}{" "}
+                            </div>
                         </div>
                         <address className="text-lg">{formattedAddress}</address>
                         <p className="mt-2 text-xl">{formattedRoomInfo}</p>
@@ -331,14 +233,10 @@ const Request = ({ request, listing, activeRequests }) => {
                         <IncrementalPriceInput
                             priceOffer={priceOffer}
                             setPriceOffer={setPriceOffer}
-                            disabled={
-                                PAST_STATUSES.includes(request.status) ||
-                                CONFIRMED_STATUSES.includes(request.status)
-                            }
                         />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 flex flex-col gap-4 text-lg">
-                        <h3 className="text-2xl font-bold">Your Request</h3>
+                        <h3 className="text-2xl font-bold">New Request</h3>
                         <div className="flex items-center gap-8">
                             <div className="flex flex-col">
                                 <h4 className="font-semibold">Move In:</h4>
@@ -378,25 +276,18 @@ const Request = ({ request, listing, activeRequests }) => {
                 {/* sticky button */}
                 <BottomBar>
                     <div className="flex flex-col gap-2 px-8">
-                        {ACTIVE_STATUSES.includes(request.status) && (
-                            <p className="text-xs text-center text-slate-500">
-                                Request is already created. Change price to your liking and click
-                                below to update it.
-                            </p>
-                        )}
+                        <p className="text-xs text-center text-slate-500">
+                            Change price offer to your liking and click below to submit the request.
+                        </p>
                         <Button
                             className="bg-color-primary w-full"
-                            // button disabled if request is not active
-                            disabled={
-                                !ACTIVE_STATUSES.includes(request.status) ||
-                                priceOffer === request.price // haven't made any changes yet
-                            }
-                            onClick={updateRequest}
+                            disabled={submitting}
+                            onClick={createNewRequestAndRedirect}
                         >
-                            {loading ? (
+                            {submitting ? (
                                 <CircularProgress size={24} color="inherit" />
                             ) : (
-                                "Update Request"
+                                "Submit Request"
                             )}
                         </Button>
                     </div>
@@ -406,4 +297,4 @@ const Request = ({ request, listing, activeRequests }) => {
     );
 };
 
-export default Request;
+export default CreateRequest;

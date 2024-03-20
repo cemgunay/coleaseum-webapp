@@ -12,7 +12,10 @@ import BottomBar from "@/components/BottomBar";
 import Skeleton from "@/components/Skeleton";
 import { usePusher } from "@/hooks/usePusher";
 import { fetchWithTimeout } from "@/utils/utils";
+import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
+import { REJECTED_REQUEST_BUFFER_HOURS } from "@/utils/constants";
+import { CircularProgress } from "@mui/material";
 import ContactHostDrawer from "@/components/ContactHostDrawer";
 
 // moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
@@ -28,11 +31,7 @@ export async function getServerSideProps(context) {
     }
 
     const { listingId } = context.params;
-    const response = await fetchWithTimeout(
-        `${apiUrl}/api/listings/${listingId}`,
-        {},
-        5000
-    );
+    const response = await fetchWithTimeout(`${apiUrl}/api/listings/${listingId}`, {}, 5000);
 
     // Handle fetch failure
     if (response.error) {
@@ -65,7 +64,10 @@ const Listing = ({ listing }) => {
     // get pusher context
     const pusher = usePusher();
 
-    // Derived state or computations
+    // get user context
+    const { user: contextUser, status } = useAuth();
+
+    // derived state or computations
     const { formattedAddress, formattedRoomInfo, images } = useMemo(() => {
         if (!listing) {
             return {
@@ -79,16 +81,14 @@ const Listing = ({ listing }) => {
         }
 
         const formattedAddress = `${listing.location.address1}, ${listing.location.city}, ${listing.location.stateprovince}`;
-        const numBeds = listing.basics.bedrooms.map(
-            (bedroom) => bedroom.bedType
-        ).length;
+        const numBeds = listing.basics.bedrooms.map((bedroom) => bedroom.bedType).length;
         const numBedrooms = listing.basics.bedrooms.length;
         const numBathrooms = listing.basics.bathrooms;
         const formattedRoomInfo = `${numBeds} bed${
             numBeds === 1 ? "" : "s"
-        } • ${numBedrooms} bedroom${
-            numBedrooms === 1 ? "" : "s"
-        } • ${numBathrooms} bathroom${numBathrooms === 1 ? "" : "s"}`;
+        } • ${numBedrooms} bedroom${numBedrooms === 1 ? "" : "s"} • ${numBathrooms} bathroom${
+            numBathrooms === 1 ? "" : "s"
+        }`;
         const images = listing.images.map(({ url }) => url);
 
         return {
@@ -98,7 +98,7 @@ const Listing = ({ listing }) => {
         };
     }, [listing]);
 
-    //Non computed state declarations
+    // non computed state declarations
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showGrid, setShowGrid] = useState(false);
     const [showModalCarousel, setShowModalCarousel] = useState(false);
@@ -108,64 +108,82 @@ const Listing = ({ listing }) => {
     const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
     const [message, setMessage] = useState(null)
 
-    //useEffect to update requests and user on client side
+    const [allRequests, setAllRequests] = useState([]);
+    const [highestPendingRequest, setHighestPendingRequest] = useState(null);
+    const [numPendingRequests, setNumPendingRequests] = useState(null);
+
+    const [host, setHost] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+
+    // update requests and host info on client side
     useEffect(() => {
-        // fetch active requests for listing
-        const fetchActiveRequests = async () => {
-            const response = await fetch(
-                `/api/requests/listingactiverequests/${listing._id}`
-            );
-            if (!response.ok) {
-                throw new Error("Failed to fetch active requests :(");
-            }
-            const activeRequests = await response.json();
-            const activeRequestPrices = activeRequests.map(
-                (req) => req.price || 0
-            );
-            setHighestRequest(Math.max(...activeRequestPrices));
-            setNumberOfRequests(activeRequests.length);
-        };
+        setLoading(true);
 
-        fetchActiveRequests();
-
-        // fetch user
-        const fetchUser = async () => {
-            const response = await fetch(`/api/users/${listing?.userId}`);
+        // fetch all requests for listing
+        const fetchAllRequests = async () => {
+            const response = await fetch(`/api/requests/listingrequests/${listing._id}`);
             if (!response.ok) {
-                throw new Error("Failed to fetch user :(");
+                throw new Error("Failed to fetch requests :(");
             }
             const data = await response.json();
-            setUser(data);
-        };
+            setAllRequests(data.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))); // sorting by updatedAt
 
-        fetchUser();
+            // get pending requests
+            const pendingRequests = data.filter((req) => req.status === "pending");
+            setNumPendingRequests(pendingRequests.length);
+
+            // get highest pending request (null if no pending requests)
+            if (pendingRequests.length === 0) {
+                setHighestPendingRequest(null);
+            } else {
+                setHighestPendingRequest(Math.max(...pendingRequests.map((req) => req.price || 0)));
+            }
+        };
+        fetchAllRequests();
+
+        // fetch host
+        const fetchHost = async () => {
+            const response = await fetch(`/api/users/${listing?.userId}`);
+            if (!response.ok) {
+                throw new Error("Failed to fetch host :(");
+            }
+            const data = await response.json();
+            setHost(data);
+        };
+        fetchHost();
+
+        setLoading(false);
     }, [listing]);
 
-    //useEffect for pusher realtime connection to update highestRequest and active bid number
+    // useEffect for pusher realtime connection to update highestPendingRequest and active bid number
     useEffect(() => {
         // check if pusher is initialized
         if (pusher) {
             //check if already subscribed
-            if (!pusher.channel("bids-channel")) {
+            if (!pusher.channel(listing._id)) {
                 // Subscribe to the channel
-                const channel = pusher.subscribe("bids-channel");
+                const channel = pusher.subscribe(listing._id);
 
                 channel.bind("pusher:subscription_succeeded", () => {
                     console.log("subscribed!");
 
                     // Bind to bid create events
-                    channel.bind("bid-created", (data) => {
+                    channel.bind("request:new", (data) => {
                         if (data.listingId === listing._id) {
-                            setNumberOfRequests(
-                                (prevNumberOfRequests) =>
-                                    prevNumberOfRequests + 1
+                            setNumPendingRequests(
+                                (prevNumberOfRequests) => prevNumberOfRequests + 1
                             );
+                            if (data.price > highestPendingRequest) {
+                                setHighestPendingRequest(data.price);
+                            }
                         }
                     });
+
                     // Bind to bid update events
-                    channel.bind("bid-updated", (data) => {
+                    channel.bind("request:update", (data) => {
                         if (data.listingId === listing._id) {
-                            setHighestRequest(data.newHighestBid);
+                            setHighestPendingRequest(data.newHighestBid);
                         }
                     });
                 });
@@ -173,24 +191,16 @@ const Listing = ({ listing }) => {
 
             // Unbind all events and unsubscribe when component unmounts if subscribed
             return () => {
-                const channel = pusher.channel("bids-channel");
+                const channel = pusher.channel(listing._id);
                 const subscribed = channel?.subscribed;
                 if (subscribed) {
                     channel.unbind();
-                    pusher.unsubscribe("bids-channel");
+                    pusher.unsubscribe(listing._id);
                     console.log("unsubscribed!");
                 }
             };
         }
     }, [pusher]);
-
-    // still not sure if this state is needed in new version yet
-    // might need it for the BottomBar component
-
-    // const [isBookedByUser, setIsBookedByUser] = useState(false);
-    // const [booking, setBooking] = useState(null);
-    // const [requests, setRequests] = useState([]);
-    // const [activeRequests, setActiveRequests] = useState([]);
 
     // function to handle image selection from grid
     const handleImageSelect = (index) => {
@@ -204,9 +214,134 @@ const Listing = ({ listing }) => {
         return <Skeleton className="h-6 w-full" />;
     };
 
-    // loading component for user
-    const LoadingUser = () => {
+    // loading component for host
+    const LoadingHost = () => {
         return <Skeleton className="h-6 w-full" />;
+    };
+
+    // loading component for bottom bar content
+    const LoadingBottomBarContent = () => {
+        return <Skeleton className="h-11 w-3/4" />;
+    };
+
+    // function to create new request and redirect to request page
+    const createNewRequest = () => {
+        router.push(`/listing/${listing._id}/create-request`);
+    };
+
+    // function to display bottom bar content
+    const renderBottomBarContent = () => {
+        if (!contextUser) {
+            // if user is not logged in, show login button
+            return (
+                <div className="flex flex-col gap-3">
+                    <p className="text-xs text-slate-500">
+                        You are not logged in. Please sign in or sign up to put in a request.
+                    </p>
+                    <div className="flex items-center justify-center gap-3">
+                        <Link
+                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border border-slate-500 text-slate-500 cursor-pointer"
+                            href="/auth/signin"
+                        >
+                            Sign In
+                        </Link>
+                        <Link
+                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
+                            href="/auth/signup"
+                        >
+                            Sign Up
+                        </Link>
+                    </div>
+                </div>
+            );
+        } else {
+            // otherwise we have a logged in user. more checks here.
+
+            // check if user is host
+            if (contextUser.id === listing.userId) {
+                return (
+                    <div className="flex flex-col gap-3 items-center">
+                        <p className="text-xs text-slate-500">This is your listing.</p>
+                        <Link
+                            className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
+                            href={`/host/listing/${listing._id}`}
+                        >
+                            View Host Page
+                        </Link>
+                    </div>
+                );
+            } else {
+                // user is not host. check pending requests
+
+                // find user's pending request for this listing (if any)
+                const userPendingRequest = allRequests.find(
+                    (req) => req.subTenantId === contextUser.id && req.status === "pending"
+                );
+                const hasPendingRequest = !!userPendingRequest;
+
+                if (hasPendingRequest) {
+                    // user already has a pending request, show edit request button
+                    return (
+                        <div className="flex flex-col gap-3 items-center">
+                            <p className="text-xs text-slate-500">
+                                You've already put in a request for this listing.
+                            </p>
+                            <Link
+                                className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
+                                href={`/request/${userPendingRequest._id}`}
+                            >
+                                Edit Request
+                            </Link>
+                        </div>
+                    );
+                } else {
+                    // user doesn't have an existing pending request. check if verified/has rejected request in last 12 hours
+                    // const isVerified = contextUser.isVerified; // will implement this later
+                    const isVerified = true;
+                    const userRejectedRequest = allRequests.find(
+                        (req) => req.subTenantId === contextUser.id && req.status === "rejected"
+                    ); // will fetch most recent
+                    const isRecentlyRejected =
+                        userRejectedRequest &&
+                        new Date() - new Date(userRejectedRequest.updatedAt) <
+                            REJECTED_REQUEST_BUFFER_HOURS * 1000 * 60 * 60;
+
+                    if (!isVerified || isRecentlyRejected) {
+                        // user is unverified or has a rejected request in last 12 hours, show greyed out button
+                        return (
+                            <div>
+                                <p className="text-xs text-color-error">
+                                    {!isVerified
+                                        ? "Please get verified to put in a request."
+                                        : "Please wait 12 hours since your last rejected request."}
+                                </p>
+                                <button
+                                    disabled
+                                    className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
+                                >
+                                    Put in a Request
+                                </button>
+                            </div>
+                        );
+                    } else {
+                        // user is verified and has no rejected requests in last 12 hours, show request button
+                        return (
+                            <button
+                                className="text-base inline-flex items-center justify-center h-11 px-8 py-2 rounded-md border bg-color-primary text-white cursor-pointer"
+                                onClick={createNewRequest}
+                                disabled={submitting}
+                            >
+                                {submitting ? (
+                                    <CircularProgress size={24} color="inherit" />
+                                ) : (
+                                    "Put in a Request"
+                                )}
+                            </button>
+                        );
+                    }
+                }
+            }
+        }
     };
 
     return (
@@ -221,10 +356,7 @@ const Listing = ({ listing }) => {
             />
             {/* Back button */}
             {!showGrid && !showModalCarousel && (
-                <div
-                    className="absolute top-0 left-0 w-fit z-[100] p-4"
-                    onClick={router.back}
-                >
+                <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
                     <FaCircleChevronLeft className="text-2xl text-gray-800" />
                 </div>
             )}
@@ -273,41 +405,35 @@ const Listing = ({ listing }) => {
                 <div className="flex flex-col mx-8">
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <div className="flex justify-between">
-                            <h3 className="text-2xl font-bold">
-                                {listing.title}
-                            </h3>
+                            <h3 className="text-2xl font-bold">{listing.title}</h3>
                             <p>{listing.days_left}</p>
                         </div>
-                        <address className="text-lg">
-                            {formattedAddress}
-                        </address>
+                        <address className="text-lg">{formattedAddress}</address>
                         {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
-                            {!highestRequest ? (
+                            {loading ? (
                                 <LoadingBids />
                             ) : (
                                 <>
                                     <p>
-                                        {highestRequest > 0
-                                            ? `$${highestRequest} (Highest Bid)`
+                                        {highestPendingRequest
+                                            ? `$${highestPendingRequest} (Highest Bid)`
                                             : `$${listing.price} (Listing Price)`}
                                     </p>
                                     <p>
-                                        {numberOfRequests} active bid
-                                        {numberOfRequests === 1 ? "" : "s"}
+                                        {numPendingRequests} active bid
+                                        {numPendingRequests === 1 ? "" : "s"}
                                     </p>
                                 </>
                             )}
                         </div>
                     </div>
-                    {/* Dynamically load username */}
+                    {/* Dynamically load hostname */}
                     <div className="py-4 border-b-[0.1rem] border-gray-300 text-xl">
                         <div className="flex flex-wrap items-center gap-1">
-                            <div className="min-w-0">
-                                Entire suite subletted by
-                            </div>
+                            <div className="min-w-0">Entire suite subletted by</div>
                             <span className="font-bold flex-grow flex-shrink">
-                                {!user ? <LoadingUser /> : user?.firstName}
+                                {!host ? <LoadingHost /> : host?.firstName}
                             </span>
                         </div>
                         {user && (
@@ -325,8 +451,7 @@ const Listing = ({ listing }) => {
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <p className="text-lg">
                             {listing.description?.length > 250
-                                ? listing.description?.substring(0, 250)
-                                      .listing + "..."
+                                ? listing.description?.substring(0, 250).listing + "..."
                                 : listing.description}
                         </p>
                     </div>
@@ -339,9 +464,7 @@ const Listing = ({ listing }) => {
                         <UtilitiesDisplay utilities={listing.utilities} />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
-                        <h2 className="text-2xl font-bold">
-                            What this place offers
-                        </h2>
+                        <h2 className="text-2xl font-bold">What this place offers</h2>
                         <AmenitiesDisplay amenities={listing.amenities} />
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 h-[300px]">
@@ -356,39 +479,32 @@ const Listing = ({ listing }) => {
                         <h2 className="text-2xl font-bold mb-4">Legal</h2>
                         <div className="flex flex-col gap-6">
                             <div>
-                                <div className="font-semibold text-lg">
-                                    Health & Safety
-                                </div>
+                                <div className="font-semibold text-lg">Health & Safety</div>
                                 <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A
-                                    COMPONENTTTTTTTTTTTT I DONT WANNA REWRITE
-                                    THIS SHIT EVERYTIME
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
                                 </p>
                             </div>
                             <div>
-                                <div className="font-semibold text-lg">
-                                    Sublet Policy
-                                </div>
+                                <div className="font-semibold text-lg">Sublet Policy</div>
                                 <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A
-                                    COMPONENTTTTTTTTTTTT I DONT WANNA REWRITE
-                                    THIS SHIT EVERYTIME
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
                                 </p>
                             </div>
                             <div>
-                                <div className="font-semibold text-lg">
-                                    Report this listing
-                                </div>
+                                <div className="font-semibold text-lg">Report this listing</div>
                                 <p>
-                                    SOME GIBBERISH THIS WILL PROBS BE A
-                                    COMPONENTTTTTTTTTTTT I DONT WANNA REWRITE
-                                    THIS SHIT EVERYTIME
+                                    SOME GIBBERISH THIS WILL PROBS BE A COMPONENTTTTTTTTTTTT I DONT
+                                    WANNA REWRITE THIS SHIT EVERYTIME
                                 </p>
                             </div>
                         </div>
                     </div>
                 </div>
-                <BottomBar />
+                <BottomBar>
+                    {status === "loading" ? <LoadingBottomBarContent /> : renderBottomBarContent()}
+                </BottomBar>
             </div>
         </>
     );

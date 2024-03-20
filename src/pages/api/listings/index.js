@@ -84,8 +84,6 @@ const buildDBQuery = (filters) => {
         });
     }
 
-    console.log("PIPELINE", pipeline);
-
     return pipeline;
 };
 
@@ -111,16 +109,11 @@ export default async function handler(req, res) {
                 ? JSON.parse(req.query.filters)
                 : {};
 
-            console.log("QUERY", filtersFromQuery);
-            console.log("DEFAULT", DEFAULT_FILTERS);
-
             // Merge provided filters with defaults, preferring provided values over defaults
             const effectiveFilters = {
                 ...DEFAULT_FILTERS,
                 ...filtersFromQuery,
             };
-
-            console.log("EFFECTIVE", effectiveFilters);
 
             const pipeline = buildDBQuery(effectiveFilters);
 

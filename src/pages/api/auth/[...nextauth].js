@@ -68,9 +68,6 @@ export const authOptions = {
     callbacks: {
         // This callback is triggered on every sign in
         async signIn({ user, account, profile }) {
-            console.log("USER: ", user);
-            console.log("ACCOUNT: ", account);
-            console.log("PROFILE: ", profile);
 
             //check if using google provider to sign in
             if (account.provider === "google") {

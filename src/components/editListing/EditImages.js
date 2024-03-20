@@ -20,7 +20,7 @@ import {
 
 const EditImages = ({ listing, dispatch, pushToDatabase, pushing }) => {
     //cloudinary
-    const cloudName = process.env.NEXT_PUBLIC_CLOUD_NAME;
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
     //editing state variables
     const [isEditing, setIsEditing] = useState(false);

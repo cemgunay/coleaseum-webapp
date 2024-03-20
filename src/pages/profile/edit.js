@@ -33,7 +33,7 @@ const EditProfile = () => {
         user: initialUser,
         isLoading,
         error,
-    } = useUser(contextUser?.id, status);
+    } = useUser(contextUser?.id, null);
 
     //user state ob
     const [user, setUser] = useState({

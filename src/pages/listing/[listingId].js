@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import Link from "next/link";
 import { REJECTED_REQUEST_BUFFER_HOURS } from "@/utils/constants";
 import { CircularProgress } from "@mui/material";
+import ContactHostDrawer from "@/components/ContactHostDrawer";
 
 // moved fetchWithTimeout to utils, since I'm using it in the request page now too - nathan
 
@@ -101,6 +102,11 @@ const Listing = ({ listing }) => {
     const [selectedImageIndex, setSelectedImageIndex] = useState(0);
     const [showGrid, setShowGrid] = useState(false);
     const [showModalCarousel, setShowModalCarousel] = useState(false);
+    const [highestRequest, setHighestRequest] = useState(null);
+    const [numberOfRequests, setNumberOfRequests] = useState(null);
+    const [user, setUser] = useState(null);
+    const [isContactDrawerOpen, setIsContactDrawerOpen] = useState(false);
+    const [message, setMessage] = useState(null)
 
     const [allRequests, setAllRequests] = useState([]);
     const [highestPendingRequest, setHighestPendingRequest] = useState(null);
@@ -340,6 +346,14 @@ const Listing = ({ listing }) => {
 
     return (
         <>
+            <ContactHostDrawer
+                isOpen={isContactDrawerOpen}
+                onClose={() => setIsContactDrawerOpen(false)}
+                host={user}
+                message={message}
+                setMessage={setMessage}
+                listingId={listing._id}
+            />
             {/* Back button */}
             {!showGrid && !showModalCarousel && (
                 <div className="absolute top-0 left-0 w-fit z-[100] p-4" onClick={router.back}>
@@ -422,6 +436,14 @@ const Listing = ({ listing }) => {
                                 {!host ? <LoadingHost /> : host?.firstName}
                             </span>
                         </div>
+                        {user && (
+                            <div
+                                className="text-sm text-color-primary"
+                                onClick={() => setIsContactDrawerOpen(true)}
+                            >
+                                Contact Host
+                            </div>
+                        )}
                         <div className="mt-2">
                             <p>{formattedRoomInfo}</p>
                         </div>

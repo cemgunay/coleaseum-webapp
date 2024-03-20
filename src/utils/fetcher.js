@@ -3,25 +3,17 @@ const fetcher = async (url, componentName) => {
 
     try {
         const response = await fetch(url);
-
-        if (!response.ok) {
-            // Handle HTTP errors
-            let errorInfo;
-            try {
-                // Try to parse error as JSON
-                errorInfo = await response.json();
-            } catch {
-                // If not JSON, use status text
-                errorInfo = { message: response.statusText };
-            }
-            throw new Error(errorInfo.message || "Error fetching data");
-        }
-
-        return response.json();
-    } catch (error) {
-        // Handle network errors
-        throw new Error(error.message || "Network error");
+    // If the status code is not in the range 200-299,
+    // we still try to parse and throw it.
+    if (!res.ok) {
+        const error = new Error("An error occurred while fetching the data.");
+        // Attach extra info to the error object.
+        error.info = await res.json();
+        error.status = res.status;
+        throw error;
     }
+
+    return res.json();
 };
 
 export default fetcher;

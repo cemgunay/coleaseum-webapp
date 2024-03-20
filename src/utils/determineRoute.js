@@ -14,7 +14,6 @@ const FORM_STEPS = {
 
 // Helper function to check listing completeness
 function checkListingCompleteness(listing) {
-    console.log(listing);
 
     if (
         !listing.aboutYourPlace.propertyType ||

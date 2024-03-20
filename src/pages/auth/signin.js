@@ -64,10 +64,10 @@ const SignIn = () => {
             if (!result.ok) {
                 // If there's an error message, display it using toast
                 if (result.error) {
-                    toast({
-                        variant: "destructive",
-                        title: result.error,
-                    });
+                    // toast({
+                    //     variant: "destructive",
+                    //     title: result.error,
+                    // });
                     setApiError(result.error);
                 }
             } else {

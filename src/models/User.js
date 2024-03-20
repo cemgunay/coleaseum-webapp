@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-const { Schema } = mongoose;
+const { Schema, ObjectId } = mongoose;
 
 const UserSchema = new Schema(
     {
@@ -36,7 +36,7 @@ const UserSchema = new Schema(
         resetPasswordTokenExpiry: {
             type: Date,
         },
-        accounts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Account" }],
+        accounts: [{ type: ObjectId, ref: "Account" }],
         phoneNumber: {
             type: String,
         },
@@ -101,6 +101,13 @@ const UserSchema = new Schema(
             type: Boolean,
             default: false,
         },
+        conversationIds: [{ type: ObjectId, ref: "Conversation" }],
+        conversations: [{ type: ObjectId, ref: "Conversation" }],
+
+        seenMessageIds: [{ type: ObjectId, ref: "Message" }],
+        seenMessages: [{ type: ObjectId, ref: "Message" }],
+
+        messages: [{ type: ObjectId, ref: "Message" }],
     },
     { timestamps: true }
 );

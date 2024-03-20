@@ -4,6 +4,7 @@ export const ACTIVE_STATUSES = [
     "pendingTenantUpload",
     "pendingSubTenantUpload",
     "pendingFinalAccept",
+    "pending",
 ];
 
 export const PAST_STATUSES = ["rejected"];
@@ -29,3 +30,7 @@ export const DEFAULT_FILTERS = {
     //coords: { lat: 43.4722854, lng: -80.5448576 }, //DEFAULT TO WATERLOO????
     //radius: "0.958172358124772",
 };
+
+// number of hours after rejected request that a user can submit a new request
+export const REJECTED_REQUEST_BUFFER_HOURS = 12;
+

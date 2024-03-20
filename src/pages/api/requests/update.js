@@ -1,39 +1,47 @@
 import connectMongo from "@/utils/connectMongo";
 import Request from "@/models/Request";
+import pusher from "../../../utils/pusher";
 
-import pusher from '../../../utils/pusher';
-
-// Mock function to simulate updating a bid in the database
-// Returns true if the new bid is the highest bid
-const updateBidMock = async (listingId, bidAmount) => {
-  // Mock logic to check if the new bid is higher than the current highest bid
-  // Replace this with real database logic later
-  const currentHighestBid = 500; // Mock current highest bid
-  return bidAmount > currentHighestBid;
-};
-
-//mock update api - add actual update stuff later
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
+    switch (req.method) {
+        case "PUT":
+            try {
+                // connect to DB
+                await connectMongo();
 
-    const { listingId, bidAmount } = req.body;
+                // get info from req body
+                const { requestId, listingId, newPrice, currentHighestBid } = req.body;
 
-    try {
-      const isHighestBid = await updateBidMock(listingId, bidAmount);
+                // find and update request
+                const updatedRequest = await Request.findOneAndUpdate(
+                    { _id: requestId },
+                    { $set: { price: newPrice } },
+                    { new: true }
+                );
 
-      if (isHighestBid) {
-        // Trigger a Pusher event
-        pusher.trigger('bids-channel', 'bid-updated', {
-          listingId: listingId,
-          newHighestBid: bidAmount
-        });
-      }
+                if (!updatedRequest) {
+                    return res.status(404).json({ error: "Request to update not found." });
+                }
 
-      res.status(200).json({ message: 'Bid updated successfully', isHighestBid });
-    } catch (error) {
-      res.status(500).json({ message: 'Error updating bid' });
+                // trigger a pusher event (if new bid is higher than current highest bid)
+                // if currentHighestBid doesn't exist, set it to 0
+                console.log("triggered update");
+                if (newPrice > currentHighestBid ?? 0) {
+                    pusher.trigger(listingId, "request:update", {
+                        listingId: listingId,
+                        newHighestBid: newPrice,
+                    });
+                }
+
+                // send back updated request
+                res.status(200).json(updatedRequest);
+            } catch (error) {
+                console.error("Failed to update request.\n", error);
+                res.status(500).json({ error: "Error updating request." });
+            }
+            break;
+        default:
+            res.setHeader("Allow", ["PUT"]);
+            return res.status(405).end(`Method ${req.method} Not Allowed`);
     }
-  } else {
-    res.status(405).json({ message: 'Method not allowed' });
-  }
 }

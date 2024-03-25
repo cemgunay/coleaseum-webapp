@@ -12,7 +12,7 @@ export default function ListingsLayout({ snap, setSnap }) {
         <Drawer
             open={true}
             dismissible={false}
-            snapPoints={[0.01, 0.3, 0.85]} // Ensure lowest snap point keeps drawer open
+            snapPoints={[0.01, 0.3, 0.9]} // Ensure lowest snap point keeps drawer open
             activeSnapPoint={snap}
             setActiveSnapPoint={setSnap}
         >
@@ -42,7 +42,7 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
             priceMin: query.priceMin,
             priceMax: query.priceMax,
             bedrooms: query.bedrooms,
-            bathrooms: query.bathrooms
+            bathrooms: query.bathrooms,
         }),
         [query]
     );
@@ -65,20 +65,21 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
 
     useEffect(() => {
         if (!initialFilters.coords) {
-            setActiveSnapPoint(0.85);
+            setActiveSnapPoint(0.9);
         }
     }, [initialFilters]);
 
     // Define a loading component to be shown inside the drawer
     const LoadingComponent = ({ activeSnapPoint }) => (
-        <>
-            <div className="my-5 w-full h-screen flex flex-col items-center">
-                <Skeleton className={"h-5 w-28"} />
-            </div>
+        <div data-vaul-no-drag className="mt-4">
+            {activeSnapPoint < 0.7 && (
+                <div className="my-5 w-full flex flex-col items-center">
+                    <Skeleton className={"h-5 w-28"} />
+                </div>
+            )}
+
             {activeSnapPoint > 0.1 ? (
-                <div className="flex flex-col items-start justify-start h-full gap-3 mx-8 pt-8">
-                    <Skeleton className="w-full h-10" />
-                    <Skeleton className="w-1/6 h-5 mb-6" />
+                <div className="flex flex-col items-start justify-start gap-3 mx-8 h-screen overflow-y-auto no-scrollbar">
                     {[...Array(3)].map((_, i) => (
                         <React.Fragment key={i}>
                             <Skeleton
@@ -107,7 +108,7 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
                     ))}
                 </div>
             ) : null}
-        </>
+        </div>
     );
 
     return (
@@ -115,13 +116,22 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
             {isLoading || !data || isValidating ? (
                 <LoadingComponent activeSnapPoint={activeSnapPoint} />
             ) : (
-                <div className="mt-2 mx-4 flex flex-col gap-2 items-center">
+                <div
+                    data-vaul-no-drag
+                    className="mt-2 mx-4 flex flex-col gap-2 items-center"
+                >
                     <div
+                        data-vaul-no-drag
                         className={`flex justify-between items-center ${
                             activeSnapPoint > 0.7 ? "w-full" : ""
                         } `}
                     >
-                        <div>{listings.length} Listings</div>
+                        {activeSnapPoint < 0.7 && (
+                            <div data-vaul-no-drag>
+                                {listings.length} Listings
+                            </div>
+                        )}
+
                         {activeSnapPoint > 0.7 && initialFilters.coords ? (
                             <Button
                                 variant="link"
@@ -132,7 +142,10 @@ const DrawerBody = ({ activeSnapPoint, setActiveSnapPoint }) => {
                             </Button>
                         ) : null}
                     </div>
-                    <div className="h-screen overflow-y-auto no-scrollbar">
+                    <div
+                        data-vaul-no-drag
+                        className="h-screen overflow-y-auto no-scrollbar"
+                    >
                         <ListingList listings={listings} />
                     </div>
                 </div>

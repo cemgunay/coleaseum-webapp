@@ -4,6 +4,8 @@ import { format } from "date-fns";
 import { formatPrice } from "@/utils/utils";
 
 const RequestItemForHostListing = ({ request }) => {
+
+    console.log(request)
     // state
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -34,11 +36,6 @@ const RequestItemForHostListing = ({ request }) => {
                     <p className="text-base text-slate-500 -mt-1">{user.firstName}</p>
                 )}
             </div>
-            <p>
-                <span className="font-semibold">Dates: </span>
-                {format(new Date(request.startDate), "yyyy-MM-dd")} —{" "}
-                {format(new Date(request.endDate), "yyyy-MM-dd")}
-            </p>
             <p>
                 <span className="font-semibold">Submitted: </span>
                 {format(new Date(request.createdAt), "yyyy-MM-dd 'at' h:mm a")}

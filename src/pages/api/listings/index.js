@@ -2,61 +2,89 @@ import connectMongo from "@/utils/connectMongo";
 import Listing from "@/models/Listing";
 import Booking from "@/models/Booking";
 import authenticate from "@/utils/authentication";
+import { DEFAULT_FILTERS } from "@/utils/constants";
 
 // helper function to build the DB query from request query and filters
-const buildDBQuery = (reqQuery, filters) => {
-    // create dbQuery to be edited by req query and filters
-    const dbQuery = { published: true };
+const buildDBQuery = (filters) => {
+    let pipeline = [];
 
-    // populate dbQuery object based on request query and filters
-    if (reqQuery.city) dbQuery.city = reqQuery.city;
-    if (reqQuery.moveInDate) {
-        dbQuery.moveInDate = {
-            $gte: reqQuery.moveInDate[0],
-            $lte: reqQuery.moveInDate[1],
-        };
-    }
-    if (reqQuery.moveOutDate) {
-        dbQuery.moveOutDate = {
-            $gte: reqQuery.moveOutDate[0],
-            $lte: reqQuery.moveOutDate[1],
-        };
-    }
-    if (reqQuery.expiryDate) {
-        dbQuery.expiryDate = {
-            $gte: reqQuery.expiryDate[0],
-            $lte: reqQuery.expiryDate[1],
-        };
-    }
-    if (filters.price) {
-        dbQuery.price = { $gte: filters.price[0], $lte: filters.price[1] };
-    }
-    if (filters.propertyType) {
-        dbQuery["aboutyourplace.propertyType"] = filters.propertyType;
-    }
-    if (reqQuery.numOfBedrooms) {
-        dbQuery["bedrooms.length"] = {
-            $gte: reqQuery.numOfBedrooms[0],
-            $lte: reqQuery.numOfBedrooms[1],
-        };
-    }
-    if (reqQuery.utilities) {
-        const { hydro, electricity, water, wifi } = reqQuery.utilities;
-        if (hydro) {
-            dbQuery["utilities.hydro"] = hydro;
-        }
-        if (electricity) {
-            dbQuery["utilities.electricity"] = electricity;
-        }
-        if (water) {
-            dbQuery["utilities.water"] = water;
-        }
-        if (wifi) {
-            dbQuery["utilities.wifi"] = wifi;
-        }
+    // Handle spatial query first if coords are provided
+    if (filters.coords) {
+        pipeline.push({
+            $geoNear: {
+                near: {
+                    type: "Point",
+                    coordinates: [
+                        parseFloat(filters.coords.lng),
+                        parseFloat(filters.coords.lat),
+                    ],
+                },
+                distanceField: "distance", // This field will contain the calculated distance
+                maxDistance: filters.radius ? filters.radius * 1000 : 10000,
+                spherical: true,
+            },
+        });
     }
 
-    return dbQuery;
+    let matchStage = { $match: { published: true, isBooked: false } };
+
+    // Price filter
+    if (filters.priceMin !== null && filters.priceMax !== null) {
+        const priceMin = Number(filters.priceMin);
+        const priceMax = Number(filters.priceMax);
+        if (!isNaN(priceMin) && !isNaN(priceMax) && priceMin <= priceMax) {
+            matchStage.$match.price = { $gte: priceMin, $lte: priceMax };
+        }
+    }
+    //Privacy Type filter
+    if (filters.privacyType && filters.privacyType !== "any") {
+        matchStage.$match["aboutyourplace.privacyType"] = filters.privacyType;
+    }
+    // Bathroom filter
+    if (filters.bathrooms && filters.bathrooms !== "any") {
+        matchStage.$match["basics.bathrooms"] = {
+            $gte: parseInt(filters.bathrooms, 10),
+        };
+    }
+
+    if (filters.startDate) {
+        // Convert startDate string to a JavaScript Date object
+        const start = new Date(filters.startDate);
+
+        matchStage.$match["moveInDate"] = {
+            $gte: start,
+        };
+    }
+
+    if (filters.endDate) {
+        // Convert endDate string to a JavaScript Date object
+        const end = new Date(filters.endDate);
+
+        matchStage.$match["moveOutDate"] = {
+            $lte: end,
+        };
+    }
+
+    // Add the match stage to the pipeline
+    pipeline.push(matchStage);
+
+    // Add a stage to include the length of the bedrooms array if needed
+    if (filters.bedrooms && filters.bedrooms !== "any") {
+        pipeline.push({
+            $addFields: {
+                bedroomsCount: { $size: "$basics.bedrooms" },
+            },
+        });
+
+        // Filter based on the calculated bedroomsCount
+        pipeline.push({
+            $match: {
+                bedroomsCount: { $gte: parseInt(filters.bedrooms, 10) },
+            },
+        });
+    }
+
+    return pipeline;
 };
 
 // helper function to parse dates (to only consider month and year, ignoring specific days)
@@ -76,21 +104,27 @@ export default async function handler(req, res) {
 
         // GET, POST, and PUT requests
         if (req.method == "GET") {
-            // extract query filters from request
-            const filters = req.query.filters
+            // Parse other filters from the query or use an empty object if none are provided
+            const filtersFromQuery = req.query.filters
                 ? JSON.parse(req.query.filters)
                 : {};
 
-            // build db query with helper
-            const dbQuery = buildDBQuery(req.query, filters);
+            // Merge provided filters with defaults, preferring provided values over defaults
+            const effectiveFilters = {
+                ...DEFAULT_FILTERS,
+                ...filtersFromQuery,
+            };
 
-            if (filters.startDate && filters.endDate) {
+            const pipeline = buildDBQuery(effectiveFilters);
+
+            if (effectiveFilters.startDate && effectiveFilters.endDate) {
                 // parse dates to ignore specific days, only consider month and year
-                const { startMonth, endMonth } = parseDates(filters);
+                const { startMonth, endMonth } = parseDates(effectiveFilters);
 
                 // query the DB, filtering out listings already booked for desired date range
                 try {
-                    const listings = await Listing.find(dbQuery).exec();
+                    // Use aggregate instead of find
+                    const listings = await Listing.aggregate(pipeline).exec();
 
                     // Fetch all bookings that overlap with the desired date range
                     const bookings = await Booking.find({
@@ -103,7 +137,7 @@ export default async function handler(req, res) {
                     });
 
                     // ***** may be changed in future *****
-                    // instead of checking if booking dates overlap, just have an isBooked for the listigns
+                    // instead of checking if booking dates overlap, just have an isBooked for the listigns (currently doing that in buildDbQuery)
                     // Convert bookings to a Set for faster lookups
                     const bookingSet = new Set(
                         bookings.map((booking) => booking.listingId.toString())
@@ -122,7 +156,7 @@ export default async function handler(req, res) {
             } else {
                 // query DB
                 try {
-                    const listings = await Listing.find(dbQuery).exec();
+                    const listings = await Listing.aggregate(pipeline).exec();
                     res.status(200).json(listings);
                 } catch (error) {
                     console.log("got error without filtering: ", error);

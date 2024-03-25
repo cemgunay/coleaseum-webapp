@@ -1,14 +1,20 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import { FaMagnifyingGlass, FaHouse, FaInbox, FaUser } from "react-icons/fa6";
 
 const BottomNav = () => {
     const router = useRouter();
+    const [activePath, setActivePath] = useState(""); // Initialize with empty or a default path
+
+    useEffect(() => {
+        // Client-side update to active path
+        setActivePath(router.asPath.split("?")[0]); // Ignore query parameters for styling
+    }, [router.asPath]);
 
     // function to select nav link styles based on router path
     const _navStylesHelper = (routes) => {
-        if (routes.includes(router.asPath)) {
+        if (routes.some((route) => route === activePath)) {
             return "text-[#61C0BF] text-lg flex flex-col justify-center w-full items-center";
         } else {
             return "text-gray-400 text-lg flex flex-col justify-center w-full items-center";
@@ -20,11 +26,14 @@ const BottomNav = () => {
     return (
         <footer className="fixed bottom-0 z-50 w-full">
             <div className="flex items-center justify-around py-4 rounded-t-lg bg-white shadow-[0px_0px_5px_1px] space-x-4">
-                <Link href="/" className={_navStylesHelper("/")}>
+                <Link href="/" className={_navStylesHelper(["/"])}>
                     <FaMagnifyingGlass className="text-xl" />
                     <span>Explore</span>
                 </Link>
-                <Link href="/sublets" className={_navStylesHelper(["/sublets", "/host/sublets"])}>
+                <Link
+                    href="/sublets"
+                    className={_navStylesHelper(["/sublets", "/host/sublets"])}
+                >
                     <FaHouse className="text-xl" />
                     <span>Sublets</span>
                 </Link>
@@ -32,7 +41,10 @@ const BottomNav = () => {
                     <FaInbox className="text-xl" />
                     <span>Inbox</span>
                 </Link>
-                <Link href="/profile" className={_navStylesHelper(["/profile"])}>
+                <Link
+                    href="/profile"
+                    className={_navStylesHelper(["/profile"])}
+                >
                     <FaUser className="text-xl" />
                     <span>Profile</span>
                 </Link>

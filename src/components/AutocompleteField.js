@@ -1,14 +1,22 @@
 import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
+    getDetails,
 } from "use-places-autocomplete";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 import Input from "./Input";
 import { useState } from "react";
+import inferZoomLevel from "@/utils/inferZoomLevel";
 
 const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
     //state to control Popover visibility
     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+    // Central location in Canada: near Saskatoon, Saskatchewan
+    const centralCanada = {
+        lat: 52.1332,
+        lng: -106.67,
+    };
 
     //google use places autocomplete hook
     const {
@@ -17,7 +25,16 @@ const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
         setValue,
         suggestions: { status, data },
         clearSuggestions,
-    } = usePlacesAutocomplete();
+    } = usePlacesAutocomplete({
+        requestOptions: {
+            // Apply location bias towards central Canada
+            location: new google.maps.LatLng(
+                centralCanada.lat,
+                centralCanada.lng
+            ),
+            radius: 2000 * 1000, // 2000 km radius to cover a broad area of Canada
+        },
+    });
 
     // handle what happens when user is typing
     const handleChange = (event) => {
@@ -26,7 +43,7 @@ const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
     };
 
     // handle what happens when user selects a suggestion
-    const handleSelect = async (address) => {
+    const handleSelect = async (address, placeId) => {
         setValue(address, false);
         clearSuggestions();
         // Delay closing the popover to allow the input field to lose focus
@@ -38,11 +55,16 @@ const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
         const results = await getGeocode({ address });
         const { lat, lng } = getLatLng(results[0]);
 
-        // use function to format address into components
-        const addressComponents = formatLocationData(results[0]);
-        const locationData = { ...addressComponents, lat, lng };
+        // Fetch additional place details to get types
+        const details = await getDetails({ placeId });
+        const zoomLevel = inferZoomLevel(details.types);
 
-        onAddressSelect(locationData); // Callback to parent component
+        // use function to format address into components
+        const locationData = formatLocationData
+            ? { ...formatLocationData(geocodeResults[0]), lat, lng, zoomLevel }
+            : { lat, lng, name: address, zoomLevel };
+
+        onAddressSelect(locationData);
     };
 
     return (
@@ -72,7 +94,10 @@ const AutocompleteField = ({ onAddressSelect, formatLocationData }) => {
                                 key={suggestion.place_id}
                                 className="flex gap-2 p-2 cursor-pointer"
                                 onClick={() =>
-                                    handleSelect(suggestion.description)
+                                    handleSelect(
+                                        suggestion.description,
+                                        suggestion.place_id
+                                    )
                                 }
                             >
                                 {suggestion.description}

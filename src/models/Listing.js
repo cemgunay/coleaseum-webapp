@@ -34,6 +34,18 @@ const ListingSchema = new Schema(
             unitnumber: { type: String },
             lat: { type: Number, default: null },
             lng: { type: Number, default: null },
+            geo: {
+                // This nested object will hold the GeoJSON data
+                type: {
+                    type: String, // Necessary for Mongoose to interpret the GeoJSON type
+                    enum: ["Point"], // 'location.geo.type' must be 'Point'
+                    required: true,
+                },
+                coordinates: {
+                    type: [Number], // Array of [longitude, latitude]
+                    required: true,
+                },
+            },
         },
         moveInDate: {
             type: Date,
@@ -239,6 +251,8 @@ ListingSchema.virtual("numOfBedrooms").get(function () {
 
 ListingSchema.set("toObject", { virtuals: true });
 ListingSchema.set("toJSON", { virtuals: true });
+
+ListingSchema.index({ "location.geo": "2dsphere" });
 
 const ListingModel =
     mongoose.models.Listing || mongoose.model("Listing", ListingSchema);

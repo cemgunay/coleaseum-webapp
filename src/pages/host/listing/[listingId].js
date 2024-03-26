@@ -330,30 +330,31 @@ const HostListing = ({ listing, requests, user }) => {
                             {formattedAddress}
                         </address>
 
-                        {/* Dynamically load bid information, if listing is booked no need to show */}
-                        {listingActiveTab !== "confirmed" && (
-                            <div className="flex justify-between mt-2 text-lg">
-                                {!highestRequestPrice ? (
-                                    <LoadingBids />
-                                ) : (
-                                    <>
-                                        <p>
-                                            Listed for:{" "}
-                                            <span className="font-semibold">
-                                                {formatPrice(
-                                                    listing.price,
-                                                    false
-                                                )}
-                                            </span>
-                                        </p>
-                                        <p>
-                                            {numberOfRequests} active bid
-                                            {numberOfRequests === 1 ? "" : "s"}
-                                        </p>
-                                    </>
-                                )}
-                            </div>
-                        )}
+                        {/* Dynamically load bid information */}
+                        <div className="flex justify-between mt-2 text-lg">
+                            <p>
+                                Listed for:{" "}
+                                <span className="font-semibold">
+                                    {formatPrice(listing.price, false)}
+                                </span>
+                            </p>
+                            {listingActiveTab === "confirmed" ? (
+                                // If the listing is booked, just say booked
+                                <p>Listing is booked</p>
+                            ) : activeRequests.length > 0 ? (
+                                // Active requests exist
+                                <p>
+                                    {activeRequests.length} active bid
+                                    {activeRequests.length === 1 ? "" : "s"}
+                                </p>
+                            ) : pastRequests.length > 0 ? (
+                                // No active requests, but past requests exist
+                                <p>No active bid.</p>
+                            ) : (
+                                // No requests at all
+                                <p>No bids have been placed</p>
+                            )}
+                        </div>
                     </div>
                     {/* Dynamically load username */}
                     <div className="py-4 border-b-[0.1rem] border-gray-300 text-xl">

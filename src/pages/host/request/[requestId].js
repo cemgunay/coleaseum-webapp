@@ -17,6 +17,7 @@ import BottomBar from "@/components/BottomBar";
 import Input from "@/components/Input";
 import CustomDialog from "@/components/CustomDialog";
 import FullScreenLoader from "@/components/FullScreenLoading";
+import Link from "next/link";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
@@ -297,6 +298,14 @@ const Request = ({ request, listing, activeRequests }) => {
         );
     };
 
+    const title = (status) => {
+        return (
+            PAST_STATUSES.includes(status) && "REJECTED REQUEST",
+            ACTIVE_STATUSES.includes(status) && "REQUEST TO SUBLET",
+            CONFIRMED_STATUSES.includes(status) && "BOOKED SUBLET"
+        );
+    };
+
     // function to update request
     const updateRequest = async () => {
         setLoading(true);
@@ -488,7 +497,7 @@ const Request = ({ request, listing, activeRequests }) => {
             <div className="flex flex-col text-black overflow-hidden pb-16">
                 {/* title */}
                 <div className={titleClass(request.status)}>
-                    REQUEST TO SUBLET
+                    {title(request.status)}
                 </div>
 
                 {/* Main image carousel */}
@@ -611,6 +620,17 @@ const Request = ({ request, listing, activeRequests }) => {
                                 >
                                     Reject Request
                                 </Button>
+                            </div>
+                        )}
+                        {CONFIRMED_STATUSES.includes(request.status) && (
+                            <div className="flex justify-between items-center gap-4">
+                                <Link href={"/host/booking"}>
+                                    <Button
+                                        className="bg-color-primary w-full"
+                                    >
+                                        See Booking Details
+                                    </Button>
+                                </Link>
                             </div>
                         )}
                     </div>

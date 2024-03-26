@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import Skeleton from "@/components/Skeleton";
 import { format } from "date-fns";
 import { formatPrice } from "@/utils/utils";
+import Link from "next/link";
 
 const RequestItemForHostListing = ({ request }) => {
 
@@ -27,7 +28,7 @@ const RequestItemForHostListing = ({ request }) => {
     }, [request]);
 
     return (
-        <div key={request._id} className="flex flex-col rounded-md border border-slate-400 p-3">
+        <Link key={request._id} href={`/host/request/${request._id}`} className="flex flex-col rounded-md border border-slate-400 p-3">
             <div className="flex justify-between items-start">
                 <p className="text-lg font-bold">{formatPrice(request.price)}</p>
                 {loading ? (
@@ -40,7 +41,7 @@ const RequestItemForHostListing = ({ request }) => {
                 <span className="font-semibold">Submitted: </span>
                 {format(new Date(request.createdAt), "yyyy-MM-dd 'at' h:mm a")}
             </p>
-        </div>
+        </Link>
     );
 };
 

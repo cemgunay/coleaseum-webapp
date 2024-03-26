@@ -6,7 +6,11 @@ import Carousel from "@/components/Carousel";
 import IncrementalPriceInput from "@/components/IncrementalPriceInput";
 import { format, differenceInMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
-import { ACTIVE_STATUSES, PAST_STATUSES, CONFIRMED_STATUSES } from "@/utils/constants";
+import {
+    ACTIVE_STATUSES,
+    PAST_STATUSES,
+    CONFIRMED_STATUSES,
+} from "@/utils/constants";
 import { MdDeleteForever } from "react-icons/md";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
@@ -28,7 +32,11 @@ export async function getServerSideProps(context) {
 
     // get request from DB
     const { requestId } = context.params;
-    const response = await fetchWithTimeout(`${apiUrl}/api/requests/${requestId}`, {}, 5000);
+    const response = await fetchWithTimeout(
+        `${apiUrl}/api/requests/${requestId}`,
+        {},
+        5000
+    );
 
     // error handling
     if (response.error) {
@@ -72,7 +80,8 @@ export async function getServerSideProps(context) {
         } else if (activeRequestsResponse.error || !activeRequestsResponse.ok) {
             console.error(
                 "Failed to fetch active requests for the listing associated with this request: ",
-                activeRequestsResponse.error || `HTTP Error: ${activeRequestsResponse.status}`
+                activeRequestsResponse.error ||
+                    `HTTP Error: ${activeRequestsResponse.status}`
             );
         } else {
             const listing = await listingResponse.json();
@@ -126,9 +135,12 @@ const Request = ({ request, listing, activeRequests }) => {
             // API call to soft delete the request
             // hardcoding request._id here instead of taking it as an arg to this function bc
             // deletion on this page can only ever delete this page's request
-            const response = await fetch(`/api/requests/${request._id}/delete`, {
-                method: "PATCH",
-            });
+            const response = await fetch(
+                `/api/requests/${request._id}/delete`,
+                {
+                    method: "PATCH",
+                }
+            );
 
             // error handling
             if (!response.ok) {
@@ -161,7 +173,9 @@ const Request = ({ request, listing, activeRequests }) => {
 
     // highest active request calculation
     const { highestActiveRequest, isCurrentRequestHighest } = useMemo(() => {
-        const sortedActiveRequests = [...activeRequests].sort((a, b) => b.price - a.price);
+        const sortedActiveRequests = [...activeRequests].sort(
+            (a, b) => b.price - a.price
+        );
         const highestActiveRequest = sortedActiveRequests[0];
         const isCurrentRequestHighest =
             highestActiveRequest && highestActiveRequest._id === request._id;
@@ -170,35 +184,38 @@ const Request = ({ request, listing, activeRequests }) => {
     }, [request, activeRequests]);
 
     // derived state for listing info
-    const { formattedAddress, formattedRoomInfo, listingImages } = useMemo(() => {
-        if (!listing) {
+    const { formattedAddress, formattedRoomInfo, listingImages } =
+        useMemo(() => {
+            if (!listing) {
+                return {
+                    formattedAddress: "",
+                    numBeds: 0,
+                    numBedrooms: 0,
+                    numBathrooms: 0,
+                    formattedRoomInfo: "",
+                    images: [],
+                };
+            }
+
+            const formattedAddress = `${listing.location.address1}, ${listing.location.city}, ${listing.location.stateprovince}`;
+            const numBeds = listing.basics.bedrooms.map(
+                (bedroom) => bedroom.bedType
+            ).length;
+            const numBedrooms = listing.basics.bedrooms.length;
+            const numBathrooms = listing.basics.bathrooms;
+            const formattedRoomInfo = `${numBeds} bed${
+                numBeds === 1 ? "" : "s"
+            } • ${numBedrooms} bedroom${
+                numBedrooms === 1 ? "" : "s"
+            } • ${numBathrooms} bathroom${numBathrooms === 1 ? "" : "s"}`;
+            const listingImages = listing.images.map(({ url }) => url);
+
             return {
-                formattedAddress: "",
-                numBeds: 0,
-                numBedrooms: 0,
-                numBathrooms: 0,
-                formattedRoomInfo: "",
-                images: [],
+                formattedAddress,
+                formattedRoomInfo,
+                listingImages,
             };
-        }
-
-        const formattedAddress = `${listing.location.address1}, ${listing.location.city}, ${listing.location.stateprovince}`;
-        const numBeds = listing.basics.bedrooms.map((bedroom) => bedroom.bedType).length;
-        const numBedrooms = listing.basics.bedrooms.length;
-        const numBathrooms = listing.basics.bathrooms;
-        const formattedRoomInfo = `${numBeds} bed${
-            numBeds === 1 ? "" : "s"
-        } • ${numBedrooms} bedroom${numBedrooms === 1 ? "" : "s"} • ${numBathrooms} bathroom${
-            numBathrooms === 1 ? "" : "s"
-        }`;
-        const listingImages = listing.images.map(({ url }) => url);
-
-        return {
-            formattedAddress,
-            formattedRoomInfo,
-            listingImages,
-        };
-    }, [listing]);
+        }, [listing]);
 
     // derived state for request info
     const numMonths = useMemo(() => {
@@ -230,6 +247,14 @@ const Request = ({ request, listing, activeRequests }) => {
             PAST_STATUSES.includes(status) && "bg-color-error",
             ACTIVE_STATUSES.includes(status) && "bg-color-warning",
             CONFIRMED_STATUSES.includes(status) && "bg-color-pass"
+        );
+    };
+
+    const title = (status) => {
+        return (
+            PAST_STATUSES.includes(status) && "REJECTED REQUEST",
+            ACTIVE_STATUSES.includes(status) && "REQUEST TO SUBLET",
+            CONFIRMED_STATUSES.includes(status) && "BOOKED SUBLET"
         );
     };
 
@@ -267,7 +292,10 @@ const Request = ({ request, listing, activeRequests }) => {
     return (
         <>
             {/* Back button */}
-            <button className="absolute top-11 left-4 w-fit z-[50]" onClick={router.back}>
+            <button
+                className="absolute top-11 left-4 w-fit z-[50]"
+                onClick={router.back}
+            >
                 <FaCircleChevronLeft className="text-2xl text-gray-800" />
             </button>
 
@@ -292,7 +320,9 @@ const Request = ({ request, listing, activeRequests }) => {
             {/* Main content */}
             <div className="flex flex-col text-black overflow-hidden pb-24">
                 {/* title */}
-                <div className={titleClass(request.status)}>REQUEST TO SUBLET</div>
+                <div className={titleClass(request.status)}>
+                    {title(request.status)}
+                </div>
 
                 {/* Main image carousel */}
                 <div className="w-full h-60">
@@ -311,18 +341,27 @@ const Request = ({ request, listing, activeRequests }) => {
                         onClick={() => router.push(`/listing/${listing._id}`)}
                     >
                         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
-                            <h3 className="text-2xl font-bold">{listing.title}</h3>
+                            <h3 className="text-2xl font-bold">
+                                {listing.title}
+                            </h3>
                             {ACTIVE_STATUSES.includes(request.status) && (
                                 <div className="flex items-center justify-center py-1 px-3 my-1 text-sm font-semibold text-green-500 rounded-full border border-color-pass">
                                     Highest offer:{" "}
                                     {highestActiveRequest
-                                        ? formatPrice(highestActiveRequest.price, false)
+                                        ? formatPrice(
+                                              highestActiveRequest.price,
+                                              false
+                                          )
                                         : "N/A"}{" "}
-                                    {isCurrentRequestHighest ? "(yours)" : "(not yours)"}
+                                    {isCurrentRequestHighest
+                                        ? "(yours)"
+                                        : "(not yours)"}
                                 </div>
                             )}
                         </div>
-                        <address className="text-lg">{formattedAddress}</address>
+                        <address className="text-lg">
+                            {formattedAddress}
+                        </address>
                         <p className="mt-2 text-xl">{formattedRoomInfo}</p>
                         <p className="mt-2 text-lg text-center font-semibold">{`$${listing.price} Listing Price`}</p>
                     </div>
@@ -342,20 +381,33 @@ const Request = ({ request, listing, activeRequests }) => {
                         <div className="flex items-center gap-8">
                             <div className="flex flex-col">
                                 <h4 className="font-semibold">Move In:</h4>
-                                {`${format(new Date(listing.moveInDate), "MMM")}`}{" "}
-                                {`${format(new Date(listing.moveInDate), "do, yyyy")}`}
+                                {`${format(
+                                    new Date(listing.moveInDate),
+                                    "MMM"
+                                )}`}{" "}
+                                {`${format(
+                                    new Date(listing.moveInDate),
+                                    "do, yyyy"
+                                )}`}
                             </div>
                             <div className="flex flex-col">
                                 <h4 className="font-semibold">Move Out:</h4>
-                                {`${format(new Date(listing.moveOutDate), "MMM")}`}{" "}
-                                {`${format(new Date(listing.moveOutDate), "do, yyyy")}`}
+                                {`${format(
+                                    new Date(listing.moveOutDate),
+                                    "MMM"
+                                )}`}{" "}
+                                {`${format(
+                                    new Date(listing.moveOutDate),
+                                    "do, yyyy"
+                                )}`}
                             </div>
                         </div>
                         <div className="flex flex-col">
                             <h4 className="font-semibold">Price Details:</h4>
                             <div className="flex items-center justify-between">
                                 <p>
-                                    ${priceOffer.toLocaleString()} x {numMonths} month
+                                    ${priceOffer.toLocaleString()} x {numMonths}{" "}
+                                    month
                                     {numMonths === 1 ? "" : "s"}
                                 </p>
                                 <p>{formatPrice(subtotal)} CAD</p>
@@ -380,8 +432,8 @@ const Request = ({ request, listing, activeRequests }) => {
                     <div className="flex flex-col gap-2 px-8">
                         {ACTIVE_STATUSES.includes(request.status) && (
                             <p className="text-xs text-center text-slate-500">
-                                Request is already created. Change price to your liking and click
-                                below to update it.
+                                Request is already created. Change price to your
+                                liking and click below to update it.
                             </p>
                         )}
                         <Button

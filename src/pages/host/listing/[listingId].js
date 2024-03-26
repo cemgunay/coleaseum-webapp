@@ -329,25 +329,31 @@ const HostListing = ({ listing, requests, user }) => {
                         <address className="text-lg">
                             {formattedAddress}
                         </address>
-                        {/* Dynamically load bid information */}
-                        <div className="flex justify-between mt-2 text-lg">
-                            {!highestRequestPrice ? (
-                                <LoadingBids />
-                            ) : (
-                                <>
-                                    <p>
-                                        Listed for:{" "}
-                                        <span className="font-semibold">
-                                            {formatPrice(listing.price, false)}
-                                        </span>
-                                    </p>
-                                    <p>
-                                        {numberOfRequests} active bid
-                                        {numberOfRequests === 1 ? "" : "s"}
-                                    </p>
-                                </>
-                            )}
-                        </div>
+
+                        {/* Dynamically load bid information, if listing is booked no need to show */}
+                        {listingActiveTab !== "confirmed" && (
+                            <div className="flex justify-between mt-2 text-lg">
+                                {!highestRequestPrice ? (
+                                    <LoadingBids />
+                                ) : (
+                                    <>
+                                        <p>
+                                            Listed for:{" "}
+                                            <span className="font-semibold">
+                                                {formatPrice(
+                                                    listing.price,
+                                                    false
+                                                )}
+                                            </span>
+                                        </p>
+                                        <p>
+                                            {numberOfRequests} active bid
+                                            {numberOfRequests === 1 ? "" : "s"}
+                                        </p>
+                                    </>
+                                )}
+                            </div>
+                        )}
                     </div>
                     {/* Dynamically load username */}
                     <div className="py-4 border-b-[0.1rem] border-gray-300 text-xl">
@@ -365,25 +371,26 @@ const HostListing = ({ listing, requests, user }) => {
                     </div>
 
                     {/* Booking for this listing */}
-                    {acceptedRequest.length > 0 && (
-                        <>
-                            <h3 className="text-2xl font-bold mb-4 mt-2">
-                                Confirmed Booking:
-                            </h3>
-                            <div className="flex flex-col gap-2">
-                                {acceptedRequest.map((request) => {
-                                    return (
-                                        // created separate component for this so each one can
-                                        // fetch its own user info for the request
-                                        <RequestItemForHostListing
-                                            key={request._id}
-                                            request={request}
-                                        />
-                                    );
-                                })}
-                            </div>
-                        </>
-                    )}
+                    {listingActiveTab === "confirmed" &&
+                        acceptedRequest.length > 0 && (
+                            <>
+                                <h3 className="text-2xl font-bold mb-4 mt-2">
+                                    Confirmed Booking:
+                                </h3>
+                                <div className="flex flex-col gap-2">
+                                    {acceptedRequest.map((request) => {
+                                        return (
+                                            // created separate component for this so each one can
+                                            // fetch its own user info for the request
+                                            <RequestItemForHostListing
+                                                key={request._id}
+                                                request={request}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
 
                     {/* List of requests for this listing */}
                     <h3 className="text-2xl font-bold mb-4 mt-2">Requests:</h3>

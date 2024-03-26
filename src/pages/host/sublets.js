@@ -141,6 +141,7 @@ const HostSublets = () => {
                                         listing={listing}
                                         requests={listing.requests}
                                         activeTab={activeTab}
+                                        showActiveBids={activeTab === 'active' ? true : false}
                                     />
                                 );
                             })}

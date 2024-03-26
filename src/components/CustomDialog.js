@@ -19,6 +19,7 @@ const CustomDialog = ({
     onClose,
     onConfirm,
     onCancel,
+    bgColor
 }) => {
     if (!open) return null;
 
@@ -42,7 +43,7 @@ const CustomDialog = ({
                     </AlertDialogCancel>
                     <AlertDialogAction
                         onClick={onConfirm}
-                        className="bg-color-error"
+                        className={bgColor ? bgColor : "bg-color-error"}
                     >
                         {action ? action : "Delete"}
                     </AlertDialogAction>

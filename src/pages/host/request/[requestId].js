@@ -299,11 +299,15 @@ const Request = ({ request, listing, activeRequests }) => {
     };
 
     const title = (status) => {
-        return (
-            PAST_STATUSES.includes(status) && "REJECTED REQUEST",
-            ACTIVE_STATUSES.includes(status) && "REQUEST TO SUBLET",
-            CONFIRMED_STATUSES.includes(status) && "BOOKED SUBLET"
-        );
+        if (PAST_STATUSES.includes(status)) {
+            return "REJECTED REQUEST";
+        } else if (ACTIVE_STATUSES.includes(status)) {
+            return "REQUEST TO SUBLET";
+        } else if (CONFIRMED_STATUSES.includes(status)) {
+            return "BOOKED SUBLET";
+        }
+        // should never come here ideally lol
+        return "UNKNOWN STATUS";
     };
 
     // function to update request
@@ -625,12 +629,15 @@ const Request = ({ request, listing, activeRequests }) => {
                         {CONFIRMED_STATUSES.includes(request.status) && (
                             <div className="flex justify-between items-center gap-4">
                                 <Link href={"/host/booking"}>
-                                    <Button
-                                        className="bg-color-primary w-full"
-                                    >
+                                    <Button className="bg-color-primary w-full">
                                         See Booking Details
                                     </Button>
                                 </Link>
+                            </div>
+                        )}
+                        {PAST_STATUSES.includes(request.status) && (
+                            <div className="flex justify-between items-center gap-4">
+                                This request was rejected
                             </div>
                         )}
                     </div>

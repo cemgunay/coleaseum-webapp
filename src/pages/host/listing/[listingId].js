@@ -13,7 +13,11 @@ import { format } from "date-fns";
 import { GrEdit } from "react-icons/gr";
 import RequestItemForHostListing from "@/components/RequestItemForHostListing";
 import Tabs from "@/components/Tabs";
-import { ACTIVE_STATUSES, PAST_STATUSES } from "@/utils/constants";
+import {
+    ACTIVE_STATUSES,
+    CONFIRMED_STATUSES,
+    PAST_STATUSES,
+} from "@/utils/constants";
 
 // get listing details on server side
 export async function getServerSideProps(context) {
@@ -155,6 +159,10 @@ const HostListing = ({ listing, requests, user }) => {
     const pastRequests = requests
         .filter((request) => PAST_STATUSES.includes(request.status))
         .sort((p1, p2) => new Date(p2.updatedAt) - new Date(p1.updatedAt));
+
+    const acceptedRequest = requests.filter((request) =>
+        CONFIRMED_STATUSES.includes(request.status)
+    );
 
     // useEffect to do a few things on render
     useEffect(() => {
@@ -321,23 +329,30 @@ const HostListing = ({ listing, requests, user }) => {
                         <address className="text-lg">
                             {formattedAddress}
                         </address>
+
                         {/* Dynamically load bid information */}
                         <div className="flex justify-between mt-2 text-lg">
-                            {!highestRequestPrice ? (
-                                <LoadingBids />
+                            <p>
+                                Listed for:{" "}
+                                <span className="font-semibold">
+                                    {formatPrice(listing.price, false)}
+                                </span>
+                            </p>
+                            {listingActiveTab === "confirmed" ? (
+                                // If the listing is booked, just say booked
+                                <p>Listing is booked</p>
+                            ) : activeRequests.length > 0 ? (
+                                // Active requests exist
+                                <p>
+                                    {activeRequests.length} active bid
+                                    {activeRequests.length === 1 ? "" : "s"}
+                                </p>
+                            ) : pastRequests.length > 0 ? (
+                                // No active requests, but past requests exist
+                                <p>No active bid.</p>
                             ) : (
-                                <>
-                                    <p>
-                                        Listed for:{" "}
-                                        <span className="font-semibold">
-                                            {formatPrice(listing.price, false)}
-                                        </span>
-                                    </p>
-                                    <p>
-                                        {numberOfRequests} active bid
-                                        {numberOfRequests === 1 ? "" : "s"}
-                                    </p>
-                                </>
+                                // No requests at all
+                                <p>No bids have been placed</p>
                             )}
                         </div>
                     </div>
@@ -355,6 +370,28 @@ const HostListing = ({ listing, requests, user }) => {
                             <p>{formattedRoomInfo}</p>
                         </div>
                     </div>
+
+                    {/* Booking for this listing */}
+                    {listingActiveTab === "confirmed" &&
+                        acceptedRequest.length > 0 && (
+                            <>
+                                <h3 className="text-2xl font-bold mb-4 mt-2">
+                                    Confirmed Booking:
+                                </h3>
+                                <div className="flex flex-col gap-2">
+                                    {acceptedRequest.map((request) => {
+                                        return (
+                                            // created separate component for this so each one can
+                                            // fetch its own user info for the request
+                                            <RequestItemForHostListing
+                                                key={request._id}
+                                                request={request}
+                                            />
+                                        );
+                                    })}
+                                </div>
+                            </>
+                        )}
 
                     {/* List of requests for this listing */}
                     <h3 className="text-2xl font-bold mb-4 mt-2">Requests:</h3>

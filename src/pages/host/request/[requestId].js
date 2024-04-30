@@ -1,9 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import { fetchWithTimeout, formatPrice, cn } from "@/utils/utils";
 import { FaCircleChevronLeft } from "react-icons/fa6";
 import Carousel from "@/components/Carousel";
-import IncrementalPriceInput from "@/components/IncrementalPriceInput";
 import { format, differenceInMonths } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,7 +14,10 @@ import { MdDeleteForever } from "react-icons/md";
 import ConfirmDeleteDialog from "@/components/ConfirmDeleteDialog";
 import { useToast } from "@/components/ui/use-toast";
 import BottomBar from "@/components/BottomBar";
-import CircularProgress from "@mui/material/CircularProgress";
+import Input from "@/components/Input";
+import CustomDialog from "@/components/CustomDialog";
+import FullScreenLoader from "@/components/FullScreenLoading";
+import Link from "next/link";
 
 // multiplier for the ATIC value
 const ATIC_MULTIPLIER = 2 * 0.04;
@@ -98,7 +100,9 @@ const Request = ({ request, listing, activeRequests }) => {
 
     // state
     const [priceOffer, setPriceOffer] = useState(request.price);
-    const [showModal, setShowModal] = useState(false);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [showAcceptModal, setShowAcceptModal] = useState(false);
     const [loading, setLoading] = useState(false);
 
     // for toast notifications
@@ -107,26 +111,70 @@ const Request = ({ request, listing, activeRequests }) => {
     // handler functions for modal + deletion events
     // could have set the state right in the JSX but I think this is more readable
     // also if we ever wanna add like click event tracking or smth it'll be easier to add
-    const handleOpenModal = () => {
-        setShowModal(true);
+    const handleOpenDeleteModal = () => {
+        setShowDeleteModal(true);
     };
 
-    const handleCloseModal = () => {
-        setShowModal(false);
+    const handleOpenRejectModal = () => {
+        setShowRejectModal(true);
+    };
+
+    const handleOpenAcceptModal = () => {
+        setShowAcceptModal(true);
+    };
+
+    const handleCloseDeleteModal = () => {
+        setShowDeleteModal(false);
+    };
+
+    const handleCloseRejectModal = () => {
+        setShowRejectModal(false);
+    };
+
+    const handleCloseAcceptModal = () => {
+        setShowAcceptModal(false);
     };
 
     const startDeleteProcess = (e) => {
         e.stopPropagation();
-        handleOpenModal();
+        handleOpenDeleteModal();
+    };
+
+    const startRejectProcess = (e) => {
+        e.stopPropagation();
+        handleOpenRejectModal();
+    };
+
+    const startAcceptProcess = (e) => {
+        e.stopPropagation();
+        handleOpenAcceptModal();
     };
 
     const handleConfirmDelete = () => {
-        handleDeleteRequest();
-        handleCloseModal();
+        handleRejectRequest();
+        handleCloseDeleteModal();
+    };
+
+    const handleConfirmReject = () => {
+        handleRejectRequest();
+        handleCloseRejectModal();
+    };
+
+    const handleConfirmAccept = () => {
+        handleAcceptRequest();
+        handleCloseAcceptModal();
     };
 
     const handleCancelDelete = () => {
-        handleCloseModal();
+        handleCloseDeleteModal();
+    };
+
+    const handleCancelReject = () => {
+        handleCloseRejectModal();
+    };
+
+    const handleCancelAccept = () => {
+        handleCloseAcceptModal();
     };
 
     // handle delete request
@@ -293,6 +341,107 @@ const Request = ({ request, listing, activeRequests }) => {
         router.reload();
     };
 
+    // function to accept request
+    const acceptRequest = async () => {
+        setLoading(true);
+
+        // update request
+        const response = await fetch("/api/requests/update", {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                requestId: request._id,
+                listingId: listing._id,
+                newPrice: priceOffer,
+                currentHighestBid: highestActiveRequest.price,
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error("Failed to update request :(");
+        }
+
+        const updatedRequest = await response.json();
+        console.log("updated request: ", updatedRequest);
+
+        setLoading(false);
+
+        // refresh request page
+        router.reload();
+    };
+
+    // function to reject request
+    const handleRejectRequest = async () => {
+        setLoading(true);
+
+        try {
+            // API call to reject the request
+            // hardcoding request._id here instead of taking it as an arg to this function bc
+            // rejection on this page can only ever reject this page's request
+            const response = await fetch(
+                `/api/requests/${request._id}/reject`,
+                {
+                    method: "PATCH",
+                }
+            );
+
+            // error handling
+            if (!response.ok) {
+                console.log(response);
+                throw new Error("Failed to reject request");
+            }
+        } catch (error) {
+            console.log(`Error deleting request: ${error}`);
+            toast({
+                variant: "destructive",
+                title: "Failed to delete request :(",
+                description: error,
+            });
+        }
+
+        // push to host listing page
+        router.push(`/host/listing/${listing._id}`);
+    };
+
+    // function to reject request
+    const handleAcceptRequest = async () => {
+        setLoading(true);
+
+        try {
+            // API call to accept the request
+            // hardcoding request._id here instead of taking it as an arg to this function bc
+            // accepting on this page can only ever accept this page's request
+            const response = await fetch(
+                `/api/requests/${request._id}/accept`,
+                {
+                    method: "POST",
+                }
+            );
+
+            // error handling
+            if (!response.ok) {
+                console.log(response);
+                throw new Error("Failed to accept request");
+            }
+        } catch (error) {
+            console.log(`Error accepting request: ${error}`);
+            toast({
+                variant: "destructive",
+                title: "Failed to accept request :(",
+                description: error,
+            });
+        }
+
+        // push to host listing page
+        router.push(`/host/listing/${listing._id}`);
+    };
+
+    if (loading) {
+        return <FullScreenLoader />;
+    }
+
     return (
         <>
             {/* Back button */}
@@ -304,25 +453,52 @@ const Request = ({ request, listing, activeRequests }) => {
             </button>
 
             {/* Delete button */}
-            <button
-                className="absolute top-11 right-4 w-fit z-[50] hover:cursor-pointer"
-                onClick={(e) => startDeleteProcess(e)}
-            >
-                <MdDeleteForever className="text-3xl text-gray-800 hover:text-color-error" />
-            </button>
+            {PAST_STATUSES.includes(request.status) && (
+                <button
+                    className="absolute top-11 right-4 w-fit z-[50] hover:cursor-pointer"
+                    onClick={(e) => startDeleteProcess(e)}
+                >
+                    <MdDeleteForever className="text-3xl text-gray-800 hover:text-color-error" />
+                </button>
+            )}
 
             {/* Delete modal */}
-            {showModal && (
+            {showDeleteModal && (
                 <ConfirmDeleteDialog
-                    open={showModal}
-                    onClose={handleCloseModal}
+                    open={showDeleteModal}
+                    onClose={handleCloseDeleteModal}
                     onConfirm={handleConfirmDelete}
                     onCancel={handleCancelDelete}
                 />
             )}
 
+            {/* Reject modal */}
+            {showRejectModal && (
+                <CustomDialog
+                    open={showRejectModal}
+                    title={"Are you sure you want to reject?"}
+                    action={"Reject"}
+                    onClose={handleCloseRejectModal}
+                    onConfirm={handleConfirmReject}
+                    onCancel={handleCancelReject}
+                />
+            )}
+
+            {/* Accept modal */}
+            {showAcceptModal && (
+                <CustomDialog
+                    open={showAcceptModal}
+                    title={"Are you sure you want to accept?"}
+                    action={"Accept"}
+                    bgColor={"bg-color-pass"}
+                    onClose={handleCloseAcceptModal}
+                    onConfirm={handleConfirmAccept}
+                    onCancel={handleCancelAccept}
+                />
+            )}
+
             {/* Main content */}
-            <div className="flex flex-col text-black overflow-hidden pb-24">
+            <div className="flex flex-col text-black overflow-hidden pb-16">
                 {/* title */}
                 <div className={titleClass(request.status)}>
                     {title(request.status)}
@@ -358,8 +534,8 @@ const Request = ({ request, listing, activeRequests }) => {
                                           )
                                         : "N/A"}{" "}
                                     {isCurrentRequestHighest
-                                        ? "(yours)"
-                                        : "(not yours)"}
+                                        ? "(this offer)"
+                                        : "(not this offer)"}
                                 </div>
                             )}
                         </div>
@@ -371,14 +547,13 @@ const Request = ({ request, listing, activeRequests }) => {
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300">
                         <h3 className="text-2xl font-bold mb-2">Price Offer</h3>
-                        <IncrementalPriceInput
-                            priceOffer={priceOffer}
-                            setPriceOffer={setPriceOffer}
-                            disabled={
-                                PAST_STATUSES.includes(request.status) ||
-                                CONFIRMED_STATUSES.includes(request.status)
-                            }
-                        />
+                        <div className="flex justify-center items-center">
+                            <Input
+                                className={"w-24"}
+                                value={`$ ${priceOffer}`}
+                                disabled
+                            />
+                        </div>
                     </div>
                     <div className="py-4 border-b-[0.1rem] border-gray-300 flex flex-col gap-4 text-lg">
                         <h3 className="text-2xl font-bold">Your Request</h3>
@@ -435,26 +610,36 @@ const Request = ({ request, listing, activeRequests }) => {
                 <BottomBar>
                     <div className="flex flex-col gap-2 px-8">
                         {ACTIVE_STATUSES.includes(request.status) && (
-                            <p className="text-xs text-center text-slate-500">
-                                Request is already created. Change price to your
-                                liking and click below to update it.
-                            </p>
+                            <div className="flex justify-between items-center gap-4">
+                                <Button
+                                    className="bg-color-primary w-full"
+                                    onClick={(e) => startAcceptProcess(e)}
+                                >
+                                    Accept Request
+                                </Button>
+                                <Button
+                                    className="w-full"
+                                    onClick={(e) => startRejectProcess(e)}
+                                    variant="destructive"
+                                >
+                                    Reject Request
+                                </Button>
+                            </div>
                         )}
-                        <Button
-                            className="bg-color-primary w-full"
-                            // button disabled if request is not active
-                            disabled={
-                                !ACTIVE_STATUSES.includes(request.status) ||
-                                priceOffer === request.price // haven't made any changes yet
-                            }
-                            onClick={updateRequest}
-                        >
-                            {loading ? (
-                                <CircularProgress size={24} color="inherit" />
-                            ) : (
-                                "Update Request"
-                            )}
-                        </Button>
+                        {CONFIRMED_STATUSES.includes(request.status) && (
+                            <div className="flex justify-between items-center gap-4">
+                                <Link href={"/host/booking"}>
+                                    <Button className="bg-color-primary w-full">
+                                        See Booking Details
+                                    </Button>
+                                </Link>
+                            </div>
+                        )}
+                        {PAST_STATUSES.includes(request.status) && (
+                            <div className="flex justify-between items-center gap-4">
+                                This request was rejected
+                            </div>
+                        )}
                     </div>
                 </BottomBar>
             </div>

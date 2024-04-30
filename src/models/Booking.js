@@ -23,11 +23,11 @@ const BookingSchema = new Schema(
             type: Number,
             required: true,
         },
-        startDate: {
+        moveInDate: {
             type: Date,
             required: true,
         },
-        endDate: {
+        moveOutDate: {
             type: Date,
             required: true,
         },
@@ -36,7 +36,6 @@ const BookingSchema = new Schema(
         },
         depositAmount: {
             type: Number,
-            required: true,
         },
         tenantDocuments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],
         subtenantDocuments: [{ type: mongoose.Schema.Types.ObjectId, ref: "Document" }],

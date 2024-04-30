@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Carousel from "./Carousel";
+import { ACTIVE_STATUSES, CONFIRMED_STATUSES, PAST_STATUSES } from "@/utils/constants";
 
 // exact same as ListingItem, except Links to request page instead of listing page,
 // and the offer information is displayed slightly differently
@@ -26,42 +27,43 @@ const ListingItemForHostSublets = ({ listing, requests, activeTab, showActiveBid
     const renderPriceText = () => {
         switch (activeTab) {
             case "past":
-                // showing nothing for past tab
+                // For the "past" tab, we're showing nothing
                 return null;
             case "active":
-                if (requests.every((request) => request.status === "rejected")) {
-                    // there are offers, but they're all rejected
+                const activeRequests = requests.filter(request => 
+                    ACTIVE_STATUSES.includes(request.status));
+                const highestActiveRequestPrice = activeRequests.reduce((max, request) => 
+                    request.price > max ? request.price : max, 0);
+    
+                if (activeRequests.length === 0 || activeRequests.every(request => PAST_STATUSES.includes(request.status))) {
+                    // No active offers or all offers are rejected
                     return <h3 className="font-medium text-color-warning">No Offers</h3>;
                 } else if (highestActiveRequestPrice) {
-                    // there are un-rejected offers, show highest offer
+                    // There are active offers; show the highest offer
                     return (
                         <h3 className="font-medium text-color-pass">
                             Highest Offer: {highestActiveRequestPrice}
                         </h3>
                     );
-                } else {
-                    // no offers placed yet
-                    return <h3 className="font-medium text-color-warning">No Offers</h3>;
                 }
+                break;
             case "confirmed":
-                const confirmedRequest = requests.find((request) => request.status === "confirmed");
+                const confirmedRequest = requests.find(request => 
+                    CONFIRMED_STATUSES.includes(request.status));
                 if (confirmedRequest) {
-                    // there is a confirmed request, show its price
+                    // There is a confirmed request; show its price
                     return (
                         <h3 className="font-medium text-color-pass">
                             Confirmed Offer: {confirmedRequest.price}
                         </h3>
                     );
                 } else {
-                    // should reaching here be possible for confirmed tab?
-                    // my thinking says no, but this scenario is still happening in practice
-                    // maybe I'm misunderstanding all this logic somehow, but I made the changes exactly as suggested!
-                    // active listings are published = true, past listings are expired, confirmed listings are isBooked = true
-                    // I feel like we'll be able to streamline all of this once we sort out the request logic fully
-                    return <h3 className="font-medium text-color-warning">No Offers</h3>;
+                    // Logically, if we're on the "confirmed" tab but find no confirmed request, something might be off
+                    return <h3 className="font-medium text-color-warning">No Confirmed Offers</h3>;
                 }
         }
     };
+    
 
     return (
         <div className="relative">
